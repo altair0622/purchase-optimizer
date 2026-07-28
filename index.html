@@ -129,7 +129,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.10</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.11</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -172,7 +172,7 @@
       <button id="fillBtn" type="button">채우기</button>
       <span class="muted" id="pasteMsg"></span>
     </div>
-    <p class="cpp-note">URL을 넣으면 <b>판매처·카테고리·캐시백 링크 자동</b>. 가격은 보안상 자동으로 못 읽어 — <b>제목+가격까지 통째로</b> 붙여넣으면 이름·가격도 채워져.</p>
+    <p class="cpp-note">URL을 넣으면 <b>판매처·카테고리·상품명 자동 + 가격도 자동 조회</b>(일부 사이트는 막아서 실패하면 직접 입력). 제목+가격을 통째로 붙여넣어도 돼.</p>
   </div>
 
   <!-- 1. 상품 (공통) -->
@@ -263,7 +263,8 @@
 
   <!-- 3. 판매처 시나리오 비교 (핵심) -->
   <div class="card product-only">
-    <h2><span class="num">3</span> 어디서 살까? <span class="tag">판매처별 가격·포털·오퍼 → 순비용 비교</span></h2>
+    <h2><span class="num">3</span> 어디서 살까? <span class="tag">같은 상품을 파는 곳들을 모아서 순비용으로 비교</span></h2>
+    <p class="muted" id="sellerSearch" style="margin:0 0 12px"></p>
     <div id="scenarios"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
       <button id="addScenario" class="mini" type="button">＋ 다른 판매처 추가</button>
@@ -299,7 +300,7 @@
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.10 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
+    v0.11 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
   </p>
 </div>
 
@@ -527,6 +528,51 @@ function portalLinksHTML(store, domain){
     (known?"":` <span style="color:var(--warn)">— 추정 링크(안 열리면 "${store}" 검색)</span>`);
 }
 
+// ===== 가격 자동 조회 (CORS 프록시 경유, 상품 페이지의 JSON-LD/og:price 파싱) =====
+function findLdPrice(j){ if(!j) return null;
+  if(Array.isArray(j)){ for(const x of j){ const p=findLdPrice(x); if(p) return p; } return null; }
+  if(typeof j==='object'){
+    if(j.offers){ const o=Array.isArray(j.offers)?j.offers[0]:j.offers;
+      const p=o&&(o.price!=null?o.price:o.lowPrice); if(p!=null){ const n=+String(p).replace(/[^0-9.]/g,''); if(n>0) return n; } }
+    for(const k of ['@graph','mainEntity','itemListElement','item']){ if(j[k]){ const p=findLdPrice(j[k]); if(p) return p; } }
+  }
+  return null;
+}
+async function fetchPrice(url){
+  const prox='https://api.allorigins.win/raw?url='+encodeURIComponent(url);
+  const ctrl=new AbortController(); const tm=setTimeout(()=>ctrl.abort(),15000);
+  try{
+    const res=await fetch(prox,{signal:ctrl.signal});
+    const html=await res.text();
+    // 1) JSON-LD (가장 신뢰)
+    for(const m of html.matchAll(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)){
+      try{ const p=findLdPrice(JSON.parse(m[1].trim())); if(p) return p; }catch(e){}
+    }
+    // 2) og:price / product:price 메타
+    let m=html.match(/(?:og|product):price:amount["'][^>]*content=["']\$?([\d,]+(?:\.\d{1,2})?)/i)
+        || html.match(/content=["']\$?([\d,]+(?:\.\d{1,2})?)["'][^>]*(?:og|product):price:amount/i)
+        || html.match(/itemprop=["']price["'][^>]*content=["']\$?([\d,]+(?:\.\d{1,2})?)/i);
+    if(m){ const n=+m[1].replace(/,/g,''); if(n>0) return n; }
+    // 3) "price":"123.45" 패턴 (마지막 수단)
+    m=html.match(/"price"\s*:\s*"?\$?(\d{1,5}(?:\.\d{1,2})?)"?/);
+    if(m){ const n=+m[1]; if(n>0) return n; }
+    return null;
+  } finally { clearTimeout(tm); }
+}
+async function tryFetchPrice(url, sc, statusEl){
+  if(statusEl) statusEl.innerHTML+=' <span class="fetchp">· ⏳ 가격 자동 조회 중…</span>';
+  let p=null; try{ p=await fetchPrice(url); }catch(e){}
+  const clean=()=>{ if(statusEl){ const s=statusEl.querySelector('.fetchp'); if(s) s.remove(); } };
+  if(p&&p>0&&findScenario(sc.id)){
+    sc.price=p; const el=document.getElementById('scard-'+sc.id);
+    if(el) el.querySelector('.s-price').value=p;
+    clean(); if(statusEl) statusEl.innerHTML+=` <b style="color:var(--accent)">💲 ${money(p)} 자동 입력됨 — 맞는지 확인!</b>`;
+    recompute();
+  } else {
+    clean(); if(statusEl) statusEl.innerHTML+=' <b style="color:var(--warn)">가격 자동 조회 실패(사이트가 막음) — 직접 넣어줘</b>';
+  }
+}
+
 // ===== 유틸 =====
 function v(id){ return document.getElementById(id).value; }
 function money(n){ const s=(n<0?"-$":"$"); return s+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -643,7 +689,19 @@ function buildScenarioCard(sc){
 function findScenario(id){ return scenarios.find(s=>s.id==id); }
 
 function wireScenarioCard(el){
-  el.querySelector('.s-store').addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid); sc.store=e.target.value; sc.domain=""; recognizeStore(sc,true); updatePortalLinks(sc); recompute(); });
+  el.querySelector('.s-store').addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid);
+    const val=e.target.value.trim();
+    if(/^https?:\/\//i.test(val)){ // 상품 URL을 통째로 붙여넣은 경우: 판매처 파싱 + 가격 자동 조회
+      try{
+        const u=new URL(val); sc.domain=u.hostname.replace(/^www\./,'');
+        const hit=matchStore(sc.domain); sc.store=hit?hit.name:prettyDomain(sc.domain);
+        e.target.value=sc.store;
+        recognizeStore(sc,true); updatePortalLinks(sc); recompute();
+        tryFetchPrice(val, sc, document.getElementById('shint-'+sc.id));
+        return;
+      }catch(err){}
+    }
+    sc.store=e.target.value; sc.domain=""; recognizeStore(sc,true); updatePortalLinks(sc); recompute(); });
   el.querySelector('.s-price').addEventListener('input',e=>{ findScenario(e.target.dataset.sid).price=+e.target.value||0; recompute(); });
   el.querySelector('.s-portal').addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid); sc.portalPct=+e.target.value||0; sc.lastChecked=todayStr(); recompute(); });
   el.querySelector('.s-portalname').addEventListener('input',e=>{ findScenario(e.target.dataset.sid).portalName=e.target.value; recompute(); });
@@ -726,8 +784,23 @@ function scenarioResult(sc, cat){
   return {sc,price,rows,best,portalVal,rewardVal,net,flipped};
 }
 
+function renderSellerSearch(){
+  const el=document.getElementById('sellerSearch'); if(!el) return;
+  const name=(v('pname')||'').trim();
+  if(!name){ el.innerHTML=''; return; }
+  const q=encodeURIComponent(name);
+  el.innerHTML=`🔍 <b>"${name}"</b> 파는 다른 곳 찾기: `+
+    `<a target="_blank" href="https://www.google.com/search?tbm=shop&q=${q}">Google 쇼핑</a> · `+
+    `<a target="_blank" href="https://www.amazon.com/s?k=${q}">Amazon</a> · `+
+    `<a target="_blank" href="https://www.walmart.com/search?q=${q}">Walmart</a> · `+
+    `<a target="_blank" href="https://www.target.com/s?searchTerm=${q}">Target</a> · `+
+    `<a target="_blank" href="https://www.ebay.com/sch/i.html?_nkw=${q}">eBay</a>`+
+    `<br><span class="tag">찾은 상품 페이지의 <b>URL을 복사해서 아래 판매처 칸에 붙여넣으면</b> 판매처·가격이 자동으로 채워져 → A.어디서 · B.어느 카드 · C.어느 캐시백 루트가 한 번에 비교돼</span>`;
+}
+
 function recompute(){
   const cat=v('cat');
+  renderSellerSearch();
   if(!CARDS.length){
     document.getElementById('finalConclusion').innerHTML='먼저 위 <b>👛 내 카드</b>에서 카드를 하나 이상 골라줘.';
     document.getElementById('compareBody').innerHTML=""; document.getElementById('cardbody').innerHTML="";
@@ -967,7 +1040,8 @@ function parsePaste(){
     }catch(e){}
   }
   recompute();
-  msg.innerHTML = filled.length ? ('<b style="color:var(--accent)">✅ 채웠어:</b> '+[...new Set(filled)].join(", ")+(pm?"":' · <b style="color:var(--warn)">가격은 직접 넣어줘</b>')) : "URL/가격을 못 찾았어 — 제목+가격을 통째로 붙여넣어봐.";
+  msg.innerHTML = filled.length ? ('<b style="color:var(--accent)">✅ 채웠어:</b> '+[...new Set(filled)].join(", ")) : "URL/가격을 못 찾았어 — 제목+가격을 통째로 붙여넣어봐.";
+  if(um && !pm && filled.length) tryFetchPrice(um[0], sc, msg); // 가격이 없으면 자동 조회 시도
 }
 
 // ===== 저장/복원 =====
