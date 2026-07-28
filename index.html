@@ -710,6 +710,7 @@ function wireScenarioCard(el){
         const u=new URL(val); sc.domain=u.hostname.replace(/^www\./,'');
         const hit=matchStore(sc.domain); sc.store=hit?hit.name:prettyDomain(sc.domain);
         e.target.value=sc.store;
+        sc.price=0; const pEl=el.querySelector('.s-price'); if(pEl) pEl.value=0; // 새 URL → 이전 가격 리셋
         recognizeStore(sc,true); updatePortalLinks(sc); recompute();
         tryFetchPrice(val, sc, document.getElementById('shint-'+sc.id));
         return;
@@ -1055,7 +1056,10 @@ function parsePaste(){
   }
   recompute();
   msg.innerHTML = filled.length ? ('<b style="color:var(--accent)">✅ 채웠어:</b> '+[...new Set(filled)].join(", ")) : "URL/가격을 못 찾았어 — 제목+가격을 통째로 붙여넣어봐.";
-  if(um && !pm && filled.length) tryFetchPrice(um[0], sc, msg); // 가격이 없으면 자동 조회 시도
+  if(um && !pm && filled.length){ // 새 상품 URL인데 가격이 없으면: 이전 가격 리셋 후 자동 조회
+    sc.price=0; el.querySelector('.s-price').value=0; recompute();
+    tryFetchPrice(um[0], sc, msg);
+  }
 }
 
 // ===== 저장/복원 =====
