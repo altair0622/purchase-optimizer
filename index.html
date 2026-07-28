@@ -129,7 +129,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.8</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.9</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -299,7 +299,7 @@
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.8 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
+    v0.9 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
   </p>
 </div>
 
@@ -457,19 +457,20 @@ const STORES = {
   crocs:{name:"Crocs", cat:"online", cbm:"crocs", rk:"crocs", tcb:"crocs"},
 };
 function slug(s){ return (s||"").toLowerCase().replace(/&/g,"and").replace(/'/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
-function matchStore(hint){ const h=(hint||"").toLowerCase().replace(/[^a-z0-9]/g,""); for(const k in STORES){ if(h.includes(k)) return {key:k,...STORES[k]}; } return null; }
+function normStore(s){ return (s||"").toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]/g,""); }
+function matchStore(hint){ const h=normStore(hint); for(const k in STORES){ if(h.includes(k)) return {key:k,...STORES[k]}; } return null; }
 function levenshtein(a,b){ a=a||""; b=b||""; const m=a.length,n=b.length; if(!m)return n; if(!n)return m;
   let prev=Array.from({length:n+1},(_,j)=>j), cur=new Array(n+1);
   for(let i=1;i<=m;i++){ cur[0]=i; for(let j=1;j<=n;j++){ cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1)); } [prev,cur]=[cur,prev]; }
   return prev[n]; }
 function fuzzyStore(hint){
-  const h=(hint||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+  const h=normStore(hint);
   if(h.length<2) return null;
-  for(const k in STORES){ if(h.includes(k)) return {key:k,...STORES[k],exact:true}; }
+  for(const k in STORES){ if(h.includes(k)||h===normStore(STORES[k].name)) return {key:k,...STORES[k],exact:true}; }
   if(h.length<5) return null;
   let best=null;
   for(const k in STORES){
-    const nameNorm=STORES[k].name.toLowerCase().replace(/[^a-z0-9]/g,"");
+    const nameNorm=normStore(STORES[k].name);
     const d=Math.min(levenshtein(h,k), levenshtein(h,nameNorm));
     const ref=Math.max(h.length,k.length);
     if(d<=2 && d<=Math.floor(ref*0.34)){ if(!best||d<best.d) best={key:k,...STORES[k],d}; }
@@ -581,6 +582,7 @@ function buildScenarioCard(sc){
           <div><label>판매처</label><input class="s-store" data-sid="${sc.id}" value="${sc.store||""}"></div>
           <div><label>가격 ($)</label><input class="s-price" type="number" min="0" step="1" data-sid="${sc.id}" value="${sc.price||0}"></div>
         </div>
+        <p class="muted" id="shint-${sc.id}" style="margin:4px 0 0"></p>
       </div>
       <div style="text-align:right">
         <div class="winbadge" id="badge-${sc.id}" style="display:none">최저가</div>
@@ -608,7 +610,7 @@ function buildScenarioCard(sc){
 function findScenario(id){ return scenarios.find(s=>s.id==id); }
 
 function wireScenarioCard(el){
-  el.querySelector('.s-store').addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid); sc.store=e.target.value; sc.domain=""; updatePortalLinks(sc); recompute(); });
+  el.querySelector('.s-store').addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid); sc.store=e.target.value; sc.domain=""; recognizeStore(sc,true); updatePortalLinks(sc); recompute(); });
   el.querySelector('.s-price').addEventListener('input',e=>{ findScenario(e.target.dataset.sid).price=+e.target.value||0; recompute(); });
   el.querySelector('.s-portal').addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid); sc.portalPct=+e.target.value||0; sc.lastChecked=todayStr(); recompute(); });
   el.querySelector('.s-portalname').addEventListener('input',e=>{ findScenario(e.target.dataset.sid).portalName=e.target.value; recompute(); });
@@ -629,9 +631,22 @@ function wireScenarioCard(el){
     window.open("https://secure.chase.com/web/auth/dashboard#/dashboard/offers/hub","_blank");
     recompute();
   });
-  updatePortalLinks(findScenario(el.dataset ? el.dataset.sid : el.id.replace('scard-','')));
+  const sc0=findScenario(el.dataset ? el.dataset.sid : el.id.replace('scard-',''));
+  recognizeStore(sc0,false); // 로드 시엔 힌트만 (저장된 카테고리 안 덮음)
+  updatePortalLinks(sc0);
 }
 
+// 상품 모드 판매처 인식: 카테고리 자동(setCat=true일 때) + "✅ 인식됨" 힌트
+function recognizeStore(sc, setCat){
+  const h=document.getElementById('shint-'+sc.id); if(!h) return;
+  const fz=fuzzyStore(sc.store) || (sc.domain?fuzzyStore(sc.domain):null);
+  if(fz){
+    if(setCat) document.getElementById('cat').value=fz.cat;
+    h.innerHTML=(fz.exact?`✅ <b>${fz.name}</b> 인식됨`:`🔎 '<b>${fz.name}</b>'로 인식 (오타 보정)`)+` — 카테고리: ${CATNAME[fz.cat]}`;
+  } else {
+    h.innerHTML=(sc.store||'').trim()? `등록 안 된 판매처 — 1번 카테고리를 직접 확인해줘 (계산은 그대로 돼)` : '';
+  }
+}
 function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id); if(!p) return;
   let extra="";
   const hit=matchStore(sc.domain)||matchStore(sc.store);
@@ -896,7 +911,7 @@ function parsePaste(){
     if(domain){ sc.domain=domain; const hit=matchStore(domain);
       if(hit){ sc.store=hit.name; document.getElementById('cat').value=hit.cat; filled.push("판매처("+hit.name+")","카테고리"); }
       else { sc.store=prettyDomain(domain); filled.push("판매처(추정)"); }
-      el.querySelector('.s-store').value=sc.store; updatePortalLinks(sc);
+      el.querySelector('.s-store').value=sc.store; recognizeStore(sc,true); updatePortalLinks(sc);
     }
   }
   const pm=raw.match(/\$\s?(\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)/);
