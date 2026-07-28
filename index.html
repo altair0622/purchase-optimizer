@@ -538,26 +538,40 @@ function findLdPrice(j){ if(!j) return null;
   }
   return null;
 }
+function parsePriceFromHtml(html){
+  // 1) JSON-LD (가장 신뢰)
+  for(const m of html.matchAll(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)){
+    try{ const p=findLdPrice(JSON.parse(m[1].trim())); if(p) return p; }catch(e){}
+  }
+  // 2) og:price / itemprop 메타
+  let m=html.match(/(?:og|product):price:amount["'][^>]*content=["']\$?([\d,]+(?:\.\d{1,2})?)/i)
+      || html.match(/content=["']\$?([\d,]+(?:\.\d{1,2})?)["'][^>]*(?:og|product):price:amount/i)
+      || html.match(/itemprop=["']price["'][^>]*content=["']\$?([\d,]+(?:\.\d{1,2})?)/i);
+  if(m){ const n=+m[1].replace(/,/g,''); if(n>0) return n; }
+  // 3) "price":"123.45" JSON 패턴
+  m=html.match(/"price"\s*:\s*"?\$?(\d{1,5}(?:\.\d{1,2})?)"?/);
+  if(m&&+m[1]>0) return +m[1];
+  // 4) 본문 텍스트 "$24.99" (텍스트 프록시용 마지막 수단)
+  m=html.match(/\$\s?(\d{1,3}(?:,\d{3})*\.\d{2})/);
+  if(m){ const n=+m[1].replace(/,/g,''); if(n>0) return n; }
+  return null;
+}
+// 프록시 폴백 체인 — 하나가 죽어도 다음으로 (전부 무료 공개 프록시, 상품 URL만 전달됨)
+const PRICE_PROXIES=[
+  u=>'https://corsproxy.io/?url='+encodeURIComponent(u),
+  u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
+  u=>'https://r.jina.ai/'+u,
+];
 async function fetchPrice(url){
-  const prox='https://api.allorigins.win/raw?url='+encodeURIComponent(url);
-  const ctrl=new AbortController(); const tm=setTimeout(()=>ctrl.abort(),15000);
-  try{
-    const res=await fetch(prox,{signal:ctrl.signal});
-    const html=await res.text();
-    // 1) JSON-LD (가장 신뢰)
-    for(const m of html.matchAll(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)){
-      try{ const p=findLdPrice(JSON.parse(m[1].trim())); if(p) return p; }catch(e){}
-    }
-    // 2) og:price / product:price 메타
-    let m=html.match(/(?:og|product):price:amount["'][^>]*content=["']\$?([\d,]+(?:\.\d{1,2})?)/i)
-        || html.match(/content=["']\$?([\d,]+(?:\.\d{1,2})?)["'][^>]*(?:og|product):price:amount/i)
-        || html.match(/itemprop=["']price["'][^>]*content=["']\$?([\d,]+(?:\.\d{1,2})?)/i);
-    if(m){ const n=+m[1].replace(/,/g,''); if(n>0) return n; }
-    // 3) "price":"123.45" 패턴 (마지막 수단)
-    m=html.match(/"price"\s*:\s*"?\$?(\d{1,5}(?:\.\d{1,2})?)"?/);
-    if(m){ const n=+m[1]; if(n>0) return n; }
-    return null;
-  } finally { clearTimeout(tm); }
+  for(const mk of PRICE_PROXIES){
+    const ctrl=new AbortController(); const tm=setTimeout(()=>ctrl.abort(),10000);
+    try{
+      const res=await fetch(mk(url),{signal:ctrl.signal});
+      if(res.ok){ const p=parsePriceFromHtml(await res.text()); if(p) return p; }
+    }catch(e){}
+    finally{ clearTimeout(tm); }
+  }
+  return null;
 }
 async function tryFetchPrice(url, sc, statusEl){
   if(statusEl) statusEl.innerHTML+=' <span class="fetchp">· ⏳ 가격 자동 조회 중…</span>';
