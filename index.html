@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구매 최적화 계산기</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d21; --muted:#6b7280;
+    --line:#e5e7eb; --accent:#2f6f4f; --accent-soft:#e8f2ec;
+    --warn:#8a5a00; --warn-soft:#fdf3e3; --gold:#b8860b; --danger:#a12727;
+    --best:#2f6f4f; --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:24px 16px 64px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .card h2{font-size:15px;margin:0 0 14px;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
+  .num{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--accent-soft);
+    color:var(--accent);font-size:12px;font-weight:700;align-items:center;justify-content:center}
+  label{display:block;font-size:12px;color:var(--muted);margin:0 0 4px;font-weight:600}
+  input,select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;
+    font-size:14px;background:#fff;color:var(--ink);font-family:inherit}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+  textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;
+    font-size:14px;background:#fff;color:var(--ink);font-family:inherit;resize:vertical;line-height:1.5}
+  button{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 18px;
+    font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+  button:hover{background:#265b40}
+  button.mini{padding:5px 11px;font-size:12px;background:#eef1f4;color:var(--ink);font-weight:600}
+  button.mini:hover{background:#e1e6ea}
+  button.del{background:#fbeaea;color:var(--danger)}
+  button.del:hover{background:#f6dede}
+  .grid{display:grid;gap:12px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr 1fr}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:620px){.g2,.g3,.g4{grid-template-columns:1fr 1fr}}
+  .cpp-note{font-size:11px;color:var(--muted);margin-top:8px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+  th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+  td.r,th.r{text-align:right}
+  tr.best td{background:var(--accent-soft)}
+  .pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;vertical-align:middle}
+  .pill.cash{background:#e6f0ff;color:#1b4fa0}
+  .pill.pts{background:#f3ecff;color:#6b3fa0}
+  .pill.win{background:var(--accent);color:#fff;margin-left:6px}
+  .pill.flip{background:var(--warn-soft);color:var(--warn);margin-left:6px}
+  .tag{font-size:11px;color:var(--muted)}
+  .checkrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .checkrow:last-child{border-bottom:none}
+  .checkrow .name{flex:1;min-width:150px;font-size:13px}
+  .checkrow .name small{color:var(--muted);display:block;font-size:11px}
+  .checkrow input{width:110px}
+  a{color:var(--accent);text-decoration:none;font-weight:600}
+  a:hover{text-decoration:underline}
+  .final{background:linear-gradient(180deg,#fbfdfc,#f2f8f4);border:1px solid #cfe5d8}
+  .final .big{font-size:26px;font-weight:800;color:var(--accent);letter-spacing:-.5px}
+  .note{background:var(--warn-soft);border:1px solid #f0dcb6;border-radius:10px;padding:12px 14px;
+    font-size:13px;color:#5c4200;margin-top:12px}
+  .note b{color:var(--warn)}
+  .muted{color:var(--muted);font-size:12px}
+  .storebox{border:1px dashed var(--gold);background:#fdfaf0;border-radius:10px;padding:12px 14px;font-size:13px;margin-top:12px}
+  .storebox b{color:var(--gold)}
+  /* 판매처 시나리오 카드 */
+  .scard{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:#fff}
+  .scard.win{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .shead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+  .stamp{font-size:11px}
+  .stale{color:var(--danger);font-weight:700}
+  .fresh{color:var(--muted)}
+  details{margin-top:10px}
+  details summary{cursor:pointer;font-size:12px;color:var(--accent);font-weight:700;padding:4px 0;list-style:none}
+  details summary::-webkit-details-marker{display:none}
+  details summary::before{content:"▸ ";}
+  details[open] summary::before{content:"▾ ";}
+  .scomp{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;
+    padding-top:10px;border-top:1px dashed var(--line);flex-wrap:wrap}
+  .scomp .net{font-size:19px;font-weight:800;color:var(--accent)}
+  .winbadge{display:inline-block;background:var(--accent);color:#fff;font-size:10px;font-weight:700;
+    padding:2px 8px;border-radius:20px}
+  /* 모드 토글 + 사이트 모드 */
+  .modebar{display:inline-flex;background:#eef1f4;border-radius:11px;padding:3px;margin:0 0 18px;gap:3px}
+  .modebar button{background:transparent;color:var(--muted);font-weight:700;padding:9px 16px;border-radius:9px;font-size:13px}
+  .modebar button:hover{background:#e4e8ec}
+  .modebar button.on{background:#fff;color:var(--accent);box-shadow:var(--shadow)}
+  .modebar button.on:hover{background:#fff}
+  .bigrec{background:linear-gradient(180deg,#fbfdfc,#f2f8f4);border:1px solid #cfe5d8;border-radius:12px;padding:16px;margin:4px 0 16px}
+  .bigrec .lab{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.3px}
+  .bigrec .big{font-size:23px;font-weight:800;color:var(--accent);letter-spacing:-.4px;margin:2px 0}
+  .portalbtns{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 4px}
+  .pbtn{flex:1;min-width:170px;text-align:center;padding:15px 10px;border-radius:11px;font-weight:800;
+    color:#fff;text-decoration:none;font-size:15px}
+  .pbtn:hover{opacity:.9;text-decoration:none}
+  .pbtn.cap{background:#004879}
+  .pbtn.rk{background:#e0115f}
+  .pbtn small{display:block;font-size:11px;font-weight:600;opacity:.85;margin-top:2px}
+  .winner{font-weight:800;color:var(--accent)}
+  /* 지갑(온보딩) */
+  .walletcard{background:linear-gradient(180deg,#fbfdfc,#f4f8f5);border:1px solid #cfe5d8}
+  .walletcat{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+  @media(max-width:620px){.walletcat{grid-template-columns:1fr}}
+  .wgroup{margin-bottom:2px}
+  .wglab{font-size:11px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 2px}
+  .wcount{font-weight:700;color:var(--accent)}
+  .welcome{background:#fff;border:1px dashed var(--accent);border-radius:11px;padding:14px 16px;margin-bottom:14px}
+  .welcome .wtitle{font-weight:800;color:var(--accent);font-size:15px;margin-bottom:4px}
+  .welcome p{margin:0 0 10px;font-size:13px;color:var(--ink);line-height:1.55}
+  .welcome .wsteps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .welcome .wsteps span{font-size:12px;color:var(--muted);background:var(--accent-soft);border-radius:8px;padding:5px 10px}
+  .welcome .wsteps b{color:var(--accent)}
+  .welcome .arrow{color:var(--accent);font-weight:800;align-self:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>구매 최적화 계산기 <span class="tag">v0.6</span></h1>
+  <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
+
+  <!-- 0. 내 카드 (온보딩) -->
+  <div class="card walletcard" id="walletCard">
+    <h2><span class="num">👛</span> 내 카드 <span class="tag">가진 카드를 골라 지갑을 만들어 — 이 브라우저에 저장돼</span></h2>
+    <div id="walletWelcome" style="display:none">
+      <div class="welcome">
+        <div class="wtitle">👋 여기서 시작하세요</div>
+        <p>가진 신용카드를 아래에서 골라 <b>내 지갑</b>을 만들면 — <b>뭘 · 어디서 · 어느 카드로</b> 사는 게 제일 이득인지 이 계산기가 자동으로 알려줘요.</p>
+        <div class="wsteps">
+          <span><b>①</b> 아래에서 내 카드 고르기</span><span class="arrow">→</span>
+          <span><b>②</b> 뭘 살지 입력</span><span class="arrow">→</span>
+          <span><b>③</b> 최적 판매처·카드·링크 확인</span>
+        </div>
+        <button class="mini" id="walletExample" type="button">🔎 일단 인기 카드로 예시 보기</button>
+        <span class="muted" style="margin-left:8px">— 어떻게 작동하는지 미리 볼 수 있어(나중에 네 카드로 바꿔)</span>
+      </div>
+    </div>
+    <input id="walletSearch" placeholder="카드 검색 (예: Sapphire, Gold, Double Cash, Venture)" style="margin-bottom:12px">
+    <div id="walletCatalog" class="walletcat"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:8px">
+      <span class="muted"><span class="wcount" id="walletCount">0장</span> 선택됨 · 지갑이 아래 계산 전체에 반영돼</span>
+      <span style="display:flex;gap:8px"><button class="mini" id="walletShare" type="button">🔗 지갑 공유 링크</button><button class="mini del" id="walletClear" type="button">비우기</button></span>
+    </div>
+    <p class="cpp-note">카드 적립률은 2026년 기준 대표값을 7개 카테고리로 단순화한 거야 — 실제 카드 약관/한도와 다를 수 있으니 참고용. 정확한 값은 각자 조정 가능(포인트 가치).</p>
+  </div>
+
+  <div class="modebar">
+    <button id="modeProduct" type="button" class="on">🛒 상품 모드 <small style="font-weight:600;font-size:11px;opacity:.8">가격으로 순비용</small></button>
+    <button id="modeSite" type="button">🏬 사이트 모드 <small style="font-weight:600;font-size:11px;opacity:.8">가격 없이 카드+링크</small></button>
+  </div>
+
+  <!-- 빠른 채우기 -->
+  <div class="card product-only">
+    <h2><span class="num">＋</span> 빠르게 채우기 <span class="tag">URL / 상품 정보 → 첫 판매처에 입력</span></h2>
+    <label>상품 URL, 또는 상품 페이지에서 복사한 제목·가격을 붙여넣기</label>
+    <textarea id="paste" rows="2" placeholder="예)  https://www.crateandbarrel.com/grayson-loft-bed/...
+또는  Grayson 로프트 베드   $1,699   를 통째로 붙여넣기"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+      <button id="fillBtn" type="button">채우기</button>
+      <span class="muted" id="pasteMsg"></span>
+    </div>
+    <p class="cpp-note">URL이면 <b>판매처·카테고리 자동</b>, 캐시백 링크도 그 판매처로. <b>가격은 브라우저가 자동으로 못 읽어</b>(보안) — 직접 넣거나, Claude에게 "이 URL 파싱해줘". 제목+가격을 통째로 붙여넣으면 이름·가격도 잡혀.</p>
+  </div>
+
+  <!-- 1. 상품 (공통) -->
+  <div class="card product-only">
+    <h2><span class="num">1</span> 무엇을 사려고?</h2>
+    <div class="grid g2">
+      <div>
+        <label>상품명</label>
+        <input id="pname" value="Grayson 로프트 베드">
+      </div>
+      <div>
+        <label>카테고리 (모든 판매처 공통)</label>
+        <select id="cat">
+          <option value="general" selected>기타/일반 (가구·홈·백화점 등)</option>
+          <option value="online">온라인 쇼핑</option>
+          <option value="dining">외식 (레스토랑·배달)</option>
+          <option value="grocery">마트/식료품 (미국)</option>
+          <option value="gas">주유·EV충전·대중교통</option>
+          <option value="drugstore">약국</option>
+          <option value="travel">여행 (항공·호텔)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 포인트 가치 (공통, 동적) -->
+  <div class="card">
+    <h2><span class="num">2</span> 포인트 가치 (1포인트 = ? 센트)</h2>
+    <div class="grid g4" id="cppInputs"></div>
+    <p class="cpp-note">✏️ <b>여기 숫자는 직접 바꿀 수 있어</b> — 바꾸면 순위가 바로 다시 계산되고 이 브라우저에 자동 저장돼. 네 지갑에 있는 카드가 쌓는 포인트만 여기 나와. <b>현금 캐시백은 항상 1.0</b>(확정), 항공/호텔 포인트는 어떻게 쓰느냐에 따라 달라지는 <b>변동성</b>이야.</p>
+    <details id="cppSrc" style="margin-top:6px"></details>
+  </div>
+
+  <!-- 사이트 모드: 가격 없이 카드 + 링크만 -->
+  <div class="card site-only" id="siteMode" style="display:none">
+    <h2><span class="num">◆</span> 사이트 단위 추천 <span class="tag">가격 없이 — 어느 카드 · 어느 링크로 들어갈지</span></h2>
+    <div class="grid g2">
+      <div>
+        <label>판매처 (사이트)</label>
+        <input id="siteStore" placeholder="예: Nordstrom, Best Buy, Sephora…">
+        <p class="muted" id="siteStoreHint" style="margin:4px 0 0"></p>
+      </div>
+      <div>
+        <label>카테고리</label>
+        <select id="siteCat">
+          <option value="general">기타/일반 (가구·홈·백화점 등)</option>
+          <option value="online">온라인 쇼핑</option>
+          <option value="dining">외식 (레스토랑·배달)</option>
+          <option value="grocery">마트/식료품 (미국)</option>
+          <option value="gas">주유·EV충전·대중교통</option>
+          <option value="drugstore">약국</option>
+          <option value="travel">여행 (항공·호텔)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="siteRec" style="margin-top:14px"></div>
+
+    <div style="margin-top:8px">
+      <label>어느 링크로 들어갈까 <span class="muted" style="font-weight:600">— 캐시백 포털 (카드와 무관하게 추가 적립)</span></label>
+      <div class="portalbtns" id="sitePortalBtns"></div>
+      <div class="grid g2" style="margin-top:6px">
+        <div><label>CapOne Shopping 오늘 %</label><input id="capPct" type="number" min="0" step="0.5" value="0"></div>
+        <div><label>Rakuten 오늘 %</label><input id="rkPct" type="number" min="0" step="0.5" value="0"></div>
+      </div>
+      <p class="muted" id="siteBaseline" style="margin:6px 0 0"></p>
+      <p class="muted" id="portalWinner" style="margin:8px 0 0"></p>
+      <p class="muted" id="siteCompare" style="margin:4px 0 0"></p>
+      <div class="refslot"></div>
+      <details style="margin-top:10px">
+        <summary>💡 캐시백 포털이 뭐야? — 모르면 그냥 놓치는 돈</summary>
+        <p class="muted" style="margin:6px 0 0">Rakuten·Capital One Shopping 같은 <b>캐시백 포털</b>은, 거기를 <b>경유해서</b>(위 버튼 클릭 후) 같은 쇼핑몰에서 평소처럼 결제하면 구매액의 <b>1~10%를 현금으로</b> 돌려줘. 회원가입 무료고, <b>카드 적립과 중복</b>이라 사실상 공짜 돈이야. 더 중요한 건 — 같은 물건을 두 사이트에서 판다면 <b>캐시백 %가 높은 쪽에서 사는 게 최종적으로 더 쌀 수</b> 있다는 것. 그 비교가 이 계산기의 핵심이야(정확한 비교는 🛒 상품 모드).</p>
+      </details>
+    </div>
+
+    <details id="siteOfferDetails" style="margin-top:14px">
+      <summary>이 사이트에 오퍼 있는 카드 체크 <span class="muted" style="font-weight:600">— 있으면 ⭐, 큰 금액이면 순위 역전 가능</span></summary>
+      <p class="muted" style="margin:4px 0 6px">오퍼 확인:
+        <a href="https://global.americanexpress.com/offers/eligible" target="_blank">Amex 허브</a> ·
+        <a href="https://secure.chase.com/web/auth/dashboard#/dashboard/offers/hub" target="_blank">Chase 허브</a>
+        (읽기 전용 — 활성화 "적립"은 살 때 직접). 이 사이트에 오퍼 있는 카드만 체크.</p>
+      <div id="siteOfferChecks"></div>
+    </details>
+    <div class="note" id="siteOfferNote" style="margin-top:12px">
+      <b>오퍼는?</b> 카드 오퍼는 <b>금액이 있어야</b> 달러로 정확히 계산돼 — 큰 구매면 <b>🛒 상품 모드</b>로. 여기선 "있다/없다"만 표시해서, 금액이 크면 ⭐ 카드가 위 순위를 <b>뒤집을 수</b> 있음을 짚어줘.
+    </div>
+  </div>
+
+  <!-- 3. 판매처 시나리오 비교 (핵심) -->
+  <div class="card product-only">
+    <h2><span class="num">3</span> 어디서 살까? <span class="tag">판매처별 가격·포털·오퍼 → 순비용 비교</span></h2>
+    <div id="scenarios"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+      <button id="addScenario" class="mini" type="button">＋ 다른 판매처 추가</button>
+      <button id="updateAll" class="mini" type="button">🔄 전체 오퍼 재확인(오늘로 갱신)</button>
+    </div>
+    <p class="muted" style="margin-top:10px">💡 <b>순비용 = 가격 − 카드 리워드가치 − 그 카드 오퍼 − 포털 캐시백</b>. 제일 낮은 판매처가 초록색. 오퍼는 가맹점별이라 판매처마다 최적 카드가 달라질 수 있어.</p>
+    <div class="refslot"></div>
+  </div>
+
+  <!-- 4. 최종 결론 -->
+  <div class="card final product-only">
+    <h2><span class="num">4</span> 결론 — 이렇게 사면 제일 싸다</h2>
+    <div id="finalConclusion" style="font-size:14px">—</div>
+    <div style="overflow-x:auto;margin-top:14px">
+      <table>
+        <thead><tr><th>순위 · 판매처</th><th>가격</th><th>최적 카드</th><th class="r">리워드+오퍼</th><th class="r">포털</th><th class="r">실질 순비용</th></tr></thead>
+        <tbody id="compareBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5. 최적 판매처의 카드 순위 상세 -->
+  <div class="card product-only">
+    <h2><span class="num">5</span> 최적 판매처의 카드 순위 <span class="tag" id="detailStore"></span></h2>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>카드</th><th>적립 계산</th><th class="r">종류</th><th class="r">기본가치</th><th class="r">+오퍼</th><th class="r">총가치</th></tr></thead>
+        <tbody id="cardbody"></tbody>
+      </table>
+    </div>
+    <p class="muted" style="margin-top:10px">초록색 = <b>총가치</b>(기본적립 + 그 카드 오퍼) 1위. <span class="pill cash">현금</span> = 확정 가치, <span class="pill pts">포인트</span> = 변동성.</p>
+    <div class="storebox" id="storeBox"></div>
+  </div>
+
+  <p class="muted" style="text-align:center">
+    v0.6 — 내 카드 지갑 + 🛒 상품 모드 + 🏬 사이트 모드. 입력은 이 브라우저에 자동 저장돼(localStorage). 지갑은 <b>🔗 공유 링크</b>로 다른 기기/사람에게 넘길 수 있어.
+  </p>
+</div>
+
+<script>
+// ===== 포인트 통화 =====
+// label = 짧은 pill용, full = 포인트가치 입력 라벨, cpp = 기본가치(센트)
+const CURRENCIES = {
+  cash:{label:'현금', full:'현금 캐시백', cls:'cash', cpp:1.0, src:'현금은 정의상 1센트=1센트 고정 — 조정 불필요.'},
+  UR:  {label:'UR',   full:'Chase UR',    cls:'pts',  cpp:1.0, src:'현금 상환 기준 1.0¢. 항공·호텔 파트너로 이전해 잘 쓰면 더 높을 수 있어(보수적으로 1.0).'},
+  AMEX:{label:'MR',   full:'Amex MR',     cls:'pts',  cpp:1.1, src:'이전 파트너를 잘 쓰면 1.5~2¢로 보는 평가도 있지만, 보수적으로 1.1¢.'},
+  TY:  {label:'TY',   full:'Citi TY',     cls:'pts',  cpp:1.0, src:'현금·이전 기준 대략 1.0¢.'},
+  C1:  {label:'C1',   full:'Capital One', cls:'pts',  cpp:1.0, src:'이전 파트너 활용 시 1.7¢대 평가도 있으나, 현금성 기준 보수적 1.0¢.'},
+  DL:  {label:'델타',  full:'Delta 마일',  cls:'pts',  cpp:1.1, src:'좌석·노선에 따라 크게 변동. 대략 1.1¢.'},
+  MR:  {label:'메리엇', full:'Marriott',   cls:'pts',  cpp:0.8, src:'무료숙박 잘 쓰면 더 높지만 대략 0.8¢.'},
+  HH:  {label:'힐튼',  full:'Hilton',      cls:'pts',  cpp:0.6, src:'포인트가 많이 필요한 편이라 대략 0.6¢.'},
+};
+const CURRENCY_ORDER = ['cash','UR','AMEX','TY','C1','DL','MR','HH'];
+const TYPE = CURRENCIES; // 표시(label/cls)용 별칭 — 기존 코드 호환
+
+// ===== 카드 카탈로그 =====
+// rates: {category:[배수, 통화]}. 카테고리 = general/online/dining/grocery/gas/drugstore/travel
+const CARD_CATALOG = [
+  // Chase
+  {id:'freedom', short:'Freedom Flex', name:'Chase Freedom Flex', issuer:'Chase', hint:'분기 5% 로테이션 · 외식·약국 3%',
+    rates:{general:[1,'UR'],online:[1,'UR'],dining:[3,'UR'],grocery:[1,'UR'],gas:[5,'UR'],drugstore:[3,'UR'],travel:[5,'UR']}},
+  {id:'freedomu', short:'Freedom Unltd', name:'Chase Freedom Unlimited', issuer:'Chase', hint:'전분야 1.5% · 외식·약국 3%',
+    rates:{general:[1.5,'UR'],online:[1.5,'UR'],dining:[3,'UR'],grocery:[1.5,'UR'],gas:[1.5,'UR'],drugstore:[3,'UR'],travel:[5,'UR']}},
+  {id:'csp', short:'Sapphire Pref', name:'Chase Sapphire Preferred', issuer:'Chase', hint:'외식·온라인식료품 3배 · 여행 2배',
+    rates:{general:[1,'UR'],online:[1,'UR'],dining:[3,'UR'],grocery:[3,'UR'],gas:[1,'UR'],drugstore:[1,'UR'],travel:[2,'UR']}},
+  {id:'csr', short:'Sapphire Res', name:'Chase Sapphire Reserve', issuer:'Chase', hint:'외식·여행 3배',
+    rates:{general:[1,'UR'],online:[1,'UR'],dining:[3,'UR'],grocery:[1,'UR'],gas:[1,'UR'],drugstore:[1,'UR'],travel:[3,'UR']}},
+  {id:'amazonchase', short:'Amazon Prime', name:'Chase Amazon Prime Visa', issuer:'Chase', hint:'Amazon·Whole Foods 5% · 외식·주유·약국 2%',
+    rates:{general:[1,'cash'],online:[5,'cash'],dining:[2,'cash'],grocery:[1,'cash'],gas:[2,'cash'],drugstore:[2,'cash'],travel:[5,'cash']}},
+  {id:'marriott', short:'Marriott', name:'Marriott Bonvoy Boundless', issuer:'Chase', hint:'식료품·주유·외식 3배, 그외 2배',
+    rates:{general:[2,'MR'],online:[2,'MR'],dining:[3,'MR'],grocery:[3,'MR'],gas:[3,'MR'],drugstore:[2,'MR'],travel:[2,'MR']}},
+  // Amex
+  {id:'amexgold', short:'Amex Gold', name:'Amex Gold', issuer:'Amex', hint:'외식·미국마트 4배 · 항공 3배',
+    rates:{general:[1,'AMEX'],online:[1,'AMEX'],dining:[4,'AMEX'],grocery:[4,'AMEX'],gas:[1,'AMEX'],drugstore:[1,'AMEX'],travel:[3,'AMEX']}},
+  {id:'amexplat', short:'Amex Plat', name:'Amex Platinum', issuer:'Amex', hint:'Amex여행 예약 항공·호텔 5배',
+    rates:{general:[1,'AMEX'],online:[1,'AMEX'],dining:[1,'AMEX'],grocery:[1,'AMEX'],gas:[1,'AMEX'],drugstore:[1,'AMEX'],travel:[5,'AMEX']}},
+  {id:'bcp', short:'Blue Cash Pref', name:'Amex Blue Cash Preferred', issuer:'Amex', hint:'미국마트 6% · 주유·대중교통 3%',
+    rates:{general:[1,'cash'],online:[1,'cash'],dining:[1,'cash'],grocery:[6,'cash'],gas:[3,'cash'],drugstore:[1,'cash'],travel:[1,'cash']}},
+  {id:'bce', short:'Blue Cash Evd', name:'Amex Blue Cash Everyday', issuer:'Amex', hint:'마트·온라인·주유 3%',
+    rates:{general:[1,'cash'],online:[3,'cash'],dining:[1,'cash'],grocery:[3,'cash'],gas:[3,'cash'],drugstore:[1,'cash'],travel:[1,'cash']}},
+  {id:'delta', short:'Delta Blue', name:'Amex Delta SkyMiles Blue', issuer:'Amex', hint:'델타·외식 2배',
+    rates:{general:[1,'DL'],online:[1,'DL'],dining:[2,'DL'],grocery:[1,'DL'],gas:[1,'DL'],drugstore:[1,'DL'],travel:[2,'DL']}},
+  {id:'hilton', short:'Hilton', name:'Amex Hilton Honors', issuer:'Amex', hint:'미국 외식·마트·주유 5배, 그외 3배',
+    rates:{general:[3,'HH'],online:[3,'HH'],dining:[5,'HH'],grocery:[5,'HH'],gas:[5,'HH'],drugstore:[3,'HH'],travel:[3,'HH']}},
+  {id:'aspire', short:'Hilton Aspire', name:'Amex Hilton Aspire', issuer:'Amex', hint:'외식·항공 7배, 그외 3배',
+    rates:{general:[3,'HH'],online:[3,'HH'],dining:[7,'HH'],grocery:[3,'HH'],gas:[3,'HH'],drugstore:[3,'HH'],travel:[7,'HH']}},
+  // Citi
+  {id:'doublecash', short:'Double Cash', name:'Citi Double Cash', issuer:'Citi', hint:'전분야 2%',
+    rates:{general:[2,'cash'],online:[2,'cash'],dining:[2,'cash'],grocery:[2,'cash'],gas:[2,'cash'],drugstore:[2,'cash'],travel:[2,'cash']}},
+  {id:'citistrata', short:'Strata Prem', name:'Citi Strata Premier', issuer:'Citi', hint:'외식·마트·주유·여행 3배',
+    rates:{general:[1,'TY'],online:[1,'TY'],dining:[3,'TY'],grocery:[3,'TY'],gas:[3,'TY'],drugstore:[1,'TY'],travel:[3,'TY']}},
+  // Capital One
+  {id:'venturex', short:'Venture X', name:'Capital One Venture X', issuer:'Capital One', hint:'전분야 2배 · Cap1여행 5~10배',
+    rates:{general:[2,'C1'],online:[2,'C1'],dining:[2,'C1'],grocery:[2,'C1'],gas:[2,'C1'],drugstore:[2,'C1'],travel:[5,'C1']}},
+  {id:'venture', short:'Venture', name:'Capital One Venture', issuer:'Capital One', hint:'전분야 2배',
+    rates:{general:[2,'C1'],online:[2,'C1'],dining:[2,'C1'],grocery:[2,'C1'],gas:[2,'C1'],drugstore:[2,'C1'],travel:[2,'C1']}},
+  {id:'savorone', short:'SavorOne', name:'Capital One SavorOne', issuer:'Capital One', hint:'외식·마트·엔터 3%',
+    rates:{general:[1,'cash'],online:[1,'cash'],dining:[3,'cash'],grocery:[3,'cash'],gas:[1,'cash'],drugstore:[1,'cash'],travel:[5,'cash']}},
+  {id:'quicksilver', short:'Quicksilver', name:'Capital One Quicksilver', issuer:'Capital One', hint:'전분야 1.5%',
+    rates:{general:[1.5,'cash'],online:[1.5,'cash'],dining:[1.5,'cash'],grocery:[1.5,'cash'],gas:[1.5,'cash'],drugstore:[1.5,'cash'],travel:[1.5,'cash']}},
+  // Bank of America
+  {id:'bofacash', short:'BofA Cash', name:'BofA Customized Cash', issuer:'Bank of America', hint:'선택 카테고리 3%·마트 2% (기본 온라인 3%로 가정)',
+    rates:{general:[1,'cash'],online:[3,'cash'],dining:[1,'cash'],grocery:[2,'cash'],gas:[1,'cash'],drugstore:[1,'cash'],travel:[1,'cash']}},
+  // Wells Fargo
+  {id:'wfactivecash', short:'Active Cash', name:'Wells Fargo Active Cash', issuer:'Wells Fargo', hint:'전분야 2%',
+    rates:{general:[2,'cash'],online:[2,'cash'],dining:[2,'cash'],grocery:[2,'cash'],gas:[2,'cash'],drugstore:[2,'cash'],travel:[2,'cash']}},
+  {id:'wfautograph', short:'Autograph', name:'Wells Fargo Autograph', issuer:'Wells Fargo', hint:'외식·여행·주유 3배',
+    rates:{general:[1,'cash'],online:[1,'cash'],dining:[3,'cash'],grocery:[1,'cash'],gas:[3,'cash'],drugstore:[1,'cash'],travel:[3,'cash']}},
+  // Discover
+  {id:'discoverit', short:'Discover it', name:'Discover it', issuer:'Discover', hint:'분기 5% 로테이션(그외 1%)',
+    rates:{general:[1,'cash'],online:[1,'cash'],dining:[1,'cash'],grocery:[1,'cash'],gas:[1,'cash'],drugstore:[1,'cash'],travel:[1,'cash']}},
+  // Apple
+  {id:'applecard', short:'Apple Card', name:'Apple Card', issuer:'Apple', hint:'Apple 3% · Apple Pay 2%',
+    rates:{general:[1,'cash'],online:[2,'cash'],dining:[2,'cash'],grocery:[2,'cash'],gas:[2,'cash'],drugstore:[2,'cash'],travel:[2,'cash']}},
+];
+CARD_CATALOG.forEach(c=>{ c.note=c.note||''; c.hint=c.hint||''; c.short=c.short||c.name; });
+const ISSUER_ORDER = ['Chase','Amex','Citi','Capital One','Bank of America','Wells Fargo','Discover','Apple'];
+const DEFAULT_WALLET = ['freedom','freedomu','marriott','delta','hilton','aspire'];
+const EXAMPLE_WALLET = ['freedomu','csp','amexgold','doublecash']; // 첫 방문 '예시 보기'용 (현금·UR·Amex MR 섞여 데모에 좋음)
+
+// ===== 추천(리퍼럴) 링크 — 배포 전 본인 것으로 교체 =====
+// Rakuten: 로그인 → Refer & Earn → 내 링크 복사 (예: https://www.rakuten.com/r/XXXXX)
+// CapOne Shopping: 로그인 → Invite friends → 내 링크 복사 (예: https://capitaloneshopping.com/r/XXXXX)
+// 비워두면 일반 가입 링크로 표시되고, 채우면 추천 링크(가입자·추천인 둘 다 보너스)로 바뀜.
+const REFERRALS = { rakuten:"https://www.rakuten.com/r/ALTAIR42", capone:"https://capitaloneshopping.com/r/9f475707-9b7b-493f-9f17-07e5be29ac7f" };
+
+// ===== 포털 기본율 스냅샷 =====
+// ⚠️ 로그아웃 "기본율"만 — 회원 타겟율(로그인)은 더 높을 수 있음(예: Crocs 공개 3% vs 계정 7%).
+// 갱신법: Claude에게 "포털 기본율 스냅샷 갱신해줘" → 두 포털 공개 페이지 스윕 → 여기 덮어쓰기.
+const PORTAL_RATES = { asOf:"2026-07-28", stores:{
+  crateandbarrel:{rk:{pct:0,listed:true},          cap:{pct:null,listed:true}},
+  cb2:{rk:{pct:2,upTo:true,listed:true},           cap:{pct:0.5,listed:true}},
+  westelm:{rk:{pct:0,listed:true},                 cap:{pct:null,listed:true}},
+  potterybarn:{rk:{pct:0,listed:true},             cap:{pct:null,listed:true}},
+  wayfair:{rk:{pct:0,listed:true},                 cap:{pct:null,listed:true}},
+  ikea:{rk:{pct:2,listed:true},                    cap:{pct:0.5,upTo:true,listed:true}},
+  homedepot:{rk:{pct:0,listed:true},               cap:{pct:0.5,listed:true}},
+  lowes:{rk:{pct:0,listed:true},                   cap:{pct:null,listed:true}},
+  target:{rk:{pct:1,listed:true},                  cap:{pct:0.5,listed:true}},
+  walmart:{rk:{pct:0,listed:true},                 cap:{pct:1,listed:true}},
+  macys:{rk:{pct:4,listed:true},                   cap:{pct:1,upTo:true,listed:true}},
+  amazon:{rk:{pct:null,listed:true},               cap:{pct:null,listed:true}},
+  bestbuy:{rk:{pct:7,upTo:true,listed:true},       cap:{pct:0.5,listed:true}},
+  apple:{rk:{pct:2,listed:true},                   cap:{pct:0.5,listed:true}},
+  nike:{rk:{pct:8,listed:true},                    cap:{pct:2,listed:true}},
+  costco:{rk:{pct:0,listed:true},                  cap:{pct:null,listed:true}},
+  lululemon:{rk:{pct:0,listed:true},               cap:{pct:2,listed:true}},
+  sephora:{rk:{pct:2,listed:true},                 cap:{pct:2,listed:true}},
+  nordstrom:{rk:{pct:2,listed:true},               cap:{pct:null,listed:true}},
+  ulta:{rk:{pct:2,listed:true},                    cap:{pct:2,listed:true}},
+} };
+function baselineFor(key){ return (key && PORTAL_RATES.stores && PORTAL_RATES.stores[key]) || null; }
+function fmtBase(b){ if(!b) return "—"; if(b.listed===false) return "없음"; if(b.pct==null) return "직접 확인"; return (b.upTo?"최대 ":"")+b.pct+"%"; }
+
+const CATNAME = { general:"기타/일반", online:"온라인 쇼핑", dining:"외식", grocery:"마트/식료품",
+                  gas:"주유·EV·대중교통", drugstore:"약국", travel:"여행" };
+
+// ===== 활성 지갑 =====
+let myWallet = [];                 // 선택한 카탈로그 id
+let CARDS = [];                    // 활성 카드(= 지갑)
+let cppValues = {};                // 통화 -> 사용자 조정 센트값
+function activeCards(){ return CARD_CATALOG.filter(c=>myWallet.includes(c.id)); }
+function cppFor(code){ const x=cppValues[code]; return (x==null||isNaN(x)) ? (CURRENCIES[code]?CURRENCIES[code].cpp:1) : +x; }
+function cardMeta(c){ return c.issuer + (c.hint?(' · '+c.hint):''); }
+
+// ===== 판매처 사전 =====
+const STORES = {
+  crateandbarrel:{name:"Crate & Barrel", cat:"general", cbm:"crate-barrel", rk:"crateandbarrel", tcb:"crate-and-barrel"},
+  cb2:{name:"CB2", cat:"general", cbm:"cb2", rk:"cb2", tcb:"cb2"},
+  westelm:{name:"West Elm", cat:"general", cbm:"west-elm", rk:"west-elm", tcb:"west-elm"},
+  potterybarn:{name:"Pottery Barn", cat:"general", cbm:"pottery-barn", rk:"pottery-barn", tcb:"pottery-barn"},
+  wayfair:{name:"Wayfair", cat:"general", cbm:"wayfair", rk:"wayfair", tcb:"wayfair"},
+  ikea:{name:"IKEA", cat:"general", cbm:"ikea", rk:"ikea", tcb:"ikea"},
+  homedepot:{name:"Home Depot", cat:"general", cbm:"home-depot", rk:"the-home-depot", tcb:"home-depot"},
+  lowes:{name:"Lowe's", cat:"general", cbm:"lowes", rk:"lowes", tcb:"lowes"},
+  target:{name:"Target", cat:"general", cbm:"target", rk:"target", tcb:"target"},
+  walmart:{name:"Walmart", cat:"general", cbm:"walmart", rk:"walmart", tcb:"walmart"},
+  macys:{name:"Macy's", cat:"general", cbm:"macys", rk:"macys", tcb:"macys"},
+  amazon:{name:"Amazon", cat:"online", cbm:"amazon", rk:"amazon.com", tcb:"amazon"},
+  bestbuy:{name:"Best Buy", cat:"online", cbm:"best-buy", rk:"best-buy", tcb:"best-buy"},
+  apple:{name:"Apple", cat:"online", cbm:"apple", rk:"apple", tcb:"apple"},
+  nike:{name:"Nike", cat:"online", cbm:"nike", rk:"nike", tcb:"nike"},
+  costco:{name:"Costco", cat:"general", cbm:"costco", rk:"costco", tcb:"costco"},
+  lululemon:{name:"lululemon", cat:"general", cbm:"lululemon", rk:"lululemon", tcb:"lululemon"},
+  sephora:{name:"Sephora", cat:"general", cbm:"sephora", rk:"sephora", tcb:"sephora"},
+  nordstrom:{name:"Nordstrom", cat:"general", cbm:"nordstrom", rk:"nordstrom", tcb:"nordstrom"},
+  ulta:{name:"Ulta Beauty", cat:"general", cbm:"ulta", rk:"ulta-beauty", tcb:"ulta"},
+};
+function slug(s){ return (s||"").toLowerCase().replace(/&/g,"and").replace(/'/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
+function matchStore(hint){ const h=(hint||"").toLowerCase().replace(/[^a-z0-9]/g,""); for(const k in STORES){ if(h.includes(k)) return {key:k,...STORES[k]}; } return null; }
+function levenshtein(a,b){ a=a||""; b=b||""; const m=a.length,n=b.length; if(!m)return n; if(!n)return m;
+  let prev=Array.from({length:n+1},(_,j)=>j), cur=new Array(n+1);
+  for(let i=1;i<=m;i++){ cur[0]=i; for(let j=1;j<=n;j++){ cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1)); } [prev,cur]=[cur,prev]; }
+  return prev[n]; }
+function fuzzyStore(hint){
+  const h=(hint||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+  if(h.length<2) return null;
+  for(const k in STORES){ if(h.includes(k)) return {key:k,...STORES[k],exact:true}; }
+  if(h.length<5) return null;
+  let best=null;
+  for(const k in STORES){
+    const nameNorm=STORES[k].name.toLowerCase().replace(/[^a-z0-9]/g,"");
+    const d=Math.min(levenshtein(h,k), levenshtein(h,nameNorm));
+    const ref=Math.max(h.length,k.length);
+    if(d<=2 && d<=Math.floor(ref*0.34)){ if(!best||d<best.d) best={key:k,...STORES[k],d}; }
+  }
+  return best ? {...best,exact:false} : null;
+}
+function prettyDomain(d){ return (d||"").replace(/\.(com|net|org|co|us|shop).*$/,"").replace(/[.-]/g," ").replace(/\b\w/g,c=>c.toUpperCase()); }
+
+function portalTargets(store, domain){
+  const hit = matchStore(domain) || matchStore(store);
+  if(hit){ return {known:true, cbm:hit.cbm, rk:hit.rk, tcb:hit.tcb,
+    cap:(domain&&domain.includes(hit.key))?domain:hit.key+".com"}; }
+  const s=slug(store)||"store"; return {known:false, cbm:s, rk:s, tcb:s, cap:domain||(s+".com")};
+}
+function portalLinksHTML(store, domain){
+  const t=portalTargets(store,domain); const {cbm,rk,tcb,cap,known}=t;
+  return `<a href="https://www.cashbackmonitor.com/cashback-store/${cbm}/" target="_blank">CashbackMonitor</a>`+
+    ` · <a href="https://www.rakuten.com/shop/${rk}" target="_blank">Rakuten</a>`+
+    ` · <a href="https://www.topcashback.com/${tcb}/" target="_blank">TopCashback</a>`+
+    ` · <a href="https://capitaloneshopping.com/s/${cap}/coupon" target="_blank">CapOne</a>`+
+    (known?"":` <span style="color:var(--warn)">— 추정 링크(안 열리면 "${store}" 검색)</span>`);
+}
+
+// ===== 유틸 =====
+function v(id){ return document.getElementById(id).value; }
+function money(n){ const s=(n<0?"-$":"$"); return s+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function daysSince(s){ if(!s) return null; const then=new Date(s+"T00:00:00"), now=new Date(); return Math.floor((now-then)/86400000); }
+const STALE_DAYS = 7;
+
+// ===== 상태 =====
+let scenarios = [];
+let nextId = 1;
+function blankScenario(seed){ seed=seed||{}; return { id:nextId++, store:seed.store||"", domain:seed.domain||"", price:seed.price||0, portalPct:seed.portalPct||0, portalName:seed.portalName||"", offers:seed.offers||{}, lastChecked:seed.lastChecked||null }; }
+
+// ===== 지갑(온보딩) UI =====
+function renderWallet(){
+  const box=document.getElementById('walletCatalog');
+  const groups={}; CARD_CATALOG.forEach(c=>{ (groups[c.issuer]=groups[c.issuer]||[]).push(c); });
+  let html='';
+  ISSUER_ORDER.forEach(iss=>{ const list=groups[iss]; if(!list) return;
+    html+=`<div class="wgroup"><div class="wglab">${iss}</div>`;
+    list.forEach(c=>{
+      html+=`<label class="checkrow wrow" data-name="${(c.name).toLowerCase()}" style="cursor:pointer">`+
+        `<input type="checkbox" style="width:auto" data-wal="${c.id}" ${myWallet.includes(c.id)?'checked':''}>`+
+        `<span class="name">${c.name} <small>${c.hint||''}</small></span></label>`;
+    });
+    html+='</div>';
+  });
+  box.innerHTML=html;
+  box.querySelectorAll('input[data-wal]').forEach(inp=>{
+    inp.addEventListener('change',e=>{ const id=e.target.dataset.wal;
+      if(e.target.checked){ if(!myWallet.includes(id)) myWallet.push(id); }
+      else { myWallet=myWallet.filter(x=>x!==id); }
+      applyWallet();
+    });
+  });
+  updateWalletCount();
+}
+function updateWalletCount(){ const el=document.getElementById('walletCount'); if(el) el.textContent=myWallet.length+'장'; updateWalletWelcome(); }
+function updateWalletWelcome(){ const el=document.getElementById('walletWelcome'); if(el) el.style.display = myWallet.length ? 'none' : ''; }
+function applyWallet(){
+  CARDS = activeCards();
+  renderCppInputs();
+  buildAll();          // 시나리오 카드의 오퍼 행을 새 지갑에 맞게 재생성
+  buildSiteOffers();
+  recompute();
+  if(mode==='site') computeSite();
+  updateWalletCount();
+  saveState();
+}
+
+// ===== 포인트 가치 입력(동적) =====
+function usedCurrencies(){ const set=new Set(); CARDS.forEach(c=>Object.values(c.rates).forEach(([m,cur])=>set.add(cur))); return CURRENCY_ORDER.filter(code=>set.has(code)); }
+function renderCppInputs(){
+  const box=document.getElementById('cppInputs'); const codes=usedCurrencies();
+  const srcBox=document.getElementById('cppSrc');
+  if(!codes.length){ box.innerHTML='<p class="muted" style="grid-column:1/-1">위에서 카드를 고르면, 그 카드가 쌓는 포인트의 가치를 여기서 조정할 수 있어.</p>'; if(srcBox) srcBox.innerHTML=''; return; }
+  box.innerHTML=codes.map(code=>{ const c=CURRENCIES[code]; const val=(cppValues[code]!=null?cppValues[code]:c.cpp);
+    return `<div><label>${c.full}</label><input type="number" step="0.1" data-cpp="${code}" value="${val}"></div>`;
+  }).join('');
+  box.querySelectorAll('input[data-cpp]').forEach(inp=>{
+    inp.addEventListener('input',e=>{ cppValues[e.target.dataset.cpp]=+e.target.value||0; renderCppSrc(); recompute(); if(mode==='site') computeSite(); });
+  });
+  renderCppSrc();
+}
+function renderCppSrc(){
+  const srcBox=document.getElementById('cppSrc'); if(!srcBox) return;
+  const codes=usedCurrencies(); if(!codes.length){ srcBox.innerHTML=''; return; }
+  const rows=codes.map(code=>{ const c=CURRENCIES[code]; const cur=cppFor(code); const edited=(+cur!==c.cpp);
+    return `<div style="padding:5px 0;border-bottom:1px solid var(--line)"><b>${c.full}</b> <span class="tag">기본 ${c.cpp}¢${edited?` · 지금 <b style="color:var(--accent)">${cur}¢</b>로 조정됨`:''}</span><div class="tag" style="margin-top:1px">${c.src}</div></div>`;
+  }).join('');
+  srcBox.innerHTML=`<summary>이 기본값은 어디서 왔어? <span class="muted" style="font-weight:600">— 근거 & 조정 안내</span></summary>`+
+    `<p class="muted" style="margin:6px 0 4px">아래는 여행 블로그·카드 비교 사이트들이 매년 내는 <b>포인트 가치 추정</b>을 <b>보수적으로</b> 잡은 값이야(1포인트당 센트). 상환 방법에 따라 실제 가치는 달라지니, <b>네 사용 패턴에 맞게 위 칸에서 바꿔</b> — 예: 델타를 비즈니스석에 잘 태우면 1.1보다 높게, 그냥 현금성으로만 쓰면 낮게.</p>`+rows;
+}
+
+// ===== 시나리오 카드 DOM =====
+function buildScenarioCard(sc){
+  const el = document.createElement('div');
+  el.className='scard'; el.id='scard-'+sc.id; el.dataset.sid=sc.id;
+  const offerInputs = CARDS.map(c=>
+    `<div class="checkrow"><div class="name">${c.short} <small>${cardMeta(c)}</small></div>`+
+    `<input type="number" min="0" step="1" value="${sc.offers[c.id]||0}" data-sid="${sc.id}" data-off="${c.id}"> <span class="muted">$</span></div>`
+  ).join("") || '<p class="muted">지갑에 카드가 없어 — 위 👛 내 카드에서 골라줘.</p>';
+  el.innerHTML = `
+    <div class="shead">
+      <div style="flex:1;min-width:200px">
+        <div class="grid g2">
+          <div><label>판매처</label><input class="s-store" data-sid="${sc.id}" value="${sc.store||""}"></div>
+          <div><label>가격 ($)</label><input class="s-price" type="number" min="0" step="1" data-sid="${sc.id}" value="${sc.price||0}"></div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="winbadge" id="badge-${sc.id}" style="display:none">최저가</div>
+        <div class="stamp" id="stamp-${sc.id}"></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:10px">
+      <div><label>포털 캐시백 (%)</label><input class="s-portal" type="number" min="0" step="0.5" data-sid="${sc.id}" value="${sc.portalPct||0}"></div>
+      <div><label>포털 경유처 (루트, 선택)</label><input class="s-portalname" data-sid="${sc.id}" placeholder="예: Rakuten" value="${sc.portalName||""}"></div>
+    </div>
+    <p class="muted" style="margin:6px 0 0" id="plinks-${sc.id}"></p>
+    <details>
+      <summary>카드별 오퍼 입력 (Amex/Chase 타겟 오퍼)</summary>
+      <p class="muted" style="margin:4px 0 6px">이 판매처에 오퍼가 있는 카드 칸에 예상 할인액($) 입력. 오퍼는 순위를 바꿔. (활성화 클릭은 살 때 직접)</p>
+      ${offerInputs}
+    </details>
+    <div class="scomp">
+      <div><button class="mini recheck" data-sid="${sc.id}" type="button">🔄 이 판매처 재확인</button>
+           <button class="del delScenario" data-sid="${sc.id}" type="button">삭제</button></div>
+      <div style="text-align:right"><div class="tag">최적 카드 · 순비용</div><div><b id="sbest-${sc.id}">—</b> · <span class="net" id="snet-${sc.id}">—</span></div></div>
+    </div>`;
+  return el;
+}
+
+function findScenario(id){ return scenarios.find(s=>s.id==id); }
+
+function wireScenarioCard(el){
+  el.querySelector('.s-store').addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid); sc.store=e.target.value; sc.domain=""; updatePortalLinks(sc); recompute(); });
+  el.querySelector('.s-price').addEventListener('input',e=>{ findScenario(e.target.dataset.sid).price=+e.target.value||0; recompute(); });
+  el.querySelector('.s-portal').addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid); sc.portalPct=+e.target.value||0; sc.lastChecked=todayStr(); recompute(); });
+  el.querySelector('.s-portalname').addEventListener('input',e=>{ findScenario(e.target.dataset.sid).portalName=e.target.value; recompute(); });
+  el.querySelectorAll('input[data-off]').forEach(inp=>{
+    inp.addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid); sc.offers[e.target.dataset.off]=+e.target.value||0; sc.lastChecked=todayStr(); recompute(); });
+  });
+  el.querySelector('.delScenario').addEventListener('click',e=>{
+    if(scenarios.length<=1){ alert("판매처는 최소 1개는 있어야 해."); return; }
+    const id=e.target.dataset.sid; scenarios=scenarios.filter(s=>s.id!=id);
+    document.getElementById('scard-'+id).remove(); recompute();
+  });
+  el.querySelector('.recheck').addEventListener('click',e=>{
+    const sc=findScenario(e.target.dataset.sid);
+    CARDS.forEach(c=>{ sc.offers[c.id]=0; const i=el.querySelector(`input[data-off="${c.id}"]`); if(i) i.value=0; });
+    sc.portalPct=0; el.querySelector('.s-portal').value=0; sc.lastChecked=todayStr();
+    window.open("https://www.cashbackmonitor.com/cashback-store/"+(matchStore(sc.domain)||matchStore(sc.store)||{cbm:slug(sc.store)}).cbm+"/","_blank");
+    window.open("https://global.americanexpress.com/offers/eligible","_blank");
+    window.open("https://secure.chase.com/web/auth/dashboard#/dashboard/offers/hub","_blank");
+    recompute();
+  });
+  updatePortalLinks(findScenario(el.dataset ? el.dataset.sid : el.id.replace('scard-','')));
+}
+
+function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id); if(!p) return;
+  let extra="";
+  const hit=matchStore(sc.domain)||matchStore(sc.store);
+  const base=hit?baselineFor(hit.key):null;
+  if(base && PORTAL_RATES.asOf) extra=`<br>📊 기본율 스냅샷(${PORTAL_RATES.asOf}): CapOne <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b> <span class="tag">— 위 "포털 캐시백 %"에 참고(로그인 타겟율은 더 높을 수 있음)</span>`;
+  p.innerHTML="비교: "+portalLinksHTML(sc.store, sc.domain)+extra;
+}
+
+function buildAll(){
+  const box=document.getElementById('scenarios'); box.innerHTML="";
+  scenarios.forEach(sc=>{ const el=buildScenarioCard(sc); box.appendChild(el); wireScenarioCard(el); });
+}
+
+// ===== 계산 =====
+function scenarioResult(sc, cat){
+  const price=+sc.price||0;
+  const rows=CARDS.map(c=>{
+    const [mult,type]=c.rates[cat];
+    const cv=cppFor(type);
+    const val=price*mult*cv/100;
+    const offer=+(sc.offers[c.id]||0);
+    return {c,type,mult,cv,val,offer,tot:val+offer};
+  });
+  const baseBestId=rows.slice().sort((a,b)=>b.val-a.val)[0].c.id;
+  rows.sort((a,b)=>b.tot-a.tot);
+  const best=rows[0];
+  const portalVal=price*(+sc.portalPct||0)/100;
+  const rewardVal=best.tot;
+  const net=price-rewardVal-portalVal;
+  const flipped=best.offer>0 && best.c.id!==baseBestId;
+  return {sc,price,rows,best,portalVal,rewardVal,net,flipped};
+}
+
+function recompute(){
+  const cat=v('cat');
+  if(!CARDS.length){
+    document.getElementById('finalConclusion').innerHTML='먼저 위 <b>👛 내 카드</b>에서 카드를 하나 이상 골라줘.';
+    document.getElementById('compareBody').innerHTML=""; document.getElementById('cardbody').innerHTML="";
+    scenarios.forEach(sc=>{ const b=document.getElementById('sbest-'+sc.id); if(b) b.textContent='—'; const n=document.getElementById('snet-'+sc.id); if(n) n.textContent='—'; });
+    saveState(); return;
+  }
+  const results=scenarios.map(sc=>scenarioResult(sc,cat));
+
+  results.forEach(r=>{
+    const sc=r.sc;
+    document.getElementById('sbest-'+sc.id).innerHTML = r.price>0
+      ? `${r.best.c.short} <span class="pill ${TYPE[r.best.type].cls}">${TYPE[r.best.type].label}</span>`+(r.flipped?` <span class="pill flip">오퍼로 역전</span>`:``)
+      : '가격 입력';
+    document.getElementById('snet-'+sc.id).textContent = r.price>0 ? money(r.net) : "—";
+    const st=document.getElementById('stamp-'+sc.id);
+    const d=daysSince(sc.lastChecked);
+    if(sc.lastChecked==null) st.innerHTML=`<span class="fresh">오퍼 미확인</span>`;
+    else if(d>=STALE_DAYS) st.innerHTML=`<span class="stale">${d}일 전 확인 · 재확인 필요</span>`;
+    else st.innerHTML=`<span class="fresh">${d===0?'오늘':d+'일 전'} 확인</span>`;
+  });
+
+  const ranked=results.filter(r=>r.price>0).sort((a,b)=>a.net-b.net);
+  scenarios.forEach(sc=>{ const c=document.getElementById('scard-'+sc.id); if(c) c.classList.remove('win'); const b=document.getElementById('badge-'+sc.id); if(b) b.style.display='none'; });
+
+  const cbody=document.getElementById('compareBody'); cbody.innerHTML="";
+  ranked.forEach((r,i)=>{
+    if(i===0){ const c=document.getElementById('scard-'+r.sc.id); if(c) c.classList.add('win'); const b=document.getElementById('badge-'+r.sc.id); if(b) b.style.display='inline-block'; }
+    const tr=document.createElement('tr'); if(i===0) tr.className='best';
+    const route=r.sc.portalPct>0 ? ((r.sc.portalName||'포털')+` ${r.sc.portalPct}%`) : '없음';
+    tr.innerHTML=`<td><b>${i+1}. ${r.sc.store||'(판매처?)'}</b>${r.flipped?' <span class="pill flip">역전</span>':''}</td>
+      <td>${money(r.price)}</td>
+      <td>${r.best.c.short} <span class="pill ${TYPE[r.best.type].cls}">${TYPE[r.best.type].label}</span></td>
+      <td class="r">${money(r.rewardVal)}</td>
+      <td class="r">${route}</td>
+      <td class="r"><b>${money(r.net)}</b></td>`;
+    cbody.appendChild(tr);
+  });
+
+  const fc=document.getElementById('finalConclusion');
+  if(ranked.length===0){ fc.innerHTML='판매처에 가격을 넣으면 비교가 시작돼.'; }
+  else {
+    const w=ranked[0];
+    const routeTxt = w.sc.portalPct>0 ? ` · <b>${w.sc.portalName||'캐시백 포털'}</b> ${w.sc.portalPct}% 경유` : ' · 포털 없음';
+    let diff='';
+    if(ranked.length>1){ const gap=ranked[1].net-w.net; diff=` <span class="tag">(2위 ${ranked[1].sc.store||'?'}보다 ${money(gap)} 저렴)</span>`; }
+    fc.innerHTML=`<span class="big">${w.sc.store||'?'}</span> 에서 <b>${w.best.c.name}</b> 로 결제${routeTxt}`+
+      (w.best.offer>0?` · 이 카드 오퍼 ${money(w.best.offer)}`:``)+
+      `<br>→ 실질 순비용 <span class="big">${money(w.net)}</span>${diff}`+
+      (w.flipped?`<br><span class="tag">※ 오퍼 덕분에 기본 최적 카드가 아닌 ${w.best.c.short}로 역전됨</span>`:``);
+    document.getElementById('detailStore').textContent = '· '+(w.sc.store||'')+' 기준 · '+CATNAME[cat];
+    const tbody=document.getElementById('cardbody'); tbody.innerHTML="";
+    w.rows.forEach((r,i)=>{
+      const t=TYPE[r.type]; const ptsR=Math.round(w.price*r.mult).toLocaleString();
+      const tr=document.createElement('tr'); if(i===0) tr.className='best';
+      tr.innerHTML=`<td><b>${r.c.name}</b> ${i===0?'<span class="pill win">1위</span>'+(w.flipped?'<span class="pill flip">오퍼로 역전</span>':''):''}<div class="tag">${r.c.hint}</div></td>
+        <td>${r.mult}배 × ${money(w.price)}<div class="tag">= ${ptsR} pts</div></td>
+        <td class="r"><span class="pill ${t.cls}">${t.label}</span></td>
+        <td class="r">${money(r.val)}<div class="tag">${ptsR} × ${r.cv}¢</div></td>
+        <td class="r">${r.offer>0?('+'+money(r.offer)):'<span class="tag">—</span>'}</td>
+        <td class="r"><b>${money(r.tot)}</b></td>`;
+      tbody.appendChild(tr);
+    });
+    const sr=w.price*0.10;
+    document.getElementById('storeBox').innerHTML=`<b>스토어 카드 고려?</b> — ${w.sc.store||'이 판매처'}에 자사 카드(보통 5~10% 리워드)가 있으면 큰 금액일수록 클 수 있어(예 10% ≈ ${money(sr)}). 단 만료·할부·사용처 제약이 붙는 게 보통. 발급 여부는 별개 판단.`;
+  }
+  saveState();
+}
+
+// ===== 사이트 모드 =====
+let mode = 'product';
+let siteOffers = {};
+function buildSiteOffers(){
+  const box=document.getElementById('siteOfferChecks'); if(!box) return;
+  box.innerHTML = CARDS.map(c=>
+    `<label class="checkrow" style="cursor:pointer">`+
+    `<input type="checkbox" style="width:auto" data-soff="${c.id}" ${siteOffers[c.id]?'checked':''}>`+
+    `<span class="name">${c.short} <small>${cardMeta(c)}</small></span></label>`
+  ).join("") || '<p class="muted">지갑에 카드가 없어.</p>';
+  box.querySelectorAll('input[data-soff]').forEach(inp=>{
+    inp.addEventListener('change',e=>{ siteOffers[e.target.dataset.soff]=e.target.checked; computeSite(); });
+  });
+}
+function setMode(m){
+  mode = (m==='site') ? 'site' : 'product';
+  document.querySelectorAll('.product-only').forEach(el=>{ el.style.display = mode==='product' ? '' : 'none'; });
+  document.querySelectorAll('.site-only').forEach(el=>{ el.style.display = mode==='site' ? '' : 'none'; });
+  document.getElementById('modeProduct').classList.toggle('on', mode==='product');
+  document.getElementById('modeSite').classList.toggle('on', mode==='site');
+  if(mode==='site') computeSite();
+  saveState();
+}
+function computeSite(){
+  const store=(v('siteStore')||'').trim();
+  const cat=v('siteCat');
+  const cp=+v('capPct')||0, rp=+v('rkPct')||0;
+  const pBest=Math.max(cp,rp);
+  const pName= pBest<=0 ? '' : (cp>rp?'CapOne Shopping':(rp>cp?'Rakuten':'포털'));
+  const rec=document.getElementById('siteRec');
+  if(!CARDS.length){ rec.innerHTML='<p class="muted">위 👛 내 카드에서 카드를 골라줘.</p>'; }
+  else {
+  const rows=CARDS.map(c=>{ const [mult,type]=c.rates[cat]; const cv=cppFor(type); return {c,type,mult,cv,eff:mult*cv}; })
+    .sort((a,b)=> b.eff-a.eff || (a.type==='UR'?-1:1));
+  const best=rows[0];
+  const bestOff = !!siteOffers[best.c.id];
+  const flagged = rows.filter(r=>siteOffers[r.c.id]);
+  let html=`<div class="bigrec"><div class="lab">이 사이트엔 이 카드로</div>`+
+    `<div class="big">${best.c.name}</div>`+
+    `<div>${CATNAME[cat]} <b>${best.mult}배</b> → 실질 <b>${best.eff.toFixed(1)}%</b> 적립 <span class="pill ${TYPE[best.type].cls}">${TYPE[best.type].label}</span>`+
+    (bestOff?` <span class="pill flip">⭐오퍼도 있음</span>`:``)+`</div>`+
+    (pBest>0?`<div style="margin-top:4px">+ <b>${pName}</b> 경유 캐시백 <b>${pBest}%</b> → <span style="font-size:16px;font-weight:800;color:var(--accent)">총 ${(best.eff+pBest).toFixed(1)}% 돌려받음</span></div>`
+            :`<div class="tag" style="margin-top:4px">여기에 아래 <b>포털 캐시백 %</b>까지 더하면 총 돌려받는 %가 완성돼</div>`)+
+    `<div class="tag" style="margin-top:4px">${best.c.hint}</div></div>`;
+  html+=`<div style="overflow-x:auto"><table><thead><tr><th>카드</th><th>이 카테고리</th><th class="r">종류</th><th class="r">실질 적립율</th></tr></thead><tbody>`;
+  rows.forEach((r,i)=>{
+    html+=`<tr class="${i===0?'best':''}"><td><b>${r.c.short}</b> ${i===0?'<span class="pill win">1위</span>':''}${siteOffers[r.c.id]?'<span class="pill flip">⭐오퍼</span>':''}<div class="tag">${r.c.hint||''}</div></td>`+
+      `<td>${r.mult}배</td><td class="r"><span class="pill ${TYPE[r.type].cls}">${TYPE[r.type].label}</span></td>`+
+      `<td class="r"><b>${r.eff.toFixed(1)}%</b></td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  if(flagged.length){
+    if(bestOff && flagged.length===1){
+      html+=`<p class="muted" style="margin:8px 0 0"><b style="color:var(--accent)">✅ 최적 카드에 오퍼까지</b> — <b>${best.c.short}</b> 하나로 적립률 1위 + 오퍼. 잘 골랐어.</p>`;
+    } else {
+      const names=flagged.map(r=>r.c.short).join(', ');
+      html+=`<p class="muted" style="margin:8px 0 0"><b style="color:var(--warn)">⭐ 오퍼 있는 카드: ${names}</b> — 금액이 크면 오퍼($)가 적립률 차이를 넘어 <b>${best.c.short}(1위)를 뒤집을 수</b> 있어. 정확한 비교는 🛒 <b>상품 모드</b>(가격 넣고 오퍼 $ 입력)로.</p>`;
+    }
+  }
+  rec.innerHTML=html;
+  }
+
+  const fz=fuzzyStore(store);
+  const t = fz ? {known:true, cbm:fz.cbm, rk:fz.rk, tcb:fz.tcb, cap:fz.key+".com"} : portalTargets(store,'');
+
+  // 기본율 스냅샷 힌트 (+원클릭 채우기)
+  const bEl=document.getElementById('siteBaseline');
+  const base=fz?baselineFor(fz.key):null;
+  if(base && PORTAL_RATES.asOf){
+    const capOk=base.cap&&base.cap.pct!=null&&base.cap.listed!==false;
+    const rkOk=base.rk&&base.rk.pct!=null&&base.rk.listed!==false;
+    bEl.innerHTML=`📊 기본율 스냅샷(${PORTAL_RATES.asOf} 기준): CapOne <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b>`+
+      ((capOk||rkOk)?` <button class="mini" type="button" id="fillBase">↓ 채우기</button>`:``)+
+      ` <span class="tag">— 로그인 계정에선 더 높을 수 있어(타겟율)</span>`;
+    const fb=document.getElementById('fillBase');
+    if(fb) fb.addEventListener('click',()=>{
+      if(capOk) document.getElementById('capPct').value=base.cap.pct;
+      if(rkOk) document.getElementById('rkPct').value=base.rk.pct;
+      computeSite();
+    });
+  } else {
+    bEl.innerHTML = (fz&&PORTAL_RATES.asOf) ? `📊 이 판매처는 기본율 스냅샷에 없어 — 아래 링크로 오늘 %를 직접 확인해줘` : '';
+  }
+  const capUrl=`https://capitaloneshopping.com/s/${t.cap}/coupon`;
+  const rkUrl=`https://www.rakuten.com/shop/${t.rk}`;
+  const cbmUrl=`https://www.cashbackmonitor.com/cashback-store/${t.cbm}/`;
+  document.getElementById('sitePortalBtns').innerHTML=
+    `<a class="pbtn cap" href="${capUrl}" target="_blank">CapitalOne Shopping ↗<small>여기 경유 후 사이트로</small></a>`+
+    `<a class="pbtn rk" href="${rkUrl}" target="_blank">Rakuten ↗<small>여기 경유 후 사이트로</small></a>`;
+  document.getElementById('siteCompare').innerHTML=
+    `오늘 실제 %는 수시로 바뀜 — 전체 포털 비교: <a href="${cbmUrl}" target="_blank">CashbackMonitor</a>`+
+    (t.known?'':` <span style="color:var(--warn)">— 추정 링크, 안 열리면 "${store||'사이트명'}" 직접 검색</span>`);
+
+  const wEl=document.getElementById('portalWinner');
+  if(cp>0||rp>0){
+    if(cp>rp) wEl.innerHTML=`→ 오늘은 <span class="winner">CapitalOne Shopping ${cp}%</span> 로 들어가 (Rakuten ${rp}%)`;
+    else if(rp>cp) wEl.innerHTML=`→ 오늘은 <span class="winner">Rakuten ${rp}%</span> 로 들어가 (CapOne ${cp}%)`;
+    else wEl.innerHTML=`→ 둘 다 ${cp}% — 아무거나 (되는 걸로)`;
+  } else {
+    wEl.innerHTML=`두 포털의 오늘 %를 넣으면 어디로 들어갈지 정해줄게. (모르면 위 CashbackMonitor로 확인)`;
+  }
+  renderRefBox();
+  saveState();
+}
+
+// ===== 추천(리퍼럴) 박스 =====
+function renderRefBox(){
+  const slots=document.querySelectorAll('.refslot'); if(!slots.length) return;
+  const hasRef = !!(REFERRALS.rakuten||REFERRALS.capone);
+  const capUrl = REFERRALS.capone  || "https://capitaloneshopping.com/";
+  const rkUrl  = REFERRALS.rakuten || "https://www.rakuten.com/";
+  const html = `<div class="storebox" style="margin-top:10px"><b>아직 포털 계정이 없어?</b> — 무료 가입만 해두면 앞으로 모든 온라인 쇼핑에서 캐시백을 받아: `+
+    `<a href="${capUrl}" target="_blank">Capital One Shopping 가입 ↗</a> · <a href="${rkUrl}" target="_blank">Rakuten 가입 ↗</a>`+
+    (hasRef?` <span class="tag">(초대 링크 — 가입하고 조건 채우면 너도 나도 보너스를 받아, 투명하게 밝혀둘게!)</span>`:``)+
+    `</div>`;
+  slots.forEach(s=>{ s.innerHTML=html; });
+}
+
+// ===== 붙여넣기 파싱 =====
+function parsePaste(){
+  const raw=(v('paste')||"").trim(); const msg=document.getElementById('pasteMsg');
+  if(!raw){ msg.textContent="붙여넣은 내용이 없어."; return; }
+  const sc=scenarios[0]; const el=document.getElementById('scard-'+sc.id); const filled=[];
+  const um=raw.match(/https?:\/\/[^\s]+/i);
+  if(um){ let domain=""; try{ domain=new URL(um[0]).hostname.replace(/^www\./,""); }catch(e){}
+    if(domain){ sc.domain=domain; const hit=matchStore(domain);
+      if(hit){ sc.store=hit.name; document.getElementById('cat').value=hit.cat; filled.push("판매처("+hit.name+")","카테고리"); }
+      else { sc.store=prettyDomain(domain); filled.push("판매처(추정)"); }
+      el.querySelector('.s-store').value=sc.store; updatePortalLinks(sc);
+    }
+  }
+  const pm=raw.match(/\$\s?(\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)/);
+  if(pm){ sc.price=+pm[1].replace(/,/g,""); el.querySelector('.s-price').value=sc.price; filled.push("가격"); }
+  const parts=raw.split(/\n|\s{2,}/).map(x=>x.trim()).filter(Boolean);
+  for(const ln of parts){ if(/https?:\/\//i.test(ln)) continue; if(/^\$?\s?[\d.,]+$/.test(ln)) continue; if(ln.length<2) continue; document.getElementById('pname').value=ln.slice(0,80); filled.push("이름"); break; }
+  recompute();
+  msg.textContent = filled.length ? ("첫 판매처에 채웠어: "+[...new Set(filled)].join(", ")+(pm?"":" · 가격은 직접 넣어줘")) : "URL/가격을 못 찾았어. 제목+가격을 통째로 붙여넣어봐.";
+}
+
+// ===== 저장/복원 =====
+const LSKEY="purchOpt_v06";
+function saveState(){ try{ localStorage.setItem(LSKEY, JSON.stringify({
+  mode, myWallet, cppValues, pname:v('pname'), cat:v('cat'),
+  siteStore:v('siteStore'), siteCat:v('siteCat'), capPct:v('capPct'), rkPct:v('rkPct'), siteOffers,
+  scenarios: scenarios.map(s=>({store:s.store,domain:s.domain,price:s.price,portalPct:s.portalPct,portalName:s.portalName,offers:s.offers,lastChecked:s.lastChecked}))
+})); }catch(e){} }
+function loadState(){ try{ const s=JSON.parse(localStorage.getItem(LSKEY)); if(!s) return false;
+  if(Array.isArray(s.myWallet)) myWallet=s.myWallet.filter(id=>CARD_CATALOG.some(c=>c.id===id));
+  if(s.cppValues && typeof s.cppValues==='object') cppValues=Object.assign({},s.cppValues);
+  if(s.pname!=null) document.getElementById('pname').value=s.pname;
+  if(s.cat!=null) document.getElementById('cat').value=s.cat;
+  if(s.siteStore!=null) document.getElementById('siteStore').value=s.siteStore;
+  if(s.siteCat!=null) document.getElementById('siteCat').value=s.siteCat;
+  if(s.capPct!=null) document.getElementById('capPct').value=s.capPct;
+  if(s.rkPct!=null) document.getElementById('rkPct').value=s.rkPct;
+  if(s.siteOffers && typeof s.siteOffers==='object') siteOffers=s.siteOffers;
+  if(s.mode==='site') mode='site';
+  if(Array.isArray(s.scenarios) && s.scenarios.length) scenarios=s.scenarios.map(x=>blankScenario(x));
+  return true;
+}catch(e){ return false; } }
+
+// ===== 딥링크 (Claude 브릿지 / 공유) =====
+function prefillFromQuery(searchStr){
+  const q=new URLSearchParams(searchStr!=null?searchStr:location.search); if(![...q.keys()].length) return false;
+  if(q.has('wallet')){ const ids=q.get('wallet').split(',').map(x=>x.trim()).filter(Boolean).filter(id=>CARD_CATALOG.some(c=>c.id===id)); if(ids.length) myWallet=ids; }
+  if(q.has('name')) document.getElementById('pname').value=q.get('name');
+  if(q.has('cat')) document.getElementById('cat').value=q.get('cat');
+  // 포인트 가치: 레거시(cppUR/DL/MR/HH) + 일반(cpp_<code>)
+  const legacy={cppUR:'UR',cppDL:'DL',cppMR:'MR',cppHH:'HH'};
+  Object.keys(legacy).forEach(k=>{ if(q.has(k)) cppValues[legacy[k]]=+q.get(k)||0; });
+  [...q.keys()].forEach(k=>{ if(k.indexOf('cpp_')===0){ cppValues[k.slice(4)]=+q.get(k)||0; } });
+  const built=[];
+  function readSc(prefix){
+    if(!q.has(prefix+'store') && !q.has(prefix+'price')) return null;
+    const sc=blankScenario({ store:q.get(prefix+'store')||"", domain:q.get(prefix+'domain')||"", price:+q.get(prefix+'price')||0,
+      portalPct:+q.get(prefix+'portal')||0, portalName:q.get(prefix+'pn')||"", lastChecked: (q.has(prefix+'store')?todayStr():null) });
+    CARD_CATALOG.forEach(c=>{ if(q.has(prefix+'off_'+c.id)) sc.offers[c.id]=+q.get(prefix+'off_'+c.id)||0; });
+    return sc;
+  }
+  const s0=readSc(''); if(s0) built.push(s0);
+  for(let i=1;i<=6;i++){ const s=readSc('s'+i+'_'); if(s) built.push(s); }
+  if(built.length) scenarios=built;
+  let siteHit=false;
+  if(q.has('sstore')){ document.getElementById('siteStore').value=q.get('sstore'); siteHit=true; }
+  if(q.has('scat')){ document.getElementById('siteCat').value=q.get('scat'); siteHit=true; }
+  if(q.has('cap')){ document.getElementById('capPct').value=+q.get('cap')||0; siteHit=true; }
+  if(q.has('rk')){ document.getElementById('rkPct').value=+q.get('rk')||0; siteHit=true; }
+  if(q.has('soff')){ siteOffers={}; q.get('soff').split(',').map(x=>x.trim()).filter(Boolean).forEach(id=>{ if(CARD_CATALOG.some(c=>c.id===id)) siteOffers[id]=true; }); siteHit=true; }
+  if(q.get('mode')==='site' || siteHit){ mode='site'; }
+  return built.length>0 || siteHit || q.get('mode')==='site' || q.has('wallet');
+}
+
+// ===== 지갑 공유 링크 =====
+function shareWallet(){
+  if(!myWallet.length){ alert("먼저 카드를 골라줘."); return; }
+  const params=new URLSearchParams(); params.set('wallet', myWallet.join(','));
+  usedCurrencies().forEach(code=>{ params.set('cpp_'+code, cppFor(code)); });
+  const url=location.origin+location.pathname+'?'+params.toString();
+  const done=(ok)=>{ const msg=ok?"지갑 공유 링크를 복사했어! 다른 사람에게 보내면 같은 지갑으로 시작해.":"복사 실패 — 아래 링크를 직접 복사해:\n\n"+url; alert(msg); };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(()=>done(true),()=>done(false)); }
+  else { prompt("이 링크를 복사해서 공유해:", url); }
+}
+
+// ===== 초기화 =====
+function init(){
+  const seededDefault=()=>{ scenarios=[ blankScenario({store:"Crate & Barrel", domain:"crateandbarrel.com", price:1699}) ]; };
+  loadState();
+  prefillFromQuery();
+  // 첫 방문(저장·공유링크 둘 다 없음)이면 빈 지갑 → '여기서 시작' 안내를 보여줌
+  CARDS=activeCards();
+  if(!scenarios.length) seededDefault();
+
+  renderWallet();
+  renderCppInputs();
+  buildAll();
+  buildSiteOffers();
+  renderRefBox();
+
+  // 공통 입력 리스너
+  ['pname','cat'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input',recompute); el.addEventListener('change',recompute); });
+  document.getElementById('fillBtn').addEventListener('click',parsePaste);
+  document.getElementById('paste').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); parsePaste(); } });
+  document.getElementById('addScenario').addEventListener('click',()=>{ const sc=blankScenario({}); scenarios.push(sc); const el=buildScenarioCard(sc); document.getElementById('scenarios').appendChild(el); wireScenarioCard(el); recompute(); });
+  document.getElementById('updateAll').addEventListener('click',()=>{ scenarios.forEach(sc=>{ sc.lastChecked=todayStr(); }); recompute(); alert("모든 판매처를 오늘 확인한 것으로 갱신했어. 실제 오퍼는 각 판매처 '재확인'으로 다시 열어 확인해."); });
+
+  // 지갑 컨트롤
+  document.getElementById('walletClear').addEventListener('click',()=>{ if(confirm("지갑을 비울까? (카드 선택이 모두 해제돼)")){ myWallet=[]; renderWallet(); applyWallet(); } });
+  document.getElementById('walletExample').addEventListener('click',()=>{ myWallet=EXAMPLE_WALLET.filter(id=>CARD_CATALOG.some(c=>c.id===id)); renderWallet(); applyWallet(); });
+  document.getElementById('walletShare').addEventListener('click',shareWallet);
+  document.getElementById('walletSearch').addEventListener('input',e=>{
+    const q=e.target.value.toLowerCase().trim();
+    document.querySelectorAll('#walletCatalog .wrow').forEach(row=>{ row.style.display = (!q || row.dataset.name.includes(q)) ? '' : 'none'; });
+    document.querySelectorAll('#walletCatalog .wgroup').forEach(g=>{ const any=[...g.querySelectorAll('.wrow')].some(r=>r.style.display!=='none'); g.style.display=any?'':'none'; });
+  });
+
+  // 모드 토글 + 사이트 모드 입력
+  document.getElementById('modeProduct').addEventListener('click',()=>setMode('product'));
+  document.getElementById('modeSite').addEventListener('click',()=>setMode('site'));
+  document.getElementById('siteStore').addEventListener('input',e=>{
+    const fz=fuzzyStore(e.target.value); const hint=document.getElementById('siteStoreHint');
+    if(fz){ document.getElementById('siteCat').value=fz.cat;
+      hint.innerHTML = fz.exact ? '' : `🔎 '<b>${fz.name}</b>'로 인식했어 (오타 보정) — 아니면 카테고리 직접 골라줘`;
+    } else { hint.innerHTML=''; }
+    computeSite();
+  });
+  document.getElementById('siteCat').addEventListener('change',computeSite);
+  ['capPct','rkPct'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input',computeSite); });
+
+  recompute();
+  setMode(mode);
+}
+init();
+</script>
+</body>
+</html>
