@@ -129,7 +129,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.9</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.10</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -299,7 +299,7 @@
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.9 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
+    v0.10 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
   </p>
 </div>
 
@@ -430,35 +430,68 @@ function cppFor(code){ const x=cppValues[code]; return (x==null||isNaN(x)) ? (CU
 function cardMeta(c){ return c.issuer + (c.hint?(' · '+c.hint):''); }
 
 // ===== 판매처 사전 =====
-const STORES = {
-  crateandbarrel:{name:"Crate & Barrel", cat:"general", cbm:"crate-barrel", rk:"crateandbarrel", tcb:"crate-and-barrel"},
-  cb2:{name:"CB2", cat:"general", cbm:"cb2", rk:"cb2", tcb:"cb2"},
-  westelm:{name:"West Elm", cat:"general", cbm:"west-elm", rk:"west-elm", tcb:"west-elm"},
-  potterybarn:{name:"Pottery Barn", cat:"general", cbm:"pottery-barn", rk:"pottery-barn", tcb:"pottery-barn"},
-  wayfair:{name:"Wayfair", cat:"general", cbm:"wayfair", rk:"wayfair", tcb:"wayfair"},
-  ikea:{name:"IKEA", cat:"general", cbm:"ikea", rk:"ikea", tcb:"ikea"},
-  homedepot:{name:"Home Depot", cat:"general", cbm:"home-depot", rk:"the-home-depot", tcb:"home-depot"},
-  lowes:{name:"Lowe's", cat:"general", cbm:"lowes", rk:"lowes", tcb:"lowes"},
-  target:{name:"Target", cat:"general", cbm:"target", rk:"target", tcb:"target"},
-  walmart:{name:"Walmart", cat:"general", cbm:"walmart", rk:"walmart", tcb:"walmart"},
-  macys:{name:"Macy's", cat:"general", cbm:"macys", rk:"macys", tcb:"macys"},
-  amazon:{name:"Amazon", cat:"online", cbm:"amazon", rk:"amazon.com", tcb:"amazon"},
-  bestbuy:{name:"Best Buy", cat:"online", cbm:"best-buy", rk:"best-buy", tcb:"best-buy"},
-  apple:{name:"Apple", cat:"online", cbm:"apple", rk:"apple", tcb:"apple"},
-  nike:{name:"Nike", cat:"online", cbm:"nike", rk:"nike", tcb:"nike"},
-  costco:{name:"Costco", cat:"general", cbm:"costco", rk:"costco", tcb:"costco"},
-  lululemon:{name:"lululemon", cat:"general", cbm:"lululemon", rk:"lululemon", tcb:"lululemon"},
-  sephora:{name:"Sephora", cat:"general", cbm:"sephora", rk:"sephora", tcb:"sephora"},
-  nordstrom:{name:"Nordstrom", cat:"general", cbm:"nordstrom", rk:"nordstrom", tcb:"nordstrom"},
-  ulta:{name:"Ulta Beauty", cat:"general", cbm:"ulta", rk:"ulta-beauty", tcb:"ulta"},
-  dickssportinggoods:{name:"Dick's Sporting Goods", cat:"general", cbm:"dicks-sporting-goods", rk:"dicks-sporting-goods", tcb:"dicks-sporting-goods"},
-  rei:{name:"REI", cat:"general", cbm:"rei", rk:"rei", tcb:"rei"},
-  adidas:{name:"adidas", cat:"online", cbm:"adidas", rk:"adidas", tcb:"adidas"},
-  crocs:{name:"Crocs", cat:"online", cbm:"crocs", rk:"crocs", tcb:"crocs"},
-};
 function slug(s){ return (s||"").toLowerCase().replace(/&/g,"and").replace(/'/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
 function normStore(s){ return (s||"").toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]/g,""); }
-function matchStore(hint){ const h=normStore(hint); for(const k in STORES){ if(h.includes(k)) return {key:k,...STORES[k]}; } return null; }
+// [이름, 카테고리, 오버라이드?] — 인식 키·포털 슬러그는 이름에서 자동 생성, 다른 것만 오버라이드(key/cbm/rk/tcb)
+// 주의: 한 키가 다른 키를 포함하면(예: Nordstrom Rack ⊃ Nordstrom) 긴 것을 먼저 놓을 것
+const STORE_LIST=[
+  // 가구·홈·하드웨어
+  ["Crate & Barrel","general",{cbm:"crate-barrel",rk:"crateandbarrel"}],
+  ["CB2","general"], ["West Elm","general"], ["Pottery Barn","general"],
+  ["Wayfair","general"], ["IKEA","general"], ["Overstock","general"],
+  ["Bed Bath & Beyond","general",{key:"bedbath"}], ["Ashley Furniture","general"],
+  ["Home Depot","general",{rk:"the-home-depot"}], ["Lowe's","general"], ["Ace Hardware","general"],
+  ["Michaels","general"], ["Joann","general"],
+  // 대형마트·클럽·백화점
+  ["Target","general"], ["Walmart","general"], ["Costco","general"],
+  ["Sam's Club","general"], ["BJ's Wholesale","general",{key:"bjs"}],
+  ["Macy's","general"], ["Kohl's","general"], ["JCPenney","general"],
+  ["Nordstrom Rack","general"], ["Nordstrom","general"],
+  ["Bloomingdale's","general"], ["Saks Fifth Avenue","general",{key:"saks"}], ["Neiman Marcus","general"],
+  // 패션·의류·잡화
+  ["Gap","general"], ["Old Navy","general"], ["Banana Republic","general"], ["J.Crew","general"],
+  ["Abercrombie & Fitch","general",{key:"abercrombie"}], ["American Eagle","general"],
+  ["Urban Outfitters","general"], ["Anthropologie","general"], ["Free People","general"],
+  ["H&M","general",{key:"hm"}], ["Zara","general"], ["Uniqlo","general"],
+  ["ASOS","online"], ["Shein","online"], ["Levi's","general"],
+  ["Ralph Lauren","general"], ["Tommy Hilfiger","general"], ["Calvin Klein","general"],
+  ["Coach","general"], ["Kate Spade","general"], ["Michael Kors","general"], ["Tory Burch","general"],
+  ["Victoria's Secret","general"],
+  // 신발·스포츠·아웃도어
+  ["Nike","online"], ["adidas","online"], ["New Balance","general"], ["Under Armour","general"],
+  ["Puma","general"], ["Reebok","general"], ["Foot Locker","general"], ["Finish Line","general"],
+  ["DSW","general"], ["Zappos","online"], ["Steve Madden","general"], ["Crocs","online"],
+  ["Athleta","general"], ["lululemon","general"], ["Columbia","general"],
+  ["The North Face","general",{key:"northface"}], ["Patagonia","general"],
+  ["Dick's Sporting Goods","general"], ["REI","general"], ["Fanatics","general"],
+  // 전자·테크
+  ["Amazon","online",{rk:"amazon.com"}], ["Best Buy","online"], ["Apple","online"],
+  ["Samsung","online"], ["Dell","online"], ["HP","online",{key:"hp"}], ["Lenovo","online"],
+  ["Microsoft","online"], ["Newegg","online"], ["GameStop","online"], ["Adorama","online"],
+  ["B&H Photo","online",{key:"bhphoto"}], ["Bose","online"], ["Logitech","online"],
+  ["Garmin","online"], ["Dyson","online"],
+  // 뷰티·약국·헬스
+  ["Sephora","general"], ["Ulta Beauty","general",{key:"ulta",cbm:"ulta",tcb:"ulta"}],
+  ["Bath & Body Works","general",{key:"bathandbody"}], ["Victoria's Secret","general"],
+  ["GNC","general"], ["Vitamin Shoppe","general"], ["iHerb","online"],
+  ["Walgreens","drugstore"], ["CVS","drugstore"], ["Rite Aid","drugstore"],
+  // 키즈·완구·펫
+  ["Carter's","general"], ["LEGO","online"],
+  ["Chewy","online"], ["Petco","general"], ["PetSmart","general"],
+  // 오피스·책·마켓플레이스
+  ["Staples","general"], ["Office Depot","general"], ["Barnes & Noble","general"],
+  ["eBay","online"], ["Etsy","online"], ["AliExpress","online"], ["Temu","online"],
+  // 식료품·여행·가방
+  ["Instacart","grocery"],
+  ["Expedia","travel"], ["Hotels.com","travel",{key:"hotels"}], ["Booking.com","travel",{key:"booking"}], ["Priceline","travel"],
+  ["Samsonite","general"], ["Tumi","general"],
+];
+const STORES={};
+STORE_LIST.forEach(e=>{ const name=e[0],cat=e[1],o=e[2]||{}; const k=o.key||normStore(name); if(STORES[k]) return;
+  const s=slug(name); STORES[k]={name,cat,cbm:o.cbm||s,rk:o.rk||s,tcb:o.tcb||s}; });
+// 키가 4자 미만이면 시작 일치만(오탐 방지: rei가 oreilly에 걸리는 것 등), 4자 이상이면 포함 일치
+function storeKeyHit(h,k){ return k.length<4 ? h.startsWith(k) : h.includes(k); }
+function matchStore(hint){ const h=normStore(hint); for(const k in STORES){ if(storeKeyHit(h,k)) return {key:k,...STORES[k]}; } return null; }
 function levenshtein(a,b){ a=a||""; b=b||""; const m=a.length,n=b.length; if(!m)return n; if(!n)return m;
   let prev=Array.from({length:n+1},(_,j)=>j), cur=new Array(n+1);
   for(let i=1;i<=m;i++){ cur[0]=i; for(let j=1;j<=n;j++){ cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1)); } [prev,cur]=[cur,prev]; }
@@ -466,7 +499,7 @@ function levenshtein(a,b){ a=a||""; b=b||""; const m=a.length,n=b.length; if(!m)
 function fuzzyStore(hint){
   const h=normStore(hint);
   if(h.length<2) return null;
-  for(const k in STORES){ if(h.includes(k)||h===normStore(STORES[k].name)) return {key:k,...STORES[k],exact:true}; }
+  for(const k in STORES){ if(storeKeyHit(h,k)||h===normStore(STORES[k].name)) return {key:k,...STORES[k],exact:true}; }
   if(h.length<5) return null;
   let best=null;
   for(const k in STORES){
