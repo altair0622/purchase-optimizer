@@ -129,7 +129,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.7</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.8</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -154,7 +154,7 @@
       <span class="muted"><span class="wcount" id="walletCount">0장</span> 선택됨 · 지갑이 아래 계산 전체에 반영돼</span>
       <span style="display:flex;gap:8px"><button class="mini" id="walletShare" type="button" title="내 카드 구성을 URL로 복사 — 받은 사람은 같은 지갑으로 시작">🔗 내 지갑 링크 복사</button><button class="mini del" id="walletClear" type="button">비우기</button></span>
     </div>
-    <p class="cpp-note">적립률은 2026년 대표값을 7개 카테고리로 단순화한 참고용 — 실제 약관·한도와 다를 수 있어.</p>
+    <p class="cpp-note">🔗 <b>내 지갑 링크 복사</b> = 내가 고른 카드 구성을 링크 하나로 — 폰↔PC 이동하거나, 카드 구성이 같은 가족에게 보내면 <b>같은 지갑으로 시작</b>해. · 적립률은 2026년 대표값(참고용, 실제 약관·한도와 다를 수 있음).</p>
   </div>
 
   <div class="modebar">
@@ -235,7 +235,7 @@
       <label>어느 링크로 들어갈까 <span class="muted" style="font-weight:600">— 캐시백 포털 (카드와 무관하게 추가 적립)</span></label>
       <div class="portalbtns" id="sitePortalBtns"></div>
       <div class="grid g2" style="margin-top:6px">
-        <div><label>CapOne Shopping 오늘 %</label><input id="capPct" type="number" min="0" step="0.5" value="0"></div>
+        <div><label>Capital One Shopping 오늘 %</label><input id="capPct" type="number" min="0" step="0.5" value="0"></div>
         <div><label>Rakuten 오늘 %</label><input id="rkPct" type="number" min="0" step="0.5" value="0"></div>
       </div>
       <p class="muted" id="siteBaseline" style="margin:6px 0 0"></p>
@@ -299,7 +299,7 @@
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.7 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
+    v0.8 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
   </p>
 </div>
 
@@ -451,6 +451,10 @@ const STORES = {
   sephora:{name:"Sephora", cat:"general", cbm:"sephora", rk:"sephora", tcb:"sephora"},
   nordstrom:{name:"Nordstrom", cat:"general", cbm:"nordstrom", rk:"nordstrom", tcb:"nordstrom"},
   ulta:{name:"Ulta Beauty", cat:"general", cbm:"ulta", rk:"ulta-beauty", tcb:"ulta"},
+  dickssportinggoods:{name:"Dick's Sporting Goods", cat:"general", cbm:"dicks-sporting-goods", rk:"dicks-sporting-goods", tcb:"dicks-sporting-goods"},
+  rei:{name:"REI", cat:"general", cbm:"rei", rk:"rei", tcb:"rei"},
+  adidas:{name:"adidas", cat:"online", cbm:"adidas", rk:"adidas", tcb:"adidas"},
+  crocs:{name:"Crocs", cat:"online", cbm:"crocs", rk:"crocs", tcb:"crocs"},
 };
 function slug(s){ return (s||"").toLowerCase().replace(/&/g,"and").replace(/'/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
 function matchStore(hint){ const h=(hint||"").toLowerCase().replace(/[^a-z0-9]/g,""); for(const k in STORES){ if(h.includes(k)) return {key:k,...STORES[k]}; } return null; }
@@ -485,7 +489,7 @@ function portalLinksHTML(store, domain){
   return `<a href="https://www.cashbackmonitor.com/cashback-store/${cbm}/" target="_blank">CashbackMonitor</a>`+
     ` · <a href="https://www.rakuten.com/shop/${rk}" target="_blank">Rakuten</a>`+
     ` · <a href="https://www.topcashback.com/${tcb}/" target="_blank">TopCashback</a>`+
-    ` · <a href="https://capitaloneshopping.com/s/${cap}/coupon" target="_blank">CapOne</a>`+
+    ` · <a href="https://capitaloneshopping.com/s/${cap}/coupon" target="_blank">Capital One Shopping</a>`+
     (known?"":` <span style="color:var(--warn)">— 추정 링크(안 열리면 "${store}" 검색)</span>`);
 }
 
@@ -639,12 +643,12 @@ function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id)
       const rkp=(base.rk&&base.rk.listed!==false&&base.rk.pct)||0;
       const cpp2=(base.cap&&base.cap.listed!==false&&base.cap.pct)||0;
       const bestP=Math.max(rkp,cpp2);
-      if(bestP>0){ sc.portalPct=bestP; sc.portalName=(rkp>=cpp2?'Rakuten':'CapOne')+' (기본율)';
+      if(bestP>0){ sc.portalPct=bestP; sc.portalName=(rkp>=cpp2?'Rakuten':'Capital One Shopping')+' (기본율)';
         const card=document.getElementById('scard-'+sc.id);
         if(card){ card.querySelector('.s-portal').value=bestP; card.querySelector('.s-portalname').value=sc.portalName; }
       }
     }
-    extra=`<br>📊 기본율(${PORTAL_RATES.asOf}): CapOne <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b> <span class="tag">— 높은 쪽 자동 반영 · 오늘 %는 다를 수 있어</span>`;
+    extra=`<br>📊 기본율(${PORTAL_RATES.asOf}): Capital One Shopping <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b> <span class="tag">— 높은 쪽 자동 반영 · 오늘 %는 다를 수 있어</span>`;
   }
   p.innerHTML="비교: "+portalLinksHTML(sc.store, sc.domain)+extra;
 }
@@ -790,7 +794,7 @@ function computeSite(){
   }
   const cp=+v('capPct')||0, rp=+v('rkPct')||0;
   const pBest=Math.max(cp,rp);
-  const pName= pBest<=0 ? '' : (cp>rp?'CapOne Shopping':(rp>cp?'Rakuten':'포털'));
+  const pName= pBest<=0 ? '' : (cp>rp?'Capital One Shopping':(rp>cp?'Rakuten':'포털'));
   const rec=document.getElementById('siteRec');
   if(!CARDS.length){ rec.innerHTML='<p class="muted">위 👛 내 카드에서 카드를 골라줘.</p>'; }
   else {
@@ -799,13 +803,18 @@ function computeSite(){
   const best=rows[0];
   const bestOff = !!siteOffers[best.c.id];
   const flagged = rows.filter(r=>siteOffers[r.c.id]);
-  let html=`<div class="bigrec"><div class="lab">이 사이트엔 이 카드로</div>`+
+  const tot=best.eff+pBest;
+  let html=`<div class="bigrec"><div class="lab">이 사이트 최적 조합</div>`+
     `<div class="big">${best.c.name}</div>`+
-    `<div>${CATNAME[cat]} <b>${best.mult}배</b> → 실질 <b>${best.eff.toFixed(1)}%</b> 적립 <span class="pill ${TYPE[best.type].cls}">${TYPE[best.type].label}</span>`+
-    (bestOff?` <span class="pill flip">⭐오퍼도 있음</span>`:``)+`</div>`+
-    (pBest>0?`<div style="margin-top:4px">+ <b>${pName}</b> 경유 캐시백 <b>${pBest}%</b> → <span style="font-size:16px;font-weight:800;color:var(--accent)">총 ${(best.eff+pBest).toFixed(1)}% 돌려받음</span></div>`
-            :`<div class="tag" style="margin-top:4px">여기에 아래 <b>포털 캐시백 %</b>까지 더하면 총 돌려받는 %가 완성돼</div>`)+
-    `<div class="tag" style="margin-top:4px">${best.c.hint}</div></div>`;
+    `<div class="tag">${best.c.hint}</div>`+
+    (bestOff?`<div style="margin-top:4px"><span class="pill flip">⭐ 이 카드에 오퍼도 있음</span></div>`:``)+
+    `</div>`+
+    `<div class="receipt">`+
+    `<div class="line"><span class="lab">🔗 ${pBest>0?`<b>${pName}</b> 링크로 입장`:`포털 캐시백 없음`} <span class="tag">Capital One Shopping ${cp}% vs Rakuten ${rp}%${pBest>0?` → ${pName} 승`:''}</span></span><span class="minus">+${pBest}%</span></div>`+
+    `<div class="line"><span class="lab">💳 <b>${best.c.short}</b> 로 결제 <span class="tag">${CATNAME[cat]} ${best.mult}배 <span class="pill ${TYPE[best.type].cls}">${TYPE[best.type].label}</span></span></span><span class="minus">+${best.eff.toFixed(1)}%</span></div>`+
+    `<div class="line total"><span>총 돌려받음</span><span>${tot.toFixed(1)}%</span></div>`+
+    `</div>`+
+    `<div class="savebadge">💰 $100 쓸 때마다 ≈ ${money(tot)} 돌아옴</div>`;
   html+=`<div style="overflow-x:auto"><table><thead><tr><th>카드</th><th>이 카테고리</th><th class="r">종류</th><th class="r">실질 적립율</th></tr></thead><tbody>`;
   rows.forEach((r,i)=>{
     html+=`<tr class="${i===0?'best':''}"><td><b>${r.c.short}</b> ${i===0?'<span class="pill win">1위</span>':''}${siteOffers[r.c.id]?'<span class="pill flip">⭐오퍼</span>':''}<div class="tag">${r.c.hint||''}</div></td>`+
@@ -831,7 +840,7 @@ function computeSite(){
   if(base && PORTAL_RATES.asOf){
     const capOk=base.cap&&base.cap.pct!=null&&base.cap.listed!==false;
     const rkOk=base.rk&&base.rk.pct!=null&&base.rk.listed!==false;
-    bEl.innerHTML=`📊 기본율(${PORTAL_RATES.asOf}) <b>자동 입력됨</b>: CapOne <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b>`+
+    bEl.innerHTML=`📊 기본율(${PORTAL_RATES.asOf}) <b>자동 입력됨</b>: Capital One Shopping <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b>`+
       ((capOk||rkOk)?` <button class="mini" type="button" id="fillBase">↺ 기본율로 되돌리기</button>`:``)+
       ` <span class="tag">— 오늘 %는 다를 수 있어 · 로그인 계정은 더 높기도(타겟율)</span>`;
     const fb=document.getElementById('fillBase');
@@ -847,7 +856,7 @@ function computeSite(){
   const rkUrl=`https://www.rakuten.com/shop/${t.rk}`;
   const cbmUrl=`https://www.cashbackmonitor.com/cashback-store/${t.cbm}/`;
   document.getElementById('sitePortalBtns').innerHTML=
-    `<a class="pbtn cap" href="${capUrl}" target="_blank">CapitalOne Shopping ↗<small>여기 경유 후 사이트로</small></a>`+
+    `<a class="pbtn cap" href="${capUrl}" target="_blank">Capital One Shopping ↗<small>여기 경유 후 사이트로</small></a>`+
     `<a class="pbtn rk" href="${rkUrl}" target="_blank">Rakuten ↗<small>여기 경유 후 사이트로</small></a>`;
   document.getElementById('siteCompare').innerHTML=
     `오늘 실제 %는 수시로 바뀜 — 전체 포털 비교: <a href="${cbmUrl}" target="_blank">CashbackMonitor</a>`+
@@ -855,11 +864,10 @@ function computeSite(){
 
   const wEl=document.getElementById('portalWinner');
   if(cp>0||rp>0){
-    if(cp>rp) wEl.innerHTML=`→ 오늘은 <span class="winner">CapitalOne Shopping ${cp}%</span> 로 들어가 (Rakuten ${rp}%)`;
-    else if(rp>cp) wEl.innerHTML=`→ 오늘은 <span class="winner">Rakuten ${rp}%</span> 로 들어가 (CapOne ${cp}%)`;
-    else wEl.innerHTML=`→ 둘 다 ${cp}% — 아무거나 (되는 걸로)`;
+    if(cp!==rp) wEl.innerHTML=`⚖️ Capital One Shopping <b>${cp}%</b> vs Rakuten <b>${rp}%</b> → <span class="winner">${cp>rp?'Capital One Shopping':'Rakuten'} 선택</span>`;
+    else wEl.innerHTML=`⚖️ 둘 다 ${cp}% — 아무 쪽이나 (되는 걸로)`;
   } else {
-    wEl.innerHTML=`두 포털의 오늘 %를 넣으면 어디로 들어갈지 정해줄게. (모르면 위 CashbackMonitor로 확인)`;
+    wEl.innerHTML=`두 포털의 오늘 %를 넣으면 비교해서 정해줄게. (위 CashbackMonitor로 확인)`;
   }
   renderRefBox();
   saveState();
@@ -894,9 +902,24 @@ function parsePaste(){
   const pm=raw.match(/\$\s?(\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)/);
   if(pm){ sc.price=+pm[1].replace(/,/g,""); el.querySelector('.s-price').value=sc.price; filled.push("가격"); }
   const parts=raw.split(/\n|\s{2,}/).map(x=>x.trim()).filter(Boolean);
-  for(const ln of parts){ if(/https?:\/\//i.test(ln)) continue; if(/^\$?\s?[\d.,]+$/.test(ln)) continue; if(ln.length<2) continue; document.getElementById('pname').value=ln.slice(0,80); filled.push("이름"); break; }
+  let named=false;
+  for(const ln of parts){ if(/https?:\/\//i.test(ln)) continue; if(/^\$?\s?[\d.,]+$/.test(ln)) continue; if(ln.length<2) continue; document.getElementById('pname').value=ln.slice(0,80); filled.push("이름"); named=true; break; }
+  // URL만 붙여넣은 경우: 경로 슬러그에서 상품명 추정 (예: /p/adidas-kids-...-shoes-스큐 → "Adidas Kids ... Shoes")
+  if(um && !named){
+    try{
+      const segs=new URL(um[0]).pathname.split('/').filter(s=>(s.match(/-/g)||[]).length>=2);
+      if(segs.length){
+        const words=segs.sort((a,b)=>b.length-a.length)[0].split(/[-_]+/)
+          .filter(w=>w && w.length<16 && !(/\d/.test(w)&&w.length>5));
+        if(words.length>=2){
+          const nm=words.join(' ').replace(/\b\w/g,c=>c.toUpperCase()).slice(0,80);
+          document.getElementById('pname').value=nm; filled.push("이름(URL 추정)");
+        }
+      }
+    }catch(e){}
+  }
   recompute();
-  msg.textContent = filled.length ? ("첫 판매처에 채웠어: "+[...new Set(filled)].join(", ")+(pm?"":" · 가격은 직접 넣어줘")) : "URL/가격을 못 찾았어. 제목+가격을 통째로 붙여넣어봐.";
+  msg.innerHTML = filled.length ? ('<b style="color:var(--accent)">✅ 채웠어:</b> '+[...new Set(filled)].join(", ")+(pm?"":' · <b style="color:var(--warn)">가격은 직접 넣어줘</b>')) : "URL/가격을 못 찾았어 — 제목+가격을 통째로 붙여넣어봐.";
 }
 
 // ===== 저장/복원 =====
@@ -1001,8 +1024,10 @@ function init(){
   document.getElementById('siteStore').addEventListener('input',e=>{
     const fz=fuzzyStore(e.target.value); const hint=document.getElementById('siteStoreHint');
     if(fz){ document.getElementById('siteCat').value=fz.cat;
-      hint.innerHTML = fz.exact ? '' : `🔎 '<b>${fz.name}</b>'로 인식했어 (오타 보정) — 아니면 카테고리 직접 골라줘`;
-    } else { hint.innerHTML=''; }
+      hint.innerHTML = fz.exact
+        ? `✅ <b>${fz.name}</b> 인식됨 — 카테고리: ${CATNAME[fz.cat]}`
+        : `🔎 '<b>${fz.name}</b>'로 인식했어 (오타 보정) — 카테고리: ${CATNAME[fz.cat]} · 아니면 직접 골라줘`;
+    } else { hint.innerHTML = e.target.value.trim() ? `등록 안 된 판매처 — 카테고리를 직접 골라줘 (링크는 추정으로 생성)` : ''; }
     computeSite();
   });
   document.getElementById('siteCat').addEventListener('change',computeSite);
