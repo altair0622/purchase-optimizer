@@ -1,0 +1,212 @@
+{
+ "asOf": "2026-07-30",
+ "capAsOf": "2026-07-28",
+ "source": "rakuten.com 공개 페이지(비로그인 기본율) · CapOne Shopping은 수동",
+ "stores": {
+  "crateandbarrel": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   }
+  },
+  "cb2": {
+   "rk": {
+    "pct": 2,
+    "listed": true,
+    "upTo": true
+   },
+   "cap": {
+    "pct": 0.5,
+    "listed": true
+   }
+  },
+  "westelm": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   }
+  },
+  "potterybarn": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   }
+  },
+  "wayfair": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   }
+  },
+  "ikea": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": 0.5,
+    "upTo": true,
+    "listed": true
+   }
+  },
+  "homedepot": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": 0.5,
+    "listed": true
+   }
+  },
+  "lowes": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   }
+  },
+  "target": {
+   "rk": {
+    "pct": 1,
+    "listed": true
+   },
+   "cap": {
+    "pct": 0.5,
+    "listed": true
+   }
+  },
+  "walmart": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": 1,
+    "listed": true
+   }
+  },
+  "macys": {
+   "rk": {
+    "pct": 6,
+    "listed": true
+   },
+   "cap": {
+    "pct": 1,
+    "upTo": true,
+    "listed": true
+   }
+  },
+  "amazon": {
+   "rk": {
+    "pct": null,
+    "flat": 5,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   }
+  },
+  "bestbuy": {
+   "rk": {
+    "pct": 7,
+    "listed": true,
+    "upTo": true
+   },
+   "cap": {
+    "pct": 0.5,
+    "listed": true
+   }
+  },
+  "apple": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": 0.5,
+    "listed": true
+   }
+  },
+  "nike": {
+   "rk": {
+    "pct": 8,
+    "listed": true
+   },
+   "cap": {
+    "pct": 2,
+    "listed": true
+   }
+  },
+  "costco": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   }
+  },
+  "lululemon": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": 2,
+    "listed": true
+   }
+  },
+  "sephora": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": 2,
+    "listed": true
+   }
+  },
+  "nordstrom": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   }
+  },
+  "ulta": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": 2,
+    "listed": true
+   }
+  }
+ }
+}

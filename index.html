@@ -129,7 +129,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.12</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.13</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -319,7 +319,7 @@
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.12 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
+    v0.13 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
   </p>
 </div>
 
@@ -412,8 +412,10 @@ const REFERRALS = { rakuten:"https://www.rakuten.com/r/ALTAIR42", capone:"https:
 
 // ===== 포털 기본율 스냅샷 =====
 // ⚠️ 로그아웃 "기본율"만 — 회원 타겟율(로그인)은 더 높을 수 있음(예: Crocs 공개 3% vs 계정 7%).
-// 갱신법: Claude에게 "포털 기본율 스냅샷 갱신해줘" → 두 포털 공개 페이지 스윕 → 여기 덮어쓰기.
-const PORTAL_RATES = { asOf:"2026-07-28", stores:{
+// 이 내장 스냅샷은 폴백 — 배포본(GitHub Pages)은 rates.json을 로드해 덮어씀.
+// rates.json의 Rakuten 값은 GitHub Actions가 매일 자동 갱신(scripts/update-rates.mjs).
+// CapOne Shopping은 CAPTCHA로 자동 수집 불가 → 수동 갱신: Claude에게 "포털 기본율 스냅샷 갱신해줘".
+const PORTAL_RATES = { asOf:"2026-07-28", capAsOf:"2026-07-28", stores:{
   crateandbarrel:{rk:{pct:0,listed:true},          cap:{pct:null,listed:true}},
   cb2:{rk:{pct:2,upTo:true,listed:true},           cap:{pct:0.5,listed:true}},
   westelm:{rk:{pct:0,listed:true},                 cap:{pct:null,listed:true}},
@@ -436,7 +438,8 @@ const PORTAL_RATES = { asOf:"2026-07-28", stores:{
   ulta:{rk:{pct:2,listed:true},                    cap:{pct:2,listed:true}},
 } };
 function baselineFor(key){ return (key && PORTAL_RATES.stores && PORTAL_RATES.stores[key]) || null; }
-function fmtBase(b){ if(!b) return "—"; if(b.listed===false) return "없음"; if(b.pct==null) return "직접 확인"; return (b.upTo?"최대 ":"")+b.pct+"%"; }
+function fmtBase(b){ if(!b) return "—"; if(b.listed===false) return "없음"; if(b.flat!=null) return "$"+b.flat+" 고정"; if(b.pct==null) return "직접 확인"; return (b.upTo?"최대 ":"")+b.pct+"%"; }
+function ratesStamp(){ const a=PORTAL_RATES.asOf, c=PORTAL_RATES.capAsOf; return (c&&c!==a) ? `Rakuten ${a} · CapOne ${c}` : a; }
 
 const CATNAME = { general:"기타/일반", online:"온라인 쇼핑", dining:"외식", grocery:"마트/식료품",
                   gas:"주유·EV·대중교통", drugstore:"약국", travel:"여행" };
@@ -457,10 +460,10 @@ function normStore(s){ return (s||"").toLowerCase().replace(/&/g,"and").replace(
 const STORE_LIST=[
   // 가구·홈·하드웨어
   ["Crate & Barrel","general",{cbm:"crate-barrel",rk:"crateandbarrel"}],
-  ["CB2","general"], ["West Elm","general"], ["Pottery Barn","general"],
+  ["CB2","general"], ["West Elm","general"], ["Pottery Barn","general",{rk:"potterybarn"}],
   ["Wayfair","general"], ["IKEA","general"], ["Overstock","general"],
   ["Bed Bath & Beyond","general",{key:"bedbath"}], ["Ashley Furniture","general"],
-  ["Home Depot","general",{rk:"the-home-depot"}], ["Lowe's","general"], ["Ace Hardware","general"],
+  ["Home Depot","general",{rk:"homedepot"}], ["Lowe's","general"], ["Ace Hardware","general"],
   ["Michaels","general"], ["Joann","general"],
   // 대형마트·클럽·백화점
   ["Target","general"], ["Walmart","general"], ["Costco","general"],
@@ -485,13 +488,13 @@ const STORE_LIST=[
   ["The North Face","general",{key:"northface"}], ["Patagonia","general"],
   ["Dick's Sporting Goods","general"], ["REI","general"], ["Fanatics","general"],
   // 전자·테크
-  ["Amazon","online",{rk:"amazon.com"}], ["Best Buy","online"], ["Apple","online"],
+  ["Amazon","online",{rk:"amazon.com"}], ["Best Buy","online",{rk:"bestbuy"}], ["Apple","online"],
   ["Samsung","online"], ["Dell","online"], ["HP","online",{key:"hp"}], ["Lenovo","online"],
   ["Microsoft","online"], ["Newegg","online"], ["GameStop","online"], ["Adorama","online"],
   ["B&H Photo","online",{key:"bhphoto"}], ["Bose","online"], ["Logitech","online"],
   ["Garmin","online"], ["Dyson","online"],
   // 뷰티·약국·헬스
-  ["Sephora","general"], ["Ulta Beauty","general",{key:"ulta",cbm:"ulta",tcb:"ulta"}],
+  ["Sephora","general"], ["Ulta Beauty","general",{key:"ulta",cbm:"ulta",tcb:"ulta",rk:"ultabeauty"}],
   ["Bath & Body Works","general",{key:"bathandbody"}], ["Victoria's Secret","general"],
   ["GNC","general"], ["Vitamin Shoppe","general"], ["iHerb","online"],
   ["Walgreens","drugstore"], ["CVS","drugstore"], ["Rite Aid","drugstore"],
@@ -861,7 +864,7 @@ function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id)
         if(card){ card.querySelector('.s-portal').value=bestP; card.querySelector('.s-portalname').value=sc.portalName; }
       }
     }
-    extra=`<br>📊 기본율(${PORTAL_RATES.asOf}): Capital One Shopping <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b> <span class="tag">— 높은 쪽 자동 반영 · 오늘 %는 다를 수 있어</span>`;
+    extra=`<br>📊 기본율(${ratesStamp()}): Capital One Shopping <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b> <span class="tag">— 높은 쪽 자동 반영 · 오늘 %는 다를 수 있어</span>`;
   }
   p.innerHTML="비교: "+portalLinksHTML(sc.store, sc.domain)+extra;
 }
@@ -1068,7 +1071,7 @@ function computeSite(){
   if(base && PORTAL_RATES.asOf){
     const capOk=base.cap&&base.cap.pct!=null&&base.cap.listed!==false;
     const rkOk=base.rk&&base.rk.pct!=null&&base.rk.listed!==false;
-    bEl.innerHTML=`📊 기본율(${PORTAL_RATES.asOf}) <b>자동 입력됨</b>: Capital One Shopping <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b>`+
+    bEl.innerHTML=`📊 기본율(${ratesStamp()}) <b>자동 입력됨</b>: Capital One Shopping <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b>`+
       ((capOk||rkOk)?` <button class="mini" type="button" id="fillBase">↺ 기본율로 되돌리기</button>`:``)+
       ` <span class="tag">— 오늘 %는 다를 수 있어 · 로그인 계정은 더 높기도(타겟율)</span>`;
     const fb=document.getElementById('fillBase');
@@ -1282,6 +1285,18 @@ function init(){
   setMode(mode);
 }
 init();
+
+// ===== 원격 요율 로드 =====
+// 배포본(GitHub Pages)에선 rates.json(Rakuten은 매일 자동 갱신)을 읽어 내장 스냅샷을 덮어씀.
+// 로컬 file:// 에선 fetch가 실패해 조용히 내장 스냅샷으로 동작.
+fetch('rates.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
+  if(!j||!j.stores) return;
+  PORTAL_RATES.asOf=j.asOf||PORTAL_RATES.asOf;
+  PORTAL_RATES.capAsOf=j.capAsOf||PORTAL_RATES.capAsOf;
+  PORTAL_RATES.stores=j.stores;
+  scenarios.forEach(sc=>updatePortalLinks(sc));
+  if(mode==='site') computeSite(); else recompute();
+}).catch(()=>{});
 </script>
 </body>
 </html>
