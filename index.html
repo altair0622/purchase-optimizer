@@ -254,8 +254,8 @@
       <label>어느 링크로 들어갈까 <span class="muted" style="font-weight:600">— 캐시백 포털 (카드와 무관하게 추가 적립)</span></label>
       <div class="portalbtns" id="sitePortalBtns"></div>
       <div class="grid g2" style="margin-top:6px">
-        <div><label>Capital One Shopping 오늘 %</label><input id="capPct" type="number" min="0" step="0.5" value="0"></div>
-        <div><label>Rakuten 오늘 %</label><input id="rkPct" type="number" min="0" step="0.5" value="0"></div>
+        <div><label>Capital One Shopping 캐시백 %</label><input id="capPct" type="number" min="0" step="0.5" value="0"></div>
+        <div><label>Rakuten 캐시백 %</label><input id="rkPct" type="number" min="0" step="0.5" value="0"></div>
       </div>
       <p class="muted" id="siteBaseline" style="margin:6px 0 0"></p>
       <p class="muted" id="portalWinner" style="margin:8px 0 0"></p>
@@ -864,7 +864,7 @@ function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id)
         if(card){ card.querySelector('.s-portal').value=bestP; card.querySelector('.s-portalname').value=sc.portalName; }
       }
     }
-    extra=`<br>📊 기본율(${ratesStamp()}): Capital One Shopping <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b> <span class="tag">— 높은 쪽 자동 반영 · 오늘 %는 다를 수 있어</span>`;
+    extra=`<br>📊 기본율(${ratesStamp()}): Capital One Shopping <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b> <span class="tag">— 높은 쪽 자동 반영 · 실제 %는 다를 수 있어</span>`;
   }
   p.innerHTML="비교: "+portalLinksHTML(sc.store, sc.domain)+extra;
 }
@@ -1073,7 +1073,7 @@ function computeSite(){
     const rkOk=base.rk&&base.rk.pct!=null&&base.rk.listed!==false;
     bEl.innerHTML=`📊 기본율(${ratesStamp()}) <b>자동 입력됨</b>: Capital One Shopping <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b>`+
       ((capOk||rkOk)?` <button class="mini" type="button" id="fillBase">↺ 기본율로 되돌리기</button>`:``)+
-      ` <span class="tag">— 오늘 %는 다를 수 있어 · 로그인 계정은 더 높기도(타겟율)</span>`;
+      ` <span class="tag">— 그 날짜의 공개 기본 캐시백 % · 내 계정(로그인)에선 더 높을 수도 있어</span>`;
     const fb=document.getElementById('fillBase');
     if(fb) fb.addEventListener('click',()=>{
       if(capOk) document.getElementById('capPct').value=base.cap.pct;
@@ -1098,7 +1098,7 @@ function computeSite(){
     if(cp!==rp) wEl.innerHTML=`⚖️ Capital One Shopping <b>${cp}%</b> vs Rakuten <b>${rp}%</b> → <span class="winner">${cp>rp?'Capital One Shopping':'Rakuten'} 선택</span>`;
     else wEl.innerHTML=`⚖️ 둘 다 ${cp}% — 아무 쪽이나 (되는 걸로)`;
   } else {
-    wEl.innerHTML=`두 포털의 오늘 %를 넣으면 비교해서 정해줄게. (위 CashbackMonitor로 확인)`;
+    wEl.innerHTML=`두 포털의 캐시백 %를 넣으면 비교해서 정해줄게. (위 CashbackMonitor로 확인)`;
   }
   renderRefBox();
   saveState();
