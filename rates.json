@@ -1,7 +1,7 @@
 {
- "asOf": "2026-07-31",
- "capAsOf": "2026-07-28",
- "source": "rakuten.com 공개 페이지(비로그인 기본율) · CapOne Shopping은 수동",
+ "asOf": "2026-08-01",
+ "capAsOf": "2026-07-31",
+ "source": "rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
   "crateandbarrel": {
    "rk": {
@@ -9,7 +9,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
     "listed": true
    }
   },
@@ -22,6 +26,10 @@
    "cap": {
     "pct": 0.5,
     "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
    }
   },
   "westelm": {
@@ -30,8 +38,12 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
    }
   },
   "potterybarn": {
@@ -40,8 +52,12 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
    }
   },
   "wayfair": {
@@ -50,7 +66,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
     "listed": true
    }
   },
@@ -63,6 +83,11 @@
     "pct": 0.5,
     "upTo": true,
     "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true,
+    "upTo": true
    }
   },
   "homedepot": {
@@ -73,6 +98,11 @@
    "cap": {
     "pct": 0.5,
     "listed": true
+   },
+   "tcb": {
+    "pct": 12,
+    "listed": true,
+    "upTo": true
    }
   },
   "lowes": {
@@ -81,7 +111,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
     "listed": true
    }
   },
@@ -93,6 +127,10 @@
    "cap": {
     "pct": 0.5,
     "listed": true
+   },
+   "tcb": {
+    "pct": 2,
+    "listed": true
    }
   },
   "walmart": {
@@ -103,6 +141,11 @@
    "cap": {
     "pct": 1,
     "listed": true
+   },
+   "tcb": {
+    "pct": 15,
+    "listed": true,
+    "upTo": true
    }
   },
   "macys": {
@@ -111,9 +154,14 @@
     "listed": true
    },
    "cap": {
-    "pct": 1,
+    "pct": 2,
     "upTo": true,
     "listed": true
+   },
+   "tcb": {
+    "pct": 8,
+    "listed": true,
+    "upTo": true
    }
   },
   "amazon": {
@@ -123,8 +171,12 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
    }
   },
   "bestbuy": {
@@ -136,6 +188,10 @@
    "cap": {
     "pct": 0.5,
     "listed": true
+   },
+   "tcb": {
+    "pct": 12,
+    "listed": true
    }
   },
   "apple": {
@@ -146,6 +202,11 @@
    "cap": {
     "pct": 0.5,
     "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true,
+    "upTo": true
    }
   },
   "nike": {
@@ -156,6 +217,10 @@
    "cap": {
     "pct": 2,
     "listed": true
+   },
+   "tcb": {
+    "pct": 10,
+    "listed": true
    }
   },
   "costco": {
@@ -164,7 +229,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
     "listed": true
    }
   },
@@ -174,7 +243,11 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 1,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
     "listed": true
    }
   },
@@ -186,6 +259,10 @@
    "cap": {
     "pct": 2,
     "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true
    }
   },
   "nordstrom": {
@@ -194,7 +271,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
     "listed": true
    }
   },
@@ -205,6 +286,10 @@
    },
    "cap": {
     "pct": 2,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
     "listed": true
    }
   }
