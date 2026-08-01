@@ -1,4 +1,5 @@
-// Rakuten 공개(비로그인) 캐시백 기본율을 긁어 rates.json을 갱신한다.
+// Rakuten + TopCashback 공개(비로그인) 캐시백 기본율을 긁어 rates.json을 갱신한다.
+// 포털 기본율은 로그인 여부와 무관하게 모두에게 동일(타겟 부스트만 예외) → 로그인 불필요.
 // 사용: node scripts/update-rates.mjs  (GitHub Actions가 매일 실행)
 //
 // - Rakuten 상점 페이지 <title>에 요율이 실려 있음:
@@ -7,6 +8,8 @@
 //     "Amazon ... & $5 Cash Back ..."              → flat ($ 고정)
 //     "... & No Cash Back ..." / "... & Coupons Only ..." → 0%
 //   상점이 없으면 일반 홈 타이틀("Rakuten: Shop. ...")로 리다이렉트 → 실패 처리(이전 값 유지)
+// - TopCashback 상점 페이지는 class="merch-offer__rate" 요소에 요율("10% Cash Back"/"Up to 8% ...").
+//   요소가 없으면(쿠폰만) 0%, 페이지 자체가 없으면 미등재.
 // - Capital One Shopping은 CAPTCHA로 자동 수집을 막고 있어 여기선 갱신하지 않는다(수동/스킬 갱신).
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -14,28 +17,28 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 const OUT = new URL('../rates.json', import.meta.url);
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
-// key = 계산기(purchase-optimizer)의 판매처 키, slug = rakuten.com/shop/<slug>
+// key = 계산기(purchase-optimizer)의 판매처 키, rk = rakuten.com/shop/<slug>, tcb = topcashback.com/<slug>/ (null=미등재)
 const STORES = [
-  ['crateandbarrel', 'crateandbarrel'],
-  ['cb2',            'cb2'],
-  ['westelm',        'west-elm'],
-  ['potterybarn',    'potterybarn'],
-  ['wayfair',        'wayfair'],
-  ['ikea',           'ikea'],
-  ['homedepot',      'homedepot'],
-  ['lowes',          'lowes'],
-  ['target',         'target'],
-  ['walmart',        'walmart'],
-  ['macys',          'macys'],
-  ['amazon',         'amazon.com'],
-  ['bestbuy',        'bestbuy'],
-  ['apple',          'apple'],
-  ['nike',           'nike'],
-  ['costco',         'costco'],
-  ['lululemon',      'lululemon'],
-  ['sephora',        'sephora'],
-  ['nordstrom',      'nordstrom'],
-  ['ulta',           'ultabeauty'],
+  ['crateandbarrel', 'crateandbarrel', 'crate-and-barrel'],
+  ['cb2',            'cb2',            null],
+  ['westelm',        'west-elm',       null],
+  ['potterybarn',    'potterybarn',    null],
+  ['wayfair',        'wayfair',        'wayfair'],
+  ['ikea',           'ikea',           'ikea'],
+  ['homedepot',      'homedepot',      'home-depot'],
+  ['lowes',          'lowes',          'lowes'],
+  ['target',         'target',         'target'],
+  ['walmart',        'walmart',        'walmart'],
+  ['macys',          'macys',          'macys'],
+  ['amazon',         'amazon.com',     null],
+  ['bestbuy',        'bestbuy',        'best-buy'],
+  ['apple',          'apple',          'apple'],
+  ['nike',           'nike',           'nike'],
+  ['costco',         'costco',         'costco'],
+  ['lululemon',      'lululemon',      'lululemon'],
+  ['sephora',        'sephora',        'sephora'],
+  ['nordstrom',      'nordstrom',      'nordstrom'],
+  ['ulta',           'ultabeauty',     'ulta-beauty'],
 ];
 
 function parseTitle(title) {
@@ -49,44 +52,63 @@ function parseTitle(title) {
   return null;
 }
 
-async function fetchTitle(slug, attempt = 1) {
+async function fetchHtml(url, attempt = 1) {
   try {
     const ctrl = new AbortController();
     const tm = setTimeout(() => ctrl.abort(), 20000);
-    const res = await fetch(`https://www.rakuten.com/shop/${slug}`, {
+    const res = await fetch(url, {
       headers: { 'user-agent': UA, 'accept-language': 'en-US,en;q=0.9' },
       redirect: 'follow', signal: ctrl.signal,
     });
     clearTimeout(tm);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const html = await res.text();
-    const m = html.match(/<title>([^<]+)<\/title>/i);
-    return m ? m[1].replace(/&amp;/g, '&').replace(/&#x27;/g, "'") : null;
+    return await res.text();
   } catch (e) {
-    if (attempt < 2) { await new Promise(r => setTimeout(r, 3000)); return fetchTitle(slug, attempt + 1); }
+    if (attempt < 2) { await new Promise(r => setTimeout(r, 3000)); return fetchHtml(url, attempt + 1); }
     return null;
   }
+}
+async function fetchTitle(slug) {
+  const html = await fetchHtml(`https://www.rakuten.com/shop/${slug}`);
+  if (!html) return null;
+  const m = html.match(/<title>([^<]+)<\/title>/i);
+  return m ? m[1].replace(/&amp;/g, '&').replace(/&#x27;/g, "'") : null;
+}
+// TopCashback: merch-offer__rate 요소 텍스트 → {pct,upTo}. 요소 없고 상점 h1 있으면 0%, 페이지 없으면 null(실패).
+async function fetchTcb(slug) {
+  const html = await fetchHtml(`https://www.topcashback.com/${slug}/`);
+  if (!html) return null;
+  const m = html.match(/merch-offer__rate[^>]*>([^<]+)</i);
+  if (m) {
+    const r = m[1].match(/(Up to )?(\d+(?:\.\d+)?)%/i);
+    if (r) { const o = { pct: +r[2], listed: true }; if (r[1]) o.upTo = true; return o; }
+  }
+  if (/Page not found/i.test(html)) return null;
+  if (/<h1[^>]*>[^<]*Cash Back Offers/i.test(html)) return { pct: 0, listed: true };
+  return null;
 }
 
 const prev = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')) : { stores: {} };
 const out = {
-  asOf: new Date().toISOString().slice(0, 10),   // Rakuten 갱신 날짜
-  capAsOf: prev.capAsOf || '2026-07-28',          // CapOne은 수동 갱신 — 그때 이 날짜도 갱신
-  source: 'rakuten.com 공개 페이지(비로그인 기본율) · CapOne Shopping은 수동',
+  asOf: new Date().toISOString().slice(0, 10),   // Rakuten·TopCashback 갱신 날짜
+  capAsOf: prev.capAsOf || '2026-07-31',          // CapOne Shopping은 수동 갱신 — 그때 이 날짜도 갱신
+  source: 'rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)',
   stores: {},
 };
 
+const fmt = r => r.flat != null ? '$' + r.flat : (r.upTo ? '≤' : '') + r.pct + '%';
 let ok = 0, failed = [];
-for (const [key, slug] of STORES) {
-  const title = await fetchTitle(slug);
-  const rk = parseTitle(title);
+for (const [key, rkSlug, tcbSlug] of STORES) {
+  const rk = parseTitle(await fetchTitle(rkSlug));
+  const tcb = tcbSlug ? await fetchTcb(tcbSlug) : { pct: null, listed: false };
   const prevStore = (prev.stores && prev.stores[key]) || {};
   out.stores[key] = {
     rk: rk || prevStore.rk || { pct: null, listed: true },          // 실패 시 이전 값 유지
-    cap: prevStore.cap || { pct: null, listed: true },              // CapOne은 이전 값 그대로
+    cap: prevStore.cap || { pct: null, listed: true },              // CapOne Shopping은 이전 값 그대로
+    tcb: tcb || prevStore.tcb || { pct: null, listed: true },
   };
-  if (rk) { ok++; console.log(`  ${key}: ${rk.flat != null ? '$' + rk.flat : rk.pct + '%'}${rk.upTo ? ' (up to)' : ''}`); }
-  else { failed.push(key); console.log(`  ${key}: FAILED (${title || 'no title'}) — 이전 값 유지`); }
+  if (rk || tcb) { ok++; console.log(`  ${key}: RK ${rk ? fmt(rk) : 'FAIL'} · TCB ${tcb ? (tcb.listed === false ? '미등재' : fmt(tcb)) : 'FAIL'}`); }
+  else { failed.push(key); console.log(`  ${key}: 둘 다 FAILED — 이전 값 유지`); }
   await new Promise(r => setTimeout(r, 500));
 }
 

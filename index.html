@@ -100,6 +100,7 @@
   .pbtn:hover{opacity:.9;text-decoration:none}
   .pbtn.cap{background:#004879}
   .pbtn.rk{background:#e0115f}
+  .pbtn.tcb{background:#00808c}
   .pbtn small{display:block;font-size:11px;font-weight:600;opacity:.85;margin-top:2px}
   .winner{font-weight:800;color:var(--accent)}
   /* 지갑(온보딩) */
@@ -129,7 +130,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.13</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.14</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -253,9 +254,10 @@
     <div style="margin-top:8px">
       <label>어느 링크로 들어갈까 <span class="muted" style="font-weight:600">— 캐시백 포털 (카드와 무관하게 추가 적립)</span></label>
       <div class="portalbtns" id="sitePortalBtns"></div>
-      <div class="grid g2" style="margin-top:6px">
-        <div><label>Capital One Shopping 캐시백 %</label><input id="capPct" type="number" min="0" step="0.5" value="0"></div>
+      <div class="grid g3" style="margin-top:6px">
         <div><label>Rakuten 캐시백 %</label><input id="rkPct" type="number" min="0" step="0.5" value="0"></div>
+        <div><label>TopCashback 캐시백 %</label><input id="tcbPct" type="number" min="0" step="0.5" value="0"></div>
+        <div><label>Capital One Shopping %</label><input id="capPct" type="number" min="0" step="0.5" value="0"></div>
       </div>
       <p class="muted" id="siteBaseline" style="margin:6px 0 0"></p>
       <p class="muted" id="portalWinner" style="margin:8px 0 0"></p>
@@ -319,7 +321,7 @@
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.13 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
+    v0.14 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
   </p>
 </div>
 
@@ -415,27 +417,27 @@ const REFERRALS = { rakuten:"https://www.rakuten.com/r/ALTAIR42", capone:"https:
 // 이 내장 스냅샷은 폴백 — 배포본(GitHub Pages)은 rates.json을 로드해 덮어씀.
 // rates.json의 Rakuten 값은 GitHub Actions가 매일 자동 갱신(scripts/update-rates.mjs).
 // CapOne Shopping은 CAPTCHA로 자동 수집 불가 → 수동 갱신: Claude에게 "포털 기본율 스냅샷 갱신해줘".
-const PORTAL_RATES = { asOf:"2026-07-28", capAsOf:"2026-07-28", stores:{
-  crateandbarrel:{rk:{pct:0,listed:true},          cap:{pct:null,listed:true}},
-  cb2:{rk:{pct:2,upTo:true,listed:true},           cap:{pct:0.5,listed:true}},
-  westelm:{rk:{pct:0,listed:true},                 cap:{pct:null,listed:true}},
-  potterybarn:{rk:{pct:0,listed:true},             cap:{pct:null,listed:true}},
-  wayfair:{rk:{pct:0,listed:true},                 cap:{pct:null,listed:true}},
-  ikea:{rk:{pct:2,listed:true},                    cap:{pct:0.5,upTo:true,listed:true}},
-  homedepot:{rk:{pct:0,listed:true},               cap:{pct:0.5,listed:true}},
-  lowes:{rk:{pct:0,listed:true},                   cap:{pct:null,listed:true}},
-  target:{rk:{pct:1,listed:true},                  cap:{pct:0.5,listed:true}},
-  walmart:{rk:{pct:0,listed:true},                 cap:{pct:1,listed:true}},
-  macys:{rk:{pct:4,listed:true},                   cap:{pct:1,upTo:true,listed:true}},
-  amazon:{rk:{pct:null,listed:true},               cap:{pct:null,listed:true}},
-  bestbuy:{rk:{pct:7,upTo:true,listed:true},       cap:{pct:0.5,listed:true}},
-  apple:{rk:{pct:2,listed:true},                   cap:{pct:0.5,listed:true}},
-  nike:{rk:{pct:8,listed:true},                    cap:{pct:2,listed:true}},
-  costco:{rk:{pct:0,listed:true},                  cap:{pct:null,listed:true}},
-  lululemon:{rk:{pct:0,listed:true},               cap:{pct:2,listed:true}},
-  sephora:{rk:{pct:2,listed:true},                 cap:{pct:2,listed:true}},
-  nordstrom:{rk:{pct:2,listed:true},               cap:{pct:null,listed:true}},
-  ulta:{rk:{pct:2,listed:true},                    cap:{pct:2,listed:true}},
+const PORTAL_RATES = { asOf:"2026-07-31", capAsOf:"2026-07-31", stores:{
+  crateandbarrel:{rk:{pct:0,listed:true},    cap:{pct:0,listed:true},          tcb:{pct:0,listed:true}},
+  cb2:{rk:{pct:2,upTo:true,listed:true},     cap:{pct:0.5,listed:true},        tcb:{pct:null,listed:false}},
+  westelm:{rk:{pct:0,listed:true},           cap:{pct:0,listed:true},          tcb:{pct:null,listed:false}},
+  potterybarn:{rk:{pct:0,listed:true},       cap:{pct:0,listed:true},          tcb:{pct:null,listed:false}},
+  wayfair:{rk:{pct:0,listed:true},           cap:{pct:0,listed:true},          tcb:{pct:0,listed:true}},
+  ikea:{rk:{pct:2,listed:true},              cap:{pct:0.5,upTo:true,listed:true}, tcb:{pct:4,upTo:true,listed:true}},
+  homedepot:{rk:{pct:0,listed:true},         cap:{pct:0.5,listed:true},        tcb:{pct:12,upTo:true,listed:true}},
+  lowes:{rk:{pct:0,listed:true},             cap:{pct:0,listed:true},          tcb:{pct:0,listed:true}},
+  target:{rk:{pct:1,listed:true},            cap:{pct:0.5,listed:true},        tcb:{pct:2,listed:true}},
+  walmart:{rk:{pct:0,listed:true},           cap:{pct:1,listed:true},          tcb:{pct:15,upTo:true,listed:true}},
+  macys:{rk:{pct:6,listed:true},             cap:{pct:2,upTo:true,listed:true}, tcb:{pct:8,upTo:true,listed:true}},
+  amazon:{rk:{pct:null,flat:5,listed:true},  cap:{pct:0,listed:true},          tcb:{pct:null,listed:false}},
+  bestbuy:{rk:{pct:7,upTo:true,listed:true}, cap:{pct:0.5,listed:true},        tcb:{pct:12,listed:true}},
+  apple:{rk:{pct:2,listed:true},             cap:{pct:0.5,listed:true},        tcb:{pct:4,upTo:true,listed:true}},
+  nike:{rk:{pct:8,listed:true},              cap:{pct:2,listed:true},          tcb:{pct:10,listed:true}},
+  costco:{rk:{pct:0,listed:true},            cap:{pct:0,listed:true},          tcb:{pct:0,listed:true}},
+  lululemon:{rk:{pct:0,listed:true},         cap:{pct:1,listed:true},          tcb:{pct:0,listed:true}},
+  sephora:{rk:{pct:2,listed:true},           cap:{pct:2,listed:true},          tcb:{pct:4,listed:true}},
+  nordstrom:{rk:{pct:2,listed:true},         cap:{pct:0,listed:true},          tcb:{pct:0,listed:true}},
+  ulta:{rk:{pct:2,listed:true},              cap:{pct:2,listed:true},          tcb:{pct:4,listed:true}},
 } };
 function baselineFor(key){ return (key && PORTAL_RATES.stores && PORTAL_RATES.stores[key]) || null; }
 function fmtBase(b){ if(!b) return "—"; if(b.listed===false) return "없음"; if(b.flat!=null) return "$"+b.flat+" 고정"; if(b.pct==null) return "직접 확인"; return (b.upTo?"최대 ":"")+b.pct+"%"; }
@@ -858,13 +860,15 @@ function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id)
       autoApplied['sc'+sc.id+':'+hit.key]=true;
       const rkp=(base.rk&&base.rk.listed!==false&&base.rk.pct)||0;
       const cpp2=(base.cap&&base.cap.listed!==false&&base.cap.pct)||0;
-      const bestP=Math.max(rkp,cpp2);
-      if(bestP>0){ sc.portalPct=bestP; sc.portalName=(rkp>=cpp2?'Rakuten':'Capital One Shopping')+' (기본율)';
+      const tcbp=(base.tcb&&base.tcb.listed!==false&&base.tcb.pct)||0;
+      const bestP=Math.max(rkp,cpp2,tcbp);
+      if(bestP>0){ sc.portalPct=bestP;
+        sc.portalName=(tcbp===bestP?'TopCashback':(rkp===bestP?'Rakuten':'Capital One Shopping'))+' (기본율)';
         const card=document.getElementById('scard-'+sc.id);
         if(card){ card.querySelector('.s-portal').value=bestP; card.querySelector('.s-portalname').value=sc.portalName; }
       }
     }
-    extra=`<br>📊 기본율(${ratesStamp()}): Capital One Shopping <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b> <span class="tag">— 높은 쪽 자동 반영 · 실제 %는 다를 수 있어</span>`;
+    extra=`<br>📊 기본율(${ratesStamp()}): Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b> · Capital One Shopping <b>${fmtBase(base.cap)}</b> <span class="tag">— 높은 쪽 자동 반영 · 실제 %는 다를 수 있어</span>`;
   }
   p.innerHTML="비교: "+portalLinksHTML(sc.store, sc.domain)+extra;
 }
@@ -1022,10 +1026,11 @@ function computeSite(){
     autoApplied['site:'+fz.key]=true;
     if(base.cap&&base.cap.pct!=null&&base.cap.listed!==false && (+v('capPct')||0)===0) document.getElementById('capPct').value=base.cap.pct;
     if(base.rk&&base.rk.pct!=null&&base.rk.listed!==false && (+v('rkPct')||0)===0) document.getElementById('rkPct').value=base.rk.pct;
+    if(base.tcb&&base.tcb.pct!=null&&base.tcb.listed!==false && (+v('tcbPct')||0)===0) document.getElementById('tcbPct').value=base.tcb.pct;
   }
-  const cp=+v('capPct')||0, rp=+v('rkPct')||0;
-  const pBest=Math.max(cp,rp);
-  const pName= pBest<=0 ? '' : (cp>rp?'Capital One Shopping':(rp>cp?'Rakuten':'포털'));
+  const cp=+v('capPct')||0, rp=+v('rkPct')||0, tp=+v('tcbPct')||0;
+  const pBest=Math.max(cp,rp,tp);
+  const pName= pBest<=0 ? '' : (tp===pBest?'TopCashback':(rp===pBest?'Rakuten':'Capital One Shopping'));
   const rec=document.getElementById('siteRec');
   if(!CARDS.length){ rec.innerHTML='<p class="muted">위 👛 내 카드에서 카드를 골라줘.</p>'; }
   else {
@@ -1041,7 +1046,7 @@ function computeSite(){
     (bestOff?`<div style="margin-top:4px"><span class="pill flip">⭐ 이 카드에 오퍼도 있음</span></div>`:``)+
     `</div>`+
     `<div class="receipt">`+
-    `<div class="line"><span class="lab">🔗 ${pBest>0?`<b>${pName}</b> 링크로 입장`:`포털 캐시백 없음`} <span class="tag">Capital One Shopping ${cp}% vs Rakuten ${rp}%${pBest>0?` → ${pName} 승`:''}</span></span><span class="minus">+${pBest}%</span></div>`+
+    `<div class="line"><span class="lab">🔗 ${pBest>0?`<b>${pName}</b> 링크로 입장`:`포털 캐시백 없음`} <span class="tag">RK ${rp}% · TCB ${tp}% · CapOne ${cp}%${pBest>0?` → ${pName} 승`:''}</span></span><span class="minus">+${pBest}%</span></div>`+
     `<div class="line"><span class="lab">💳 <b>${best.c.short}</b> 로 결제 <span class="tag">${CATNAME[cat]} ${best.mult}배 <span class="pill ${TYPE[best.type].cls}">${TYPE[best.type].label}</span></span></span><span class="minus">+${best.eff.toFixed(1)}%</span></div>`+
     `<div class="line total"><span>총 돌려받음</span><span>${tot.toFixed(1)}%</span></div>`+
     `</div>`+
@@ -1071,13 +1076,15 @@ function computeSite(){
   if(base && PORTAL_RATES.asOf){
     const capOk=base.cap&&base.cap.pct!=null&&base.cap.listed!==false;
     const rkOk=base.rk&&base.rk.pct!=null&&base.rk.listed!==false;
-    bEl.innerHTML=`📊 기본율(${ratesStamp()}) <b>자동 입력됨</b>: Capital One Shopping <b>${fmtBase(base.cap)}</b> · Rakuten <b>${fmtBase(base.rk)}</b>`+
-      ((capOk||rkOk)?` <button class="mini" type="button" id="fillBase">↺ 기본율로 되돌리기</button>`:``)+
+    const tcbOk=base.tcb&&base.tcb.pct!=null&&base.tcb.listed!==false;
+    bEl.innerHTML=`📊 기본율(${ratesStamp()}) <b>자동 입력됨</b>: Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b> · Capital One Shopping <b>${fmtBase(base.cap)}</b>`+
+      ((capOk||rkOk||tcbOk)?` <button class="mini" type="button" id="fillBase">↺ 기본율로 되돌리기</button>`:``)+
       ` <span class="tag">— 그 날짜의 공개 기본 캐시백 % · 내 계정(로그인)에선 더 높을 수도 있어</span>`;
     const fb=document.getElementById('fillBase');
     if(fb) fb.addEventListener('click',()=>{
       if(capOk) document.getElementById('capPct').value=base.cap.pct;
       if(rkOk) document.getElementById('rkPct').value=base.rk.pct;
+      if(tcbOk) document.getElementById('tcbPct').value=base.tcb.pct;
       computeSite();
     });
   } else {
@@ -1085,20 +1092,22 @@ function computeSite(){
   }
   const capUrl=`https://capitaloneshopping.com/s/${t.cap}/coupon`;
   const rkUrl=`https://www.rakuten.com/shop/${t.rk}`;
+  const tcbUrl=`https://www.topcashback.com/${t.tcb}/`;
   const cbmUrl=`https://www.cashbackmonitor.com/cashback-store/${t.cbm}/`;
   document.getElementById('sitePortalBtns').innerHTML=
-    `<a class="pbtn cap" href="${capUrl}" target="_blank">Capital One Shopping ↗<small>여기 경유 후 사이트로</small></a>`+
-    `<a class="pbtn rk" href="${rkUrl}" target="_blank">Rakuten ↗<small>여기 경유 후 사이트로</small></a>`;
+    `<a class="pbtn rk" href="${rkUrl}" target="_blank">Rakuten ↗<small>여기 경유 후 사이트로</small></a>`+
+    `<a class="pbtn tcb" href="${tcbUrl}" target="_blank">TopCashback ↗<small>여기 경유 후 사이트로</small></a>`+
+    `<a class="pbtn cap" href="${capUrl}" target="_blank">Capital One Shopping ↗<small>여기 경유 후 사이트로</small></a>`;
   document.getElementById('siteCompare').innerHTML=
     `오늘 실제 %는 수시로 바뀜 — 전체 포털 비교: <a href="${cbmUrl}" target="_blank">CashbackMonitor</a>`+
     (t.known?'':` <span style="color:var(--warn)">— 추정 링크, 안 열리면 "${store||'사이트명'}" 직접 검색</span>`);
 
   const wEl=document.getElementById('portalWinner');
-  if(cp>0||rp>0){
-    if(cp!==rp) wEl.innerHTML=`⚖️ Capital One Shopping <b>${cp}%</b> vs Rakuten <b>${rp}%</b> → <span class="winner">${cp>rp?'Capital One Shopping':'Rakuten'} 선택</span>`;
-    else wEl.innerHTML=`⚖️ 둘 다 ${cp}% — 아무 쪽이나 (되는 걸로)`;
+  if(pBest>0){
+    if(!(cp===rp&&rp===tp)) wEl.innerHTML=`⚖️ Rakuten <b>${rp}%</b> vs TopCashback <b>${tp}%</b> vs Capital One Shopping <b>${cp}%</b> → <span class="winner">${pName} 선택</span>`;
+    else wEl.innerHTML=`⚖️ 셋 다 ${cp}% — 아무 쪽이나 (되는 걸로)`;
   } else {
-    wEl.innerHTML=`두 포털의 캐시백 %를 넣으면 비교해서 정해줄게. (위 CashbackMonitor로 확인)`;
+    wEl.innerHTML=`포털들의 캐시백 %를 넣으면 비교해서 정해줄게. (위 CashbackMonitor로 확인)`;
   }
   renderRefBox();
   saveState();
@@ -1162,7 +1171,7 @@ const LSKEY="purchOpt_v06";
 function saveState(){ try{ localStorage.setItem(LSKEY, JSON.stringify({
   mode, myWallet, cppValues, pname:v('pname'), cat:v('cat'),
   customCards: customCards.map(c=>({id:c.id,name:c.name,cur:c.cur,mults:c.mults})),
-  siteStore:v('siteStore'), siteCat:v('siteCat'), capPct:v('capPct'), rkPct:v('rkPct'), siteOffers,
+  siteStore:v('siteStore'), siteCat:v('siteCat'), capPct:v('capPct'), rkPct:v('rkPct'), tcbPct:v('tcbPct'), siteOffers,
   scenarios: scenarios.map(s=>({store:s.store,domain:s.domain,price:s.price,portalPct:s.portalPct,portalName:s.portalName,offers:s.offers,lastChecked:s.lastChecked}))
 })); }catch(e){} }
 function loadState(){ try{ const s=JSON.parse(localStorage.getItem(LSKEY)); if(!s) return false;
@@ -1175,6 +1184,7 @@ function loadState(){ try{ const s=JSON.parse(localStorage.getItem(LSKEY)); if(!
   if(s.siteCat!=null) document.getElementById('siteCat').value=s.siteCat;
   if(s.capPct!=null) document.getElementById('capPct').value=s.capPct;
   if(s.rkPct!=null) document.getElementById('rkPct').value=s.rkPct;
+  if(s.tcbPct!=null) document.getElementById('tcbPct').value=s.tcbPct;
   if(s.siteOffers && typeof s.siteOffers==='object') siteOffers=s.siteOffers;
   if(s.mode==='site') mode='site';
   if(Array.isArray(s.scenarios) && s.scenarios.length) scenarios=s.scenarios.map(x=>blankScenario(x));
@@ -1212,6 +1222,7 @@ function prefillFromQuery(searchStr){
   if(q.has('scat')){ document.getElementById('siteCat').value=q.get('scat'); siteHit=true; }
   if(q.has('cap')){ document.getElementById('capPct').value=+q.get('cap')||0; siteHit=true; }
   if(q.has('rk')){ document.getElementById('rkPct').value=+q.get('rk')||0; siteHit=true; }
+  if(q.has('tcb')){ document.getElementById('tcbPct').value=+q.get('tcb')||0; siteHit=true; }
   if(q.has('soff')){ siteOffers={}; q.get('soff').split(',').map(x=>x.trim()).filter(Boolean).forEach(id=>{ if(CARD_CATALOG.some(c=>c.id===id)) siteOffers[id]=true; }); siteHit=true; }
   if(q.get('mode')==='site' || siteHit){ mode='site'; }
   return built.length>0 || siteHit || q.get('mode')==='site' || q.has('wallet');
@@ -1279,7 +1290,7 @@ function init(){
     computeSite();
   });
   document.getElementById('siteCat').addEventListener('change',computeSite);
-  ['capPct','rkPct'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input',computeSite); });
+  ['capPct','rkPct','tcbPct'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input',computeSite); });
 
   recompute();
   setMode(mode);
