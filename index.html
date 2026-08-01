@@ -130,7 +130,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.14</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.15</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -321,7 +321,7 @@
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.14 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
+    v0.15 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
   </p>
 </div>
 
@@ -433,6 +433,7 @@ const PORTAL_RATES = { asOf:"2026-07-31", capAsOf:"2026-07-31", stores:{
   bestbuy:{rk:{pct:7,upTo:true,listed:true}, cap:{pct:0.5,listed:true},        tcb:{pct:12,listed:true}},
   apple:{rk:{pct:2,listed:true},             cap:{pct:0.5,listed:true},        tcb:{pct:4,upTo:true,listed:true}},
   nike:{rk:{pct:8,listed:true},              cap:{pct:2,listed:true},          tcb:{pct:10,listed:true}},
+  crocs:{rk:{pct:3,listed:true},             cap:{pct:2,listed:true},          tcb:{pct:0,listed:true}},
   costco:{rk:{pct:0,listed:true},            cap:{pct:0,listed:true},          tcb:{pct:0,listed:true}},
   lululemon:{rk:{pct:0,listed:true},         cap:{pct:1,listed:true},          tcb:{pct:0,listed:true}},
   sephora:{rk:{pct:2,listed:true},           cap:{pct:2,listed:true},          tcb:{pct:4,listed:true}},
@@ -808,12 +809,13 @@ function wireScenarioCard(el){
         const hit=matchStore(sc.domain); sc.store=hit?hit.name:prettyDomain(sc.domain);
         e.target.value=sc.store;
         sc.price=0; const pEl=el.querySelector('.s-price'); if(pEl) pEl.value=0; // 새 URL → 이전 가격 리셋
+        resetScPortal(sc, el);
         recognizeStore(sc,true); updatePortalLinks(sc); recompute();
         tryFetchPrice(val, sc, document.getElementById('shint-'+sc.id));
         return;
       }catch(err){}
     }
-    sc.store=e.target.value; sc.domain=""; recognizeStore(sc,true); updatePortalLinks(sc); recompute(); });
+    sc.store=e.target.value; sc.domain=""; resetScPortal(sc, el); recognizeStore(sc,true); updatePortalLinks(sc); recompute(); });
   el.querySelector('.s-price').addEventListener('input',e=>{ findScenario(e.target.dataset.sid).price=+e.target.value||0; recompute(); });
   el.querySelector('.s-portal').addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid); sc.portalPct=+e.target.value||0; sc.lastChecked=todayStr(); recompute(); });
   el.querySelector('.s-portalname').addEventListener('input',e=>{ findScenario(e.target.dataset.sid).portalName=e.target.value; recompute(); });
@@ -996,6 +998,14 @@ function recompute(){
 let mode = 'product';
 let siteOffers = {};
 let autoApplied = {}; // 기본율 자동입력 1회 추적 (site:key / sc<id>:key)
+let lastSiteKey;      // 사이트 모드 마지막 판매처 키 — 판매처 변경 감지용
+// 시나리오 판매처가 바뀌면 이전 판매처의 포털 %·자동입력 기록을 리셋
+function resetScPortal(sc, el){
+  sc.portalPct=0; sc.portalName='';
+  const p=el.querySelector('.s-portal'); if(p) p.value=0;
+  const pn=el.querySelector('.s-portalname'); if(pn) pn.value='';
+  Object.keys(autoApplied).forEach(k=>{ if(k.indexOf('sc'+sc.id+':')===0) delete autoApplied[k]; });
+}
 function buildSiteOffers(){
   const box=document.getElementById('siteOfferChecks'); if(!box) return;
   box.innerHTML = CARDS.map(c=>
@@ -1022,6 +1032,17 @@ function computeSite(){
   // 기본율 자동 입력 — 판매처 인식 시 1회 (이후 직접 수정 자유)
   const fz=fuzzyStore(store);
   const base=fz?baselineFor(fz.key):null;
+  // 판매처가 바뀌면 세 포털 %를 새 판매처 기본율로 교체(데이터 없으면 0) — 첫 로드는 저장값 유지
+  const siteKey=fz?fz.key:normStore(store);
+  if(lastSiteKey===undefined){ lastSiteKey=siteKey; }
+  else if(siteKey!==lastSiteKey){
+    lastSiteKey=siteKey;
+    const g=b=>(b&&b.listed!==false&&b.pct!=null)?b.pct:0;
+    document.getElementById('rkPct').value = base?g(base.rk):0;
+    document.getElementById('tcbPct').value = base?g(base.tcb):0;
+    document.getElementById('capPct').value = base?g(base.cap):0;
+    if(fz) autoApplied['site:'+fz.key]=true;
+  }
   if(base && PORTAL_RATES.asOf && !autoApplied['site:'+fz.key]){
     autoApplied['site:'+fz.key]=true;
     if(base.cap&&base.cap.pct!=null&&base.cap.listed!==false && (+v('capPct')||0)===0) document.getElementById('capPct').value=base.cap.pct;

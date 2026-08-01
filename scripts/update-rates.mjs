@@ -34,6 +34,7 @@ const STORES = [
   ['bestbuy',        'bestbuy',        'best-buy'],
   ['apple',          'apple',          'apple'],
   ['nike',           'nike',           'nike'],
+  ['crocs',          'crocs',          'crocs'],
   ['costco',         'costco',         'costco'],
   ['lululemon',      'lululemon',      'lululemon'],
   ['sephora',        'sephora',        'sephora'],

@@ -107,7 +107,7 @@
   },
   "lowes": {
    "rk": {
-    "pct": 0,
+    "pct": 1,
     "listed": true
    },
    "cap": {
@@ -220,6 +220,20 @@
    },
    "tcb": {
     "pct": 10,
+    "listed": true
+   }
+  },
+  "crocs": {
+   "rk": {
+    "pct": 3,
+    "listed": true
+   },
+   "cap": {
+    "pct": 2,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
     "listed": true
    }
   },
