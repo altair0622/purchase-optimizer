@@ -1,8 +1,8 @@
 // 구매 최적화 계산기 서비스워커 — 오프라인 지원 + PWA 설치 요건
 // 전략: 같은 출처 요청은 네트워크 우선(항상 최신 버전·최신 rates.json), 실패 시 캐시(오프라인).
 // 외부(포털 링크, 가격 조회 프록시)는 건드리지 않는다.
-const CACHE = 'purchopt-v1';
-const PRECACHE = ['./', 'index.html', 'manifest.json', 'rates.json', 'icons/icon-192.png', 'icons/icon-512.png'];
+const CACHE = 'purchopt-v2';
+const PRECACHE = ['./', 'index.html', 'manifest.json', 'rates.json', 'icons/icon-192.png?v=2', 'icons/icon-512.png?v=2'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()));

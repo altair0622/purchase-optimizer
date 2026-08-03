@@ -6,8 +6,8 @@
 <title>구매 최적화 계산기</title>
 <meta name="theme-color" content="#2f6f4f">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=2">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="구매최적화">
@@ -137,7 +137,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.17</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.18</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -328,7 +328,7 @@
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.17 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
+    v0.18 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
     📱 폰에서는 브라우저 메뉴 → <b>"홈 화면에 추가"</b>하면 앱처럼 설치돼 (오프라인에서도 열림).
   </p>
 </div>
@@ -412,25 +412,29 @@ const CARD_CATALOG = [
 CARD_CATALOG.forEach(c=>{ c.note=c.note||''; c.hint=c.hint||''; c.short=c.short||c.name; });
 
 // ===== 분기 5% 로테이션 =====
-// 분기가 바뀌면 여기만 갱신 (예약 작업이 자동 갱신 — 수동은 "분기 5% 갱신해줘") — cats는 계산기 카테고리 키.
-// 출처: Chase·Discover 공식 발표 (2026 Q3 확인: 2026-08-02)
-const QUARTERLY = { q:'2026Q3', label:'2026 Q3(7~9월)', cards:{
-  freedom:    { cats:['gas'],             note:'주유·EV충전·대중교통·라이브공연' },
-  discoverit: { cats:['gas','drugstore'], note:'주유·EV충전·교통·약국' },
-}};
-// 안전장치: 저장된 분기 ≠ 현재 분기면 로테이션 미적용(지난 분기 5%로 잘못 계산하는 것 방지)
-const QUARTER_STALE = (()=>{ const d=new Date(); return QUARTERLY.q !== d.getFullYear()+'Q'+(Math.floor(d.getMonth()/3)+1); })();
+// 발표는 보통 분기 시작 2~3주 전 → 예약 작업이 미리 아래 배열에 다음 분기 세트를 추가해두면
+// 분기 첫날 계산기가 자동으로 전환한다(첫날 배포 불필요). 수동 갱신: "분기 5% 갱신해줘".
+// cats = 계산기 카테고리 키. 출처: Chase·Discover 공식 발표. (2026 Q3 확인: 2026-08-02)
+const QUARTERLY_SETS = [
+  { q:'2026Q3', label:'2026 Q3(7~9월)', cards:{
+    freedom:    { cats:['gas'],             note:'주유·EV충전·대중교통·라이브공연' },
+    discoverit: { cats:['gas','drugstore'], note:'주유·EV충전·교통·약국' },
+  }},
+];
+// 현재 분기와 일치하는 세트만 적용 — 없으면 로테이션 미적용(지난 분기 5% 오적용 방지)
+const QUARTERLY = (()=>{ const d=new Date(); const q=d.getFullYear()+'Q'+(Math.floor(d.getMonth()/3)+1);
+  return QUARTERLY_SETS.find(s=>s.q===q) || null; })();
 // 해당 분기 카테고리면 5배로 승격 (활성화는 카드사 앱에서 직접)
 function effRate(c, cat){
-  if(QUARTER_STALE) return c.rates[cat];
+  if(!QUARTERLY) return c.rates[cat];
   const q=QUARTERLY.cards[c.id];
   if(q && q.cats.indexOf(cat)>=0){ const r=c.rates[cat]; return [Math.max(5,r[0]), r[1]]; }
   return c.rates[cat];
 }
-Object.keys(QUARTERLY.cards).forEach(id=>{ const c=CARD_CATALOG.find(x=>x.id===id);
-  if(c) c.hint += QUARTER_STALE
-    ? ` · ⚠ 분기 5% 정보가 지난 분기 것(자동 미적용) — 갱신 필요`
-    : ` · 이번분기 5%: ${QUARTERLY.cards[id].note} (${QUARTERLY.label}·활성화 필요)`; });
+['freedom','discoverit'].forEach(id=>{ const c=CARD_CATALOG.find(x=>x.id===id); if(!c) return;
+  const q=QUARTERLY&&QUARTERLY.cards[id];
+  c.hint += q ? ` · 이번분기 5%: ${q.note} (${QUARTERLY.label}·활성화 필요)`
+              : ` · ⚠ 이번 분기 5% 정보 미반영(자동 미적용)`; });
 const ISSUER_ORDER = ['Chase','Amex','Citi','Capital One','Bank of America','Wells Fargo','Discover','Apple','직접 추가'];
 const DEFAULT_WALLET = ['freedom','freedomu','marriott','delta','hilton','aspire'];
 const EXAMPLE_WALLET = ['freedomu','csp','amexgold','doublecash']; // 첫 방문 '예시 보기'용 (현금·UR·Amex MR 섞여 데모에 좋음)
