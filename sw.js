@@ -1,8 +1,8 @@
-// 구매 최적화 계산기 서비스워커 — 오프라인 지원 + PWA 설치 요건
-// 전략: 같은 출처 요청은 네트워크 우선(항상 최신 버전·최신 rates.json), 실패 시 캐시(오프라인).
-// 외부(포털 링크, 가격 조회 프록시)는 건드리지 않는다.
-const CACHE = 'purchopt-v2';
-const PRECACHE = ['./', 'index.html', 'manifest.json', 'rates.json', 'icons/icon-192.png?v=2', 'icons/icon-512.png?v=2'];
+// êµ¬ë§¤ ìµœì í™” ê³„ì‚°ê¸° ì„œë¹„ìŠ¤ì›Œì»¤ â€” ì˜¤í”„ë¼ì¸ ì§€ì› + PWA ì„¤ì¹˜ ìš”ê±´
+// ì „ëžµ: ê°™ì€ ì¶œì²˜ ìš”ì²­ì€ ë„¤íŠ¸ì›Œí¬ ìš°ì„ (í•­ìƒ ìµœì‹  ë²„ì „Â·ìµœì‹  rates.json), ì‹¤íŒ¨ ì‹œ ìºì‹œ(ì˜¤í”„ë¼ì¸).
+// ì™¸ë¶€(í¬í„¸ ë§í¬, ê°€ê²© ì¡°íšŒ í”„ë¡ì‹œ)ëŠ” ê±´ë“œë¦¬ì§€ ì•ŠëŠ”ë‹¤.
+const CACHE = 'purchopt-v3';
+const PRECACHE = ['./', 'index.html', 'manifest.json', 'rates.json', 'icons/icon-192.png?v=3', 'icons/icon-512.png?v=3'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
