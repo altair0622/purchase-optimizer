@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>아이콘 진단</title>
+<style>
+  body{font-family:sans-serif;padding:20px;line-height:1.6;background:#f6f7f9}
+  .row{background:#fff;border:1px solid #ddd;border-radius:10px;padding:14px;margin-bottom:12px}
+  img{width:96px;height:96px;border:1px solid #ccc;border-radius:16px;display:block;margin:8px 0}
+  .ok{color:#2f6f4f;font-weight:700}.bad{color:#a12727;font-weight:700}
+  h1{font-size:20px} .small{font-size:11px;color:#777;word-break:break-all}
+</style>
+</head>
+<body>
+<h1>📱 아이콘 진단 페이지</h1>
+<p>아래 결과를 그대로 말해주거나 스크린샷 찍어줘.</p>
+<div class="row" id="r1">① manifest.json 읽기: <span id="m">확인 중…</span></div>
+<div class="row" id="r2">② 아이콘 이미지 로드:<div id="icons"></div></div>
+<div class="row">③ 브라우저 정보:<div class="small" id="ua"></div></div>
+<script>
+document.getElementById('ua').textContent=navigator.userAgent;
+fetch('manifest.json?cb='+Math.random()).then(r=>r.json()).then(mf=>{
+  document.getElementById('m').innerHTML='<span class="ok">성공</span> — 이름: '+mf.name+' · 아이콘 '+mf.icons.length+'개 선언됨';
+  const box=document.getElementById('icons');
+  mf.icons.forEach(ic=>{
+    const d=document.createElement('div');
+    d.innerHTML='<div class="small">'+ic.src+' ('+ic.sizes+(ic.purpose?' · '+ic.purpose:'')+')</div>';
+    const img=new Image();
+    img.onload=()=>{ d.insertAdjacentHTML('beforeend','<span class="ok">✅ 로드 성공 — 아래에 초록 카드가 보여야 정상</span>'); d.appendChild(img); };
+    img.onerror=()=>{ d.insertAdjacentHTML('beforeend','<span class="bad">❌ 로드 실패</span>'); };
+    img.src=ic.src;
+    box.appendChild(d);
+  });
+}).catch(e=>{ document.getElementById('m').innerHTML='<span class="bad">실패: '+e+'</span>'; });
+</script>
+</body>
+</html>
