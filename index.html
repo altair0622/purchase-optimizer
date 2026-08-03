@@ -412,20 +412,25 @@ const CARD_CATALOG = [
 CARD_CATALOG.forEach(c=>{ c.note=c.note||''; c.hint=c.hint||''; c.short=c.short||c.name; });
 
 // ===== 분기 5% 로테이션 =====
-// 분기가 바뀌면 여기만 갱신 ("분기 5% 갱신해줘") — cats는 계산기 카테고리 키로 매핑.
+// 분기가 바뀌면 여기만 갱신 (예약 작업이 자동 갱신 — 수동은 "분기 5% 갱신해줘") — cats는 계산기 카테고리 키.
 // 출처: Chase·Discover 공식 발표 (2026 Q3 확인: 2026-08-02)
-const QUARTERLY = { label:'2026 Q3(7~9월)', cards:{
+const QUARTERLY = { q:'2026Q3', label:'2026 Q3(7~9월)', cards:{
   freedom:    { cats:['gas'],             note:'주유·EV충전·대중교통·라이브공연' },
   discoverit: { cats:['gas','drugstore'], note:'주유·EV충전·교통·약국' },
 }};
+// 안전장치: 저장된 분기 ≠ 현재 분기면 로테이션 미적용(지난 분기 5%로 잘못 계산하는 것 방지)
+const QUARTER_STALE = (()=>{ const d=new Date(); return QUARTERLY.q !== d.getFullYear()+'Q'+(Math.floor(d.getMonth()/3)+1); })();
 // 해당 분기 카테고리면 5배로 승격 (활성화는 카드사 앱에서 직접)
 function effRate(c, cat){
+  if(QUARTER_STALE) return c.rates[cat];
   const q=QUARTERLY.cards[c.id];
   if(q && q.cats.indexOf(cat)>=0){ const r=c.rates[cat]; return [Math.max(5,r[0]), r[1]]; }
   return c.rates[cat];
 }
 Object.keys(QUARTERLY.cards).forEach(id=>{ const c=CARD_CATALOG.find(x=>x.id===id);
-  if(c) c.hint+=` · 이번분기 5%: ${QUARTERLY.cards[id].note} (${QUARTERLY.label}·활성화 필요)`; });
+  if(c) c.hint += QUARTER_STALE
+    ? ` · ⚠ 분기 5% 정보가 지난 분기 것(자동 미적용) — 갱신 필요`
+    : ` · 이번분기 5%: ${QUARTERLY.cards[id].note} (${QUARTERLY.label}·활성화 필요)`; });
 const ISSUER_ORDER = ['Chase','Amex','Citi','Capital One','Bank of America','Wells Fargo','Discover','Apple','직접 추가'];
 const DEFAULT_WALLET = ['freedom','freedomu','marriott','delta','hilton','aspire'];
 const EXAMPLE_WALLET = ['freedomu','csp','amexgold','doublecash']; // 첫 방문 '예시 보기'용 (현금·UR·Amex MR 섞여 데모에 좋음)
