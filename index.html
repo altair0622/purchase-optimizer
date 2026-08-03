@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>구매 최적화 계산기</title>
+<meta name="theme-color" content="#2f6f4f">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="구매최적화">
 <style>
   :root{
     --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d21; --muted:#6b7280;
@@ -130,7 +137,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.15</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.16</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -321,7 +328,8 @@
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.15 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.
+    v0.16 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
+    📱 폰에서는 브라우저 메뉴 → <b>"홈 화면에 추가"</b>하면 앱처럼 설치돼 (오프라인에서도 열림).
   </p>
 </div>
 
@@ -1329,6 +1337,11 @@ fetch('rates.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
   scenarios.forEach(sc=>updatePortalLinks(sc));
   if(mode==='site') computeSite(); else recompute();
 }).catch(()=>{});
+
+// ===== PWA — 홈 화면 설치·오프라인 (배포본에서만; file://은 조용히 스킵) =====
+if('serviceWorker' in navigator && location.protocol==='https:'){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
 </script>
 </body>
 </html>
