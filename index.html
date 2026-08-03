@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>êµ¬ë§¤ ìµœì í™” ê³„ì‚°ê¸°</title>
+<title>구매 최적화 계산기</title>
 <meta name="theme-color" content="#2f6f4f">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=3">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="êµ¬ë§¤ìµœì í™”">
+<meta name="apple-mobile-web-app-title" content="구매최적화">
 <style>
   :root{
     --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d21; --muted:#6b7280;
@@ -75,7 +75,7 @@
   .muted{color:var(--muted);font-size:12px}
   .storebox{border:1px dashed var(--gold);background:#fdfaf0;border-radius:10px;padding:12px 14px;font-size:13px;margin-top:12px}
   .storebox b{color:var(--gold)}
-  /* íŒë§¤ì²˜ ì‹œë‚˜ë¦¬ì˜¤ ì¹´ë“œ */
+  /* 판매처 시나리오 카드 */
   .scard{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:#fff}
   .scard.win{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
   .shead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
@@ -85,14 +85,14 @@
   details{margin-top:10px}
   details summary{cursor:pointer;font-size:12px;color:var(--accent);font-weight:700;padding:4px 0;list-style:none}
   details summary::-webkit-details-marker{display:none}
-  details summary::before{content:"â–¸ ";}
-  details[open] summary::before{content:"â–¾ ";}
+  details summary::before{content:"▸ ";}
+  details[open] summary::before{content:"▾ ";}
   .scomp{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;
     padding-top:10px;border-top:1px dashed var(--line);flex-wrap:wrap}
   .scomp .net{font-size:19px;font-weight:800;color:var(--accent)}
   .winbadge{display:inline-block;background:var(--accent);color:#fff;font-size:10px;font-weight:700;
     padding:2px 8px;border-radius:20px}
-  /* ëª¨ë“œ í† ê¸€ + ì‚¬ì´íŠ¸ ëª¨ë“œ */
+  /* 모드 토글 + 사이트 모드 */
   .modebar{display:inline-flex;background:#eef1f4;border-radius:11px;padding:3px;margin:0 0 18px;gap:3px}
   .modebar button{background:transparent;color:var(--muted);font-weight:700;padding:9px 16px;border-radius:9px;font-size:13px}
   .modebar button:hover{background:#e4e8ec}
@@ -110,7 +110,7 @@
   .pbtn.tcb{background:#00808c}
   .pbtn small{display:block;font-size:11px;font-weight:600;opacity:.85;margin-top:2px}
   .winner{font-weight:800;color:var(--accent)}
-  /* ì§€ê°‘(ì˜¨ë³´ë”©) */
+  /* 지갑(온보딩) */
   .walletcard{background:linear-gradient(180deg,#fbfdfc,#f4f8f5);border:1px solid #cfe5d8}
   .walletcat{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
   @media(max-width:620px){.walletcat{grid-template-columns:1fr}}
@@ -124,7 +124,7 @@
   .welcome .wsteps span{font-size:12px;color:var(--muted);background:var(--accent-soft);border-radius:8px;padding:5px 10px}
   .welcome .wsteps b{color:var(--accent)}
   .welcome .arrow{color:var(--accent);font-weight:800;align-self:center}
-  /* ì˜ìˆ˜ì¦ ìŠ¤íƒ€ì¼ ê²°ë¡  */
+  /* 영수증 스타일 결론 */
   .receipt{max-width:430px;margin-top:12px;font-size:14px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:12px 16px}
   .receipt .line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:6px 0;border-bottom:1px dashed var(--line)}
   .receipt .line .lab{color:var(--ink)}
@@ -137,121 +137,121 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>êµ¬ë§¤ ìµœì í™” ê³„ì‚°ê¸° <span class="tag">v0.19</span></h1>
-  <p class="sub">ë‚´ ì¹´ë“œë¥¼ ë“±ë¡í•˜ë©´ â€” <b>ì–´ë””ì„œ Â· ì–´ëŠ ì¹´ë“œë¡œ Â· ì–´ëŠ ë£¨íŠ¸ë¡œ</b> ì‚¬ëŠ” ê²Œ ì œì¼ ì‹¼ì§€ ìžë™ìœ¼ë¡œ ê³„ì‚°</p>
+  <h1>구매 최적화 계산기 <span class="tag">v0.19</span></h1>
+  <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
-  <!-- 0. ë‚´ ì¹´ë“œ (ì˜¨ë³´ë”©) -->
+  <!-- 0. 내 카드 (온보딩) -->
   <div class="card walletcard" id="walletCard">
-    <h2><span class="num">ðŸ‘›</span> ë‚´ ì¹´ë“œ <span class="tag">ê°€ì§„ ì¹´ë“œë¥¼ ê³¨ë¼ ì§€ê°‘ì„ ë§Œë“¤ì–´ â€” ì´ ë¸Œë¼ìš°ì €ì— ì €ìž¥ë¼</span></h2>
+    <h2><span class="num">👛</span> 내 카드 <span class="tag">가진 카드를 골라 지갑을 만들어 — 이 브라우저에 저장돼</span></h2>
     <div id="walletWelcome" style="display:none">
       <div class="welcome">
-        <div class="wtitle">ðŸ‘‹ ì—¬ê¸°ì„œ ì‹œìž‘í•˜ì„¸ìš”</div>
-        <p>ê°€ì§„ ì‹ ìš©ì¹´ë“œë¥¼ ì•„ëž˜ì—ì„œ ê³¨ë¼ <b>ë‚´ ì§€ê°‘</b>ì„ ë§Œë“¤ë©´ â€” <b>ë­˜ Â· ì–´ë””ì„œ Â· ì–´ëŠ ì¹´ë“œë¡œ</b> ì‚¬ëŠ” ê²Œ ì œì¼ ì´ë“ì¸ì§€ ì´ ê³„ì‚°ê¸°ê°€ ìžë™ìœ¼ë¡œ ì•Œë ¤ì¤˜ìš”.</p>
+        <div class="wtitle">👋 여기서 시작하세요</div>
+        <p>가진 신용카드를 아래에서 골라 <b>내 지갑</b>을 만들면 — <b>뭘 · 어디서 · 어느 카드로</b> 사는 게 제일 이득인지 이 계산기가 자동으로 알려줘요.</p>
         <div class="wsteps">
-          <span><b>â‘ </b> ì•„ëž˜ì—ì„œ ë‚´ ì¹´ë“œ ê³ ë¥´ê¸°</span><span class="arrow">â†’</span>
-          <span><b>â‘¡</b> ë­˜ ì‚´ì§€ ìž…ë ¥</span><span class="arrow">â†’</span>
-          <span><b>â‘¢</b> ìµœì  íŒë§¤ì²˜Â·ì¹´ë“œÂ·ë§í¬ í™•ì¸</span>
+          <span><b>①</b> 아래에서 내 카드 고르기</span><span class="arrow">→</span>
+          <span><b>②</b> 뭘 살지 입력</span><span class="arrow">→</span>
+          <span><b>③</b> 최적 판매처·카드·링크 확인</span>
         </div>
-        <button class="mini" id="walletExample" type="button">ðŸ”Ž ì¼ë‹¨ ì¸ê¸° ì¹´ë“œë¡œ ì˜ˆì‹œ ë³´ê¸°</button>
-        <span class="muted" style="margin-left:8px">â€” ì–´ë–»ê²Œ ìž‘ë™í•˜ëŠ”ì§€ ë¯¸ë¦¬ ë³¼ ìˆ˜ ìžˆì–´(ë‚˜ì¤‘ì— ë„¤ ì¹´ë“œë¡œ ë°”ê¿”)</span>
+        <button class="mini" id="walletExample" type="button">🔎 일단 인기 카드로 예시 보기</button>
+        <span class="muted" style="margin-left:8px">— 어떻게 작동하는지 미리 볼 수 있어(나중에 네 카드로 바꿔)</span>
       </div>
     </div>
-    <input id="walletSearch" placeholder="ì¹´ë“œ ê²€ìƒ‰ (ì˜ˆ: Sapphire, Gold, Double Cash, Venture)" style="margin-bottom:12px">
+    <input id="walletSearch" placeholder="카드 검색 (예: Sapphire, Gold, Double Cash, Venture)" style="margin-bottom:12px">
     <div id="walletCatalog" class="walletcat"></div>
     <details id="ccPanel" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
-      <summary>âž• ëª©ë¡ì— ì—†ëŠ” ì¹´ë“œ ì§ì ‘ ì¶”ê°€ <span class="muted" style="font-weight:600">â€” ì´ë¦„Â·ì ë¦½ë¥ ë§Œ ë„£ìœ¼ë©´ ê³„ì‚°ì— í•©ë¥˜</span></summary>
+      <summary>➕ 목록에 없는 카드 직접 추가 <span class="muted" style="font-weight:600">— 이름·적립률만 넣으면 계산에 합류</span></summary>
       <div class="grid g2" style="margin-top:10px">
-        <div><label>ì¹´ë“œ ì´ë¦„</label><input id="ccName" placeholder="ì˜ˆ: US Bank Cash+, íšŒì‚¬ ë²•ì¸ì¹´ë“œ"></div>
-        <div><label>ì ë¦½ ì¢…ë¥˜</label><select id="ccCur"></select></div>
+        <div><label>카드 이름</label><input id="ccName" placeholder="예: US Bank Cash+, 회사 법인카드"></div>
+        <div><label>적립 종류</label><select id="ccCur"></select></div>
       </div>
-      <div style="margin-top:10px"><label>ê¸°ë³¸ ì ë¦½ë¥  <span class="muted" style="font-weight:600">â€” ëª¨ë“  ì¹´í…Œê³ ë¦¬ì— ì ìš© (í˜„ê¸ˆì´ë©´ %, í¬ì¸íŠ¸ë©´ ë°°ìˆ˜)</span></label>
+      <div style="margin-top:10px"><label>기본 적립률 <span class="muted" style="font-weight:600">— 모든 카테고리에 적용 (현금이면 %, 포인트면 배수)</span></label>
         <input id="ccBase" type="number" step="0.5" min="0" value="1" style="max-width:160px"></div>
       <details id="ccCatDetails" style="margin-top:8px">
-        <summary>ì¹´í…Œê³ ë¦¬ë³„ë¡œ ë‹¤ë¥´ê²Œ <span class="muted" style="font-weight:600">â€” ì˜ˆ: ì™¸ì‹ë§Œ 3</span></summary>
+        <summary>카테고리별로 다르게 <span class="muted" style="font-weight:600">— 예: 외식만 3</span></summary>
         <div class="grid g4" style="margin-top:8px" id="ccCatGrid"></div>
       </details>
       <div style="display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">
-        <button class="mini" id="ccSave" type="button" style="background:var(--accent);color:#fff">ï¼‹ ì¹´ë“œ ì¶”ê°€</button>
-        <button class="mini" id="ccCancel" type="button" style="display:none">íŽ¸ì§‘ ì·¨ì†Œ</button>
+        <button class="mini" id="ccSave" type="button" style="background:var(--accent);color:#fff">＋ 카드 추가</button>
+        <button class="mini" id="ccCancel" type="button" style="display:none">편집 취소</button>
         <span class="muted" id="ccMsg"></span>
       </div>
-      <p class="cpp-note">ì¶”ê°€í•œ ì¹´ë“œëŠ” <b>ì§ì ‘ ì¶”ê°€</b> ê·¸ë£¹ì— ë‚˜íƒ€ë‚˜ê³  âœŽ ìˆ˜ì • Â· âœ• ì‚­ì œ ê°€ëŠ¥. ì´ ë¸Œë¼ìš°ì €ì— ì €ìž¥ë˜ê³ , ðŸ”— ì§€ê°‘ ë§í¬ì—ë„ í¬í•¨ë¼ ë°›ì€ ì‚¬ëžŒì—ê²Œ ê·¸ëŒ€ë¡œ ì „ë‹¬ë¼.</p>
+      <p class="cpp-note">추가한 카드는 <b>직접 추가</b> 그룹에 나타나고 ✎ 수정 · ✕ 삭제 가능. 이 브라우저에 저장되고, 🔗 지갑 링크에도 포함돼 받은 사람에게 그대로 전달돼.</p>
     </details>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:8px">
-      <span class="muted"><span class="wcount" id="walletCount">0ìž¥</span> ì„ íƒë¨ Â· ì§€ê°‘ì´ ì•„ëž˜ ê³„ì‚° ì „ì²´ì— ë°˜ì˜ë¼</span>
-      <span style="display:flex;gap:8px"><button class="mini" id="walletShare" type="button" title="ë‚´ ì¹´ë“œ êµ¬ì„±ì„ URLë¡œ ë³µì‚¬ â€” ë°›ì€ ì‚¬ëžŒì€ ê°™ì€ ì§€ê°‘ìœ¼ë¡œ ì‹œìž‘">ðŸ”— ë‚´ ì§€ê°‘ ë§í¬ ë³µì‚¬</button><button class="mini del" id="walletClear" type="button">ë¹„ìš°ê¸°</button></span>
+      <span class="muted"><span class="wcount" id="walletCount">0장</span> 선택됨 · 지갑이 아래 계산 전체에 반영돼</span>
+      <span style="display:flex;gap:8px"><button class="mini" id="walletShare" type="button" title="내 카드 구성을 URL로 복사 — 받은 사람은 같은 지갑으로 시작">🔗 내 지갑 링크 복사</button><button class="mini del" id="walletClear" type="button">비우기</button></span>
     </div>
-    <p class="cpp-note">ðŸ”— <b>ë‚´ ì§€ê°‘ ë§í¬ ë³µì‚¬</b> = ë‚´ê°€ ê³ ë¥¸ ì¹´ë“œ êµ¬ì„±ì„ ë§í¬ í•˜ë‚˜ë¡œ â€” í°â†”PC ì´ë™í•˜ê±°ë‚˜, ì¹´ë“œ êµ¬ì„±ì´ ê°™ì€ ê°€ì¡±ì—ê²Œ ë³´ë‚´ë©´ <b>ê°™ì€ ì§€ê°‘ìœ¼ë¡œ ì‹œìž‘</b>í•´. Â· ì ë¦½ë¥ ì€ 2026ë…„ ëŒ€í‘œê°’(ì°¸ê³ ìš©, ì‹¤ì œ ì•½ê´€Â·í•œë„ì™€ ë‹¤ë¥¼ ìˆ˜ ìžˆìŒ).</p>
+    <p class="cpp-note">🔗 <b>내 지갑 링크 복사</b> = 내가 고른 카드 구성을 링크 하나로 — 폰↔PC 이동하거나, 카드 구성이 같은 가족에게 보내면 <b>같은 지갑으로 시작</b>해. · 적립률은 2026년 대표값(참고용, 실제 약관·한도와 다를 수 있음).</p>
   </div>
 
   <div class="modebar">
-    <button id="modeProduct" type="button" class="on">ðŸ›’ ìƒí’ˆ ëª¨ë“œ <small style="font-weight:600;font-size:11px;opacity:.8">ê°€ê²©ìœ¼ë¡œ ìˆœë¹„ìš©</small></button>
-    <button id="modeSite" type="button">ðŸ¬ ì‚¬ì´íŠ¸ ëª¨ë“œ <small style="font-weight:600;font-size:11px;opacity:.8">ê°€ê²© ì—†ì´ ì¹´ë“œ+ë§í¬</small></button>
+    <button id="modeProduct" type="button" class="on">🛒 상품 모드 <small style="font-weight:600;font-size:11px;opacity:.8">가격으로 순비용</small></button>
+    <button id="modeSite" type="button">🏬 사이트 모드 <small style="font-weight:600;font-size:11px;opacity:.8">가격 없이 카드+링크</small></button>
   </div>
 
-  <!-- ë¹ ë¥¸ ì±„ìš°ê¸° -->
+  <!-- 빠른 채우기 -->
   <div class="card product-only">
-    <h2><span class="num">ï¼‹</span> ë¹ ë¥´ê²Œ ì±„ìš°ê¸° <span class="tag">URL / ìƒí’ˆ ì •ë³´ â†’ ì²« íŒë§¤ì²˜ì— ìž…ë ¥</span></h2>
-    <label>ìƒí’ˆ URL, ë˜ëŠ” ìƒí’ˆ íŽ˜ì´ì§€ì—ì„œ ë³µì‚¬í•œ ì œëª©Â·ê°€ê²©ì„ ë¶™ì—¬ë„£ê¸°</label>
-    <textarea id="paste" rows="2" placeholder="ì˜ˆ)  https://www.crateandbarrel.com/grayson-loft-bed/...
-ë˜ëŠ”  Grayson ë¡œí”„íŠ¸ ë² ë“œ   $1,699   ë¥¼ í†µì§¸ë¡œ ë¶™ì—¬ë„£ê¸°"></textarea>
+    <h2><span class="num">＋</span> 빠르게 채우기 <span class="tag">URL / 상품 정보 → 첫 판매처에 입력</span></h2>
+    <label>상품 URL, 또는 상품 페이지에서 복사한 제목·가격을 붙여넣기</label>
+    <textarea id="paste" rows="2" placeholder="예)  https://www.crateandbarrel.com/grayson-loft-bed/...
+또는  Grayson 로프트 베드   $1,699   를 통째로 붙여넣기"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
-      <button id="fillBtn" type="button">ì±„ìš°ê¸°</button>
+      <button id="fillBtn" type="button">채우기</button>
       <span class="muted" id="pasteMsg"></span>
     </div>
-    <p class="cpp-note">URLì„ ë„£ìœ¼ë©´ <b>íŒë§¤ì²˜Â·ì¹´í…Œê³ ë¦¬Â·ìƒí’ˆëª… ìžë™ + ê°€ê²©ë„ ìžë™ ì¡°íšŒ</b>(ì¼ë¶€ ì‚¬ì´íŠ¸ëŠ” ë§‰ì•„ì„œ ì‹¤íŒ¨í•˜ë©´ ì§ì ‘ ìž…ë ¥). ì œëª©+ê°€ê²©ì„ í†µì§¸ë¡œ ë¶™ì—¬ë„£ì–´ë„ ë¼.</p>
+    <p class="cpp-note">URL을 넣으면 <b>판매처·카테고리·상품명 자동 + 가격도 자동 조회</b>(일부 사이트는 막아서 실패하면 직접 입력). 제목+가격을 통째로 붙여넣어도 돼.</p>
   </div>
 
-  <!-- 1. ìƒí’ˆ (ê³µí†µ) -->
+  <!-- 1. 상품 (공통) -->
   <div class="card product-only">
-    <h2><span class="num">1</span> ë¬´ì—‡ì„ ì‚¬ë ¤ê³ ?</h2>
+    <h2><span class="num">1</span> 무엇을 사려고?</h2>
     <div class="grid g2">
       <div>
-        <label>ìƒí’ˆëª…</label>
-        <input id="pname" value="Grayson ë¡œí”„íŠ¸ ë² ë“œ">
+        <label>상품명</label>
+        <input id="pname" value="Grayson 로프트 베드">
       </div>
       <div>
-        <label>ì¹´í…Œê³ ë¦¬ (ëª¨ë“  íŒë§¤ì²˜ ê³µí†µ)</label>
+        <label>카테고리 (모든 판매처 공통)</label>
         <select id="cat">
-          <option value="general" selected>ê¸°íƒ€/ì¼ë°˜ (ê°€êµ¬Â·í™ˆÂ·ë°±í™”ì  ë“±)</option>
-          <option value="online">ì˜¨ë¼ì¸ ì‡¼í•‘</option>
-          <option value="dining">ì™¸ì‹ (ë ˆìŠ¤í† ëž‘Â·ë°°ë‹¬)</option>
-          <option value="grocery">ë§ˆíŠ¸/ì‹ë£Œí’ˆ (ë¯¸êµ­)</option>
-          <option value="gas">ì£¼ìœ Â·EVì¶©ì „Â·ëŒ€ì¤‘êµí†µ</option>
-          <option value="drugstore">ì•½êµ­</option>
-          <option value="travel">ì—¬í–‰ (í•­ê³µÂ·í˜¸í…”)</option>
+          <option value="general" selected>기타/일반 (가구·홈·백화점 등)</option>
+          <option value="online">온라인 쇼핑</option>
+          <option value="dining">외식 (레스토랑·배달)</option>
+          <option value="grocery">마트/식료품 (미국)</option>
+          <option value="gas">주유·EV충전·대중교통</option>
+          <option value="drugstore">약국</option>
+          <option value="travel">여행 (항공·호텔)</option>
         </select>
       </div>
     </div>
   </div>
 
-  <!-- 2. í¬ì¸íŠ¸ ê°€ì¹˜ (ê³µí†µ, ë™ì ) -->
+  <!-- 2. 포인트 가치 (공통, 동적) -->
   <div class="card">
-    <h2><span class="num">2</span> í¬ì¸íŠ¸ ê°€ì¹˜ (1í¬ì¸íŠ¸ = ? ì„¼íŠ¸)</h2>
+    <h2><span class="num">2</span> 포인트 가치 (1포인트 = ? 센트)</h2>
     <div class="grid g4" id="cppInputs"></div>
-    <p class="cpp-note">âœï¸ <b>ìˆ«ìžëŠ” ì§ì ‘ ì¡°ì • ê°€ëŠ¥</b> â€” ë°”ê¾¸ë©´ ì¦‰ì‹œ ìž¬ê³„ì‚°Â·ìžë™ ì €ìž¥. í˜„ê¸ˆì€ 1.0 ê³ ì •, í¬ì¸íŠ¸ëŠ” ì“°ê¸°ì— ë”°ë¼ ë‹¬ë¼ì§€ëŠ” ë³€ë™ì„±.</p>
+    <p class="cpp-note">✏️ <b>숫자는 직접 조정 가능</b> — 바꾸면 즉시 재계산·자동 저장. 현금은 1.0 고정, 포인트는 쓰기에 따라 달라지는 변동성.</p>
     <details id="cppSrc" style="margin-top:6px"></details>
   </div>
 
-  <!-- ì‚¬ì´íŠ¸ ëª¨ë“œ: ê°€ê²© ì—†ì´ ì¹´ë“œ + ë§í¬ë§Œ -->
+  <!-- 사이트 모드: 가격 없이 카드 + 링크만 -->
   <div class="card site-only" id="siteMode" style="display:none">
-    <h2><span class="num">â—†</span> ì‚¬ì´íŠ¸ ë‹¨ìœ„ ì¶”ì²œ <span class="tag">ê°€ê²© ì—†ì´ â€” ì–´ëŠ ì¹´ë“œ Â· ì–´ëŠ ë§í¬ë¡œ ë“¤ì–´ê°ˆì§€</span></h2>
+    <h2><span class="num">◆</span> 사이트 단위 추천 <span class="tag">가격 없이 — 어느 카드 · 어느 링크로 들어갈지</span></h2>
     <div class="grid g2">
       <div>
-        <label>íŒë§¤ì²˜ (ì‚¬ì´íŠ¸)</label>
-        <input id="siteStore" placeholder="ì˜ˆ: Nordstrom, Best Buy, Sephoraâ€¦">
+        <label>판매처 (사이트)</label>
+        <input id="siteStore" placeholder="예: Nordstrom, Best Buy, Sephora…">
         <p class="muted" id="siteStoreHint" style="margin:4px 0 0"></p>
       </div>
       <div>
-        <label>ì¹´í…Œê³ ë¦¬</label>
+        <label>카테고리</label>
         <select id="siteCat">
-          <option value="general">ê¸°íƒ€/ì¼ë°˜ (ê°€êµ¬Â·í™ˆÂ·ë°±í™”ì  ë“±)</option>
-          <option value="online">ì˜¨ë¼ì¸ ì‡¼í•‘</option>
-          <option value="dining">ì™¸ì‹ (ë ˆìŠ¤í† ëž‘Â·ë°°ë‹¬)</option>
-          <option value="grocery">ë§ˆíŠ¸/ì‹ë£Œí’ˆ (ë¯¸êµ­)</option>
-          <option value="gas">ì£¼ìœ Â·EVì¶©ì „Â·ëŒ€ì¤‘êµí†µ</option>
-          <option value="drugstore">ì•½êµ­</option>
-          <option value="travel">ì—¬í–‰ (í•­ê³µÂ·í˜¸í…”)</option>
+          <option value="general">기타/일반 (가구·홈·백화점 등)</option>
+          <option value="online">온라인 쇼핑</option>
+          <option value="dining">외식 (레스토랑·배달)</option>
+          <option value="grocery">마트/식료품 (미국)</option>
+          <option value="gas">주유·EV충전·대중교통</option>
+          <option value="drugstore">약국</option>
+          <option value="travel">여행 (항공·호텔)</option>
         </select>
       </div>
     </div>
@@ -259,11 +259,11 @@
     <div id="siteRec" style="margin-top:14px"></div>
 
     <div style="margin-top:8px">
-      <label>ì–´ëŠ ë§í¬ë¡œ ë“¤ì–´ê°ˆê¹Œ <span class="muted" style="font-weight:600">â€” ìºì‹œë°± í¬í„¸ (ì¹´ë“œì™€ ë¬´ê´€í•˜ê²Œ ì¶”ê°€ ì ë¦½)</span></label>
+      <label>어느 링크로 들어갈까 <span class="muted" style="font-weight:600">— 캐시백 포털 (카드와 무관하게 추가 적립)</span></label>
       <div class="portalbtns" id="sitePortalBtns"></div>
       <div class="grid g3" style="margin-top:6px">
-        <div><label>Rakuten ìºì‹œë°± %</label><input id="rkPct" type="number" min="0" step="0.5" value="0"></div>
-        <div><label>TopCashback ìºì‹œë°± %</label><input id="tcbPct" type="number" min="0" step="0.5" value="0"></div>
+        <div><label>Rakuten 캐시백 %</label><input id="rkPct" type="number" min="0" step="0.5" value="0"></div>
+        <div><label>TopCashback 캐시백 %</label><input id="tcbPct" type="number" min="0" step="0.5" value="0"></div>
         <div><label>Capital One Shopping %</label><input id="capPct" type="number" min="0" step="0.5" value="0"></div>
       </div>
       <p class="muted" id="siteBaseline" style="margin:6px 0 0"></p>
@@ -271,160 +271,160 @@
       <p class="muted" id="siteCompare" style="margin:4px 0 0"></p>
       <div class="refslot"></div>
       <details style="margin-top:10px">
-        <summary>ðŸ’¡ ìºì‹œë°± í¬í„¸ì´ ë­ì•¼? â€” ëª¨ë¥´ë©´ ê·¸ëƒ¥ ë†“ì¹˜ëŠ” ëˆ</summary>
-        <p class="muted" style="margin:6px 0 0">RakutenÂ·Capital One Shopping ê°™ì€ <b>ìºì‹œë°± í¬í„¸</b>ì€, ê±°ê¸°ë¥¼ <b>ê²½ìœ í•´ì„œ</b>(ìœ„ ë²„íŠ¼ í´ë¦­ í›„) ê°™ì€ ì‡¼í•‘ëª°ì—ì„œ í‰ì†Œì²˜ëŸ¼ ê²°ì œí•˜ë©´ êµ¬ë§¤ì•¡ì˜ <b>1~10%ë¥¼ í˜„ê¸ˆìœ¼ë¡œ</b> ëŒë ¤ì¤˜. íšŒì›ê°€ìž… ë¬´ë£Œê³ , <b>ì¹´ë“œ ì ë¦½ê³¼ ì¤‘ë³µ</b>ì´ë¼ ì‚¬ì‹¤ìƒ ê³µì§œ ëˆì´ì•¼. ë” ì¤‘ìš”í•œ ê±´ â€” ê°™ì€ ë¬¼ê±´ì„ ë‘ ì‚¬ì´íŠ¸ì—ì„œ íŒë‹¤ë©´ <b>ìºì‹œë°± %ê°€ ë†’ì€ ìª½ì—ì„œ ì‚¬ëŠ” ê²Œ ìµœì¢…ì ìœ¼ë¡œ ë” ìŒ€ ìˆ˜</b> ìžˆë‹¤ëŠ” ê²ƒ. ê·¸ ë¹„êµê°€ ì´ ê³„ì‚°ê¸°ì˜ í•µì‹¬ì´ì•¼(ì •í™•í•œ ë¹„êµëŠ” ðŸ›’ ìƒí’ˆ ëª¨ë“œ).</p>
+        <summary>💡 캐시백 포털이 뭐야? — 모르면 그냥 놓치는 돈</summary>
+        <p class="muted" style="margin:6px 0 0">Rakuten·Capital One Shopping 같은 <b>캐시백 포털</b>은, 거기를 <b>경유해서</b>(위 버튼 클릭 후) 같은 쇼핑몰에서 평소처럼 결제하면 구매액의 <b>1~10%를 현금으로</b> 돌려줘. 회원가입 무료고, <b>카드 적립과 중복</b>이라 사실상 공짜 돈이야. 더 중요한 건 — 같은 물건을 두 사이트에서 판다면 <b>캐시백 %가 높은 쪽에서 사는 게 최종적으로 더 쌀 수</b> 있다는 것. 그 비교가 이 계산기의 핵심이야(정확한 비교는 🛒 상품 모드).</p>
       </details>
     </div>
 
     <details id="siteOfferDetails" style="margin-top:14px">
-      <summary>ì´ ì‚¬ì´íŠ¸ì— ì˜¤í¼ ìžˆëŠ” ì¹´ë“œ ì²´í¬ <span class="muted" style="font-weight:600">â€” ìžˆìœ¼ë©´ â­, í° ê¸ˆì•¡ì´ë©´ ìˆœìœ„ ì—­ì „ ê°€ëŠ¥</span></summary>
-      <p class="muted" style="margin:4px 0 6px">ì˜¤í¼ í™•ì¸:
-        <a href="https://global.americanexpress.com/offers/eligible" target="_blank">Amex í—ˆë¸Œ</a> Â·
-        <a href="https://secure.chase.com/web/auth/dashboard#/dashboard/offers/hub" target="_blank">Chase í—ˆë¸Œ</a>
-        (ì½ê¸° ì „ìš© â€” í™œì„±í™” "ì ë¦½"ì€ ì‚´ ë•Œ ì§ì ‘). ì´ ì‚¬ì´íŠ¸ì— ì˜¤í¼ ìžˆëŠ” ì¹´ë“œë§Œ ì²´í¬.</p>
+      <summary>이 사이트에 오퍼 있는 카드 체크 <span class="muted" style="font-weight:600">— 있으면 ⭐, 큰 금액이면 순위 역전 가능</span></summary>
+      <p class="muted" style="margin:4px 0 6px">오퍼 확인:
+        <a href="https://global.americanexpress.com/offers/eligible" target="_blank">Amex 허브</a> ·
+        <a href="https://secure.chase.com/web/auth/dashboard#/dashboard/offers/hub" target="_blank">Chase 허브</a>
+        (읽기 전용 — 활성화 "적립"은 살 때 직접). 이 사이트에 오퍼 있는 카드만 체크.</p>
       <div id="siteOfferChecks"></div>
     </details>
     <div class="note" id="siteOfferNote" style="margin-top:12px">
-      <b>ì˜¤í¼ëŠ”?</b> ê¸ˆì•¡ì´ ìžˆì–´ì•¼ ì •í™•ížˆ ê³„ì‚°ë¼ â€” í° êµ¬ë§¤ë©´ <b>ðŸ›’ ìƒí’ˆ ëª¨ë“œ</b>ë¡œ. ì—¬ê¸°ì„  â­ í‘œì‹œë§Œ.
+      <b>오퍼는?</b> 금액이 있어야 정확히 계산돼 — 큰 구매면 <b>🛒 상품 모드</b>로. 여기선 ⭐ 표시만.
     </div>
   </div>
 
-  <!-- 3. íŒë§¤ì²˜ ì‹œë‚˜ë¦¬ì˜¤ ë¹„êµ (í•µì‹¬) -->
+  <!-- 3. 판매처 시나리오 비교 (핵심) -->
   <div class="card product-only">
-    <h2><span class="num">3</span> ì–´ë””ì„œ ì‚´ê¹Œ? <span class="tag">ê°™ì€ ìƒí’ˆì„ íŒŒëŠ” ê³³ë“¤ì„ ëª¨ì•„ì„œ ìˆœë¹„ìš©ìœ¼ë¡œ ë¹„êµ</span></h2>
+    <h2><span class="num">3</span> 어디서 살까? <span class="tag">같은 상품을 파는 곳들을 모아서 순비용으로 비교</span></h2>
     <p class="muted" id="sellerSearch" style="margin:0 0 12px"></p>
     <div id="scenarios"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
-      <button id="addScenario" class="mini" type="button">ï¼‹ ë‹¤ë¥¸ íŒë§¤ì²˜ ì¶”ê°€</button>
-      <button id="updateAll" class="mini" type="button">ðŸ”„ ì „ì²´ ì˜¤í¼ ìž¬í™•ì¸(ì˜¤ëŠ˜ë¡œ ê°±ì‹ )</button>
+      <button id="addScenario" class="mini" type="button">＋ 다른 판매처 추가</button>
+      <button id="updateAll" class="mini" type="button">🔄 전체 오퍼 재확인(오늘로 갱신)</button>
     </div>
-    <p class="muted" style="margin-top:10px">ðŸ’¡ <b>ìˆœë¹„ìš© = ê°€ê²© âˆ’ ì¹´ë“œ ë¦¬ì›Œë“œê°€ì¹˜ âˆ’ ê·¸ ì¹´ë“œ ì˜¤í¼ âˆ’ í¬í„¸ ìºì‹œë°±</b>. ì œì¼ ë‚®ì€ íŒë§¤ì²˜ê°€ ì´ˆë¡ìƒ‰. ì˜¤í¼ëŠ” ê°€ë§¹ì ë³„ì´ë¼ íŒë§¤ì²˜ë§ˆë‹¤ ìµœì  ì¹´ë“œê°€ ë‹¬ë¼ì§ˆ ìˆ˜ ìžˆì–´.</p>
+    <p class="muted" style="margin-top:10px">💡 <b>순비용 = 가격 − 카드 리워드가치 − 그 카드 오퍼 − 포털 캐시백</b>. 제일 낮은 판매처가 초록색. 오퍼는 가맹점별이라 판매처마다 최적 카드가 달라질 수 있어.</p>
     <div class="refslot"></div>
   </div>
 
-  <!-- 4. ìµœì¢… ê²°ë¡  -->
+  <!-- 4. 최종 결론 -->
   <div class="card final product-only">
-    <h2><span class="num">4</span> ê²°ë¡  â€” ì´ë ‡ê²Œ ì‚¬ë©´ ì œì¼ ì‹¸ë‹¤</h2>
-    <div id="finalConclusion" style="font-size:14px">â€”</div>
+    <h2><span class="num">4</span> 결론 — 이렇게 사면 제일 싸다</h2>
+    <div id="finalConclusion" style="font-size:14px">—</div>
     <div style="overflow-x:auto;margin-top:14px">
       <table>
-        <thead><tr><th>ìˆœìœ„ Â· íŒë§¤ì²˜</th><th>ê°€ê²©</th><th>ìµœì  ì¹´ë“œ</th><th class="r">ë¦¬ì›Œë“œ+ì˜¤í¼</th><th class="r">í¬í„¸</th><th class="r">ì‹¤ì§ˆ ìˆœë¹„ìš©</th></tr></thead>
+        <thead><tr><th>순위 · 판매처</th><th>가격</th><th>최적 카드</th><th class="r">리워드+오퍼</th><th class="r">포털</th><th class="r">실질 순비용</th></tr></thead>
         <tbody id="compareBody"></tbody>
       </table>
     </div>
   </div>
 
-  <!-- 5. ìµœì  íŒë§¤ì²˜ì˜ ì¹´ë“œ ìˆœìœ„ ìƒì„¸ -->
+  <!-- 5. 최적 판매처의 카드 순위 상세 -->
   <div class="card product-only">
-    <h2><span class="num">5</span> ë‹¤ë¥¸ ì¹´ë“œë¡œ ì‚¬ë©´? <span class="tag" id="detailStore"></span></h2>
+    <h2><span class="num">5</span> 다른 카드로 사면? <span class="tag" id="detailStore"></span></h2>
     <div style="overflow-x:auto">
       <table>
-        <thead><tr><th>ì¹´ë“œ</th><th class="r">ì ë¦½</th><th class="r">ì˜¤í¼</th><th class="r">ì´ ëŒë ¤ë°›ìŒ</th></tr></thead>
+        <thead><tr><th>카드</th><th class="r">적립</th><th class="r">오퍼</th><th class="r">총 돌려받음</th></tr></thead>
         <tbody id="cardbody"></tbody>
       </table>
     </div>
-    <p class="muted" style="margin-top:10px"><span class="pill cash">í˜„ê¸ˆ</span> = í™•ì • ê°€ì¹˜, <span class="pill pts">í¬ì¸íŠ¸</span> = ìž˜ ì¨ì•¼ ë‚˜ì˜¤ëŠ” ë³€ë™ ê°€ì¹˜. í˜„ê¸ˆì´ ê¸‰í•˜ë©´ í˜„ê¸ˆ ì¹´ë“œ ì¤‘ 1ìœ„ë¡œ.</p>
+    <p class="muted" style="margin-top:10px"><span class="pill cash">현금</span> = 확정 가치, <span class="pill pts">포인트</span> = 잘 써야 나오는 변동 가치. 현금이 급하면 현금 카드 중 1위로.</p>
     <div class="storebox" id="storeBox"></div>
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.19 â€” ìž…ë ¥ì€ ì´ ë¸Œë¼ìš°ì €ì— ìžë™ ì €ìž¥. ì§€ê°‘ì€ <b>ðŸ”— ë§í¬ ë³µì‚¬</b>ë¡œ ë‹¤ë¥¸ ê¸°ê¸°/ì‚¬ëžŒì—ê²Œ ë„˜ê¸¸ ìˆ˜ ìžˆì–´.<br>
-    ðŸ“± í°ì—ì„œëŠ” ë¸Œë¼ìš°ì € ë©”ë‰´ â†’ <b>"í™ˆ í™”ë©´ì— ì¶”ê°€"</b>í•˜ë©´ ì•±ì²˜ëŸ¼ ì„¤ì¹˜ë¼ (ì˜¤í”„ë¼ì¸ì—ì„œë„ ì—´ë¦¼).
+    v0.19 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
+    📱 폰에서는 브라우저 메뉴 → <b>"홈 화면에 추가"</b>하면 앱처럼 설치돼 (오프라인에서도 열림).
   </p>
 </div>
 
 <script>
-// ===== í¬ì¸íŠ¸ í†µí™” =====
-// label = ì§§ì€ pillìš©, full = í¬ì¸íŠ¸ê°€ì¹˜ ìž…ë ¥ ë¼ë²¨, cpp = ê¸°ë³¸ê°€ì¹˜(ì„¼íŠ¸)
+// ===== 포인트 통화 =====
+// label = 짧은 pill용, full = 포인트가치 입력 라벨, cpp = 기본가치(센트)
 const CURRENCIES = {
-  cash:{label:'í˜„ê¸ˆ', full:'í˜„ê¸ˆ ìºì‹œë°±', cls:'cash', cpp:1.0, src:'í˜„ê¸ˆì€ ì •ì˜ìƒ 1ì„¼íŠ¸=1ì„¼íŠ¸ ê³ ì • â€” ì¡°ì • ë¶ˆí•„ìš”.'},
-  UR:  {label:'UR',   full:'Chase UR',    cls:'pts',  cpp:1.0, src:'í˜„ê¸ˆ ìƒí™˜ ê¸°ì¤€ 1.0Â¢. í•­ê³µÂ·í˜¸í…” íŒŒíŠ¸ë„ˆë¡œ ì´ì „í•´ ìž˜ ì“°ë©´ ë” ë†’ì„ ìˆ˜ ìžˆì–´(ë³´ìˆ˜ì ìœ¼ë¡œ 1.0).'},
-  AMEX:{label:'MR',   full:'Amex MR',     cls:'pts',  cpp:1.1, src:'ì´ì „ íŒŒíŠ¸ë„ˆë¥¼ ìž˜ ì“°ë©´ 1.5~2Â¢ë¡œ ë³´ëŠ” í‰ê°€ë„ ìžˆì§€ë§Œ, ë³´ìˆ˜ì ìœ¼ë¡œ 1.1Â¢.'},
-  TY:  {label:'TY',   full:'Citi TY',     cls:'pts',  cpp:1.0, src:'í˜„ê¸ˆÂ·ì´ì „ ê¸°ì¤€ ëŒ€ëžµ 1.0Â¢.'},
-  C1:  {label:'C1',   full:'Capital One', cls:'pts',  cpp:1.0, src:'ì´ì „ íŒŒíŠ¸ë„ˆ í™œìš© ì‹œ 1.7Â¢ëŒ€ í‰ê°€ë„ ìžˆìœ¼ë‚˜, í˜„ê¸ˆì„± ê¸°ì¤€ ë³´ìˆ˜ì  1.0Â¢.'},
-  DL:  {label:'ë¸íƒ€',  full:'Delta ë§ˆì¼',  cls:'pts',  cpp:1.1, src:'ì¢Œì„Â·ë…¸ì„ ì— ë”°ë¼ í¬ê²Œ ë³€ë™. ëŒ€ëžµ 1.1Â¢.'},
-  MR:  {label:'ë©”ë¦¬ì—‡', full:'Marriott',   cls:'pts',  cpp:0.8, src:'ë¬´ë£Œìˆ™ë°• ìž˜ ì“°ë©´ ë” ë†’ì§€ë§Œ ëŒ€ëžµ 0.8Â¢.'},
-  HH:  {label:'ížíŠ¼',  full:'Hilton',      cls:'pts',  cpp:0.6, src:'í¬ì¸íŠ¸ê°€ ë§Žì´ í•„ìš”í•œ íŽ¸ì´ë¼ ëŒ€ëžµ 0.6Â¢.'},
+  cash:{label:'현금', full:'현금 캐시백', cls:'cash', cpp:1.0, src:'현금은 정의상 1센트=1센트 고정 — 조정 불필요.'},
+  UR:  {label:'UR',   full:'Chase UR',    cls:'pts',  cpp:1.0, src:'현금 상환 기준 1.0¢. 항공·호텔 파트너로 이전해 잘 쓰면 더 높을 수 있어(보수적으로 1.0).'},
+  AMEX:{label:'MR',   full:'Amex MR',     cls:'pts',  cpp:1.1, src:'이전 파트너를 잘 쓰면 1.5~2¢로 보는 평가도 있지만, 보수적으로 1.1¢.'},
+  TY:  {label:'TY',   full:'Citi TY',     cls:'pts',  cpp:1.0, src:'현금·이전 기준 대략 1.0¢.'},
+  C1:  {label:'C1',   full:'Capital One', cls:'pts',  cpp:1.0, src:'이전 파트너 활용 시 1.7¢대 평가도 있으나, 현금성 기준 보수적 1.0¢.'},
+  DL:  {label:'델타',  full:'Delta 마일',  cls:'pts',  cpp:1.1, src:'좌석·노선에 따라 크게 변동. 대략 1.1¢.'},
+  MR:  {label:'메리엇', full:'Marriott',   cls:'pts',  cpp:0.8, src:'무료숙박 잘 쓰면 더 높지만 대략 0.8¢.'},
+  HH:  {label:'힐튼',  full:'Hilton',      cls:'pts',  cpp:0.6, src:'포인트가 많이 필요한 편이라 대략 0.6¢.'},
 };
 const CURRENCY_ORDER = ['cash','UR','AMEX','TY','C1','DL','MR','HH'];
-const TYPE = CURRENCIES; // í‘œì‹œ(label/cls)ìš© ë³„ì¹­ â€” ê¸°ì¡´ ì½”ë“œ í˜¸í™˜
+const TYPE = CURRENCIES; // 표시(label/cls)용 별칭 — 기존 코드 호환
 
-// ===== ì¹´ë“œ ì¹´íƒˆë¡œê·¸ =====
-// rates: {category:[ë°°ìˆ˜, í†µí™”]}. ì¹´í…Œê³ ë¦¬ = general/online/dining/grocery/gas/drugstore/travel
+// ===== 카드 카탈로그 =====
+// rates: {category:[배수, 통화]}. 카테고리 = general/online/dining/grocery/gas/drugstore/travel
 const CARD_CATALOG = [
   // Chase
-  {id:'freedom', short:'Freedom Flex', name:'Chase Freedom Flex', issuer:'Chase', hint:'ë¶„ê¸° 5% ë¡œí…Œì´ì…˜ Â· ì™¸ì‹Â·ì•½êµ­ 3%',
+  {id:'freedom', short:'Freedom Flex', name:'Chase Freedom Flex', issuer:'Chase', hint:'분기 5% 로테이션 · 외식·약국 3%',
     rates:{general:[1,'UR'],online:[1,'UR'],dining:[3,'UR'],grocery:[1,'UR'],gas:[1,'UR'],drugstore:[3,'UR'],travel:[5,'UR']}},
-  {id:'freedomu', short:'Freedom Unltd', name:'Chase Freedom Unlimited', issuer:'Chase', hint:'ì „ë¶„ì•¼ 1.5% Â· ì™¸ì‹Â·ì•½êµ­ 3%',
+  {id:'freedomu', short:'Freedom Unltd', name:'Chase Freedom Unlimited', issuer:'Chase', hint:'전분야 1.5% · 외식·약국 3%',
     rates:{general:[1.5,'UR'],online:[1.5,'UR'],dining:[3,'UR'],grocery:[1.5,'UR'],gas:[1.5,'UR'],drugstore:[3,'UR'],travel:[5,'UR']}},
-  {id:'csp', short:'Sapphire Pref', name:'Chase Sapphire Preferred', issuer:'Chase', hint:'ì™¸ì‹Â·ì˜¨ë¼ì¸ì‹ë£Œí’ˆ 3ë°° Â· ì—¬í–‰ 2ë°°',
+  {id:'csp', short:'Sapphire Pref', name:'Chase Sapphire Preferred', issuer:'Chase', hint:'외식·온라인식료품 3배 · 여행 2배',
     rates:{general:[1,'UR'],online:[1,'UR'],dining:[3,'UR'],grocery:[3,'UR'],gas:[1,'UR'],drugstore:[1,'UR'],travel:[2,'UR']}},
-  {id:'csr', short:'Sapphire Res', name:'Chase Sapphire Reserve', issuer:'Chase', hint:'ì™¸ì‹Â·ì—¬í–‰ 3ë°°',
+  {id:'csr', short:'Sapphire Res', name:'Chase Sapphire Reserve', issuer:'Chase', hint:'외식·여행 3배',
     rates:{general:[1,'UR'],online:[1,'UR'],dining:[3,'UR'],grocery:[1,'UR'],gas:[1,'UR'],drugstore:[1,'UR'],travel:[3,'UR']}},
-  {id:'amazonchase', short:'Amazon Prime', name:'Chase Amazon Prime Visa', issuer:'Chase', hint:'AmazonÂ·Whole Foods 5% Â· ì™¸ì‹Â·ì£¼ìœ Â·ì•½êµ­ 2%',
+  {id:'amazonchase', short:'Amazon Prime', name:'Chase Amazon Prime Visa', issuer:'Chase', hint:'Amazon·Whole Foods 5% · 외식·주유·약국 2%',
     rates:{general:[1,'cash'],online:[5,'cash'],dining:[2,'cash'],grocery:[1,'cash'],gas:[2,'cash'],drugstore:[2,'cash'],travel:[5,'cash']}},
-  {id:'marriott', short:'Marriott', name:'Marriott Bonvoy Boundless', issuer:'Chase', hint:'ì‹ë£Œí’ˆÂ·ì£¼ìœ Â·ì™¸ì‹ 3ë°°, ê·¸ì™¸ 2ë°°',
+  {id:'marriott', short:'Marriott', name:'Marriott Bonvoy Boundless', issuer:'Chase', hint:'식료품·주유·외식 3배, 그외 2배',
     rates:{general:[2,'MR'],online:[2,'MR'],dining:[3,'MR'],grocery:[3,'MR'],gas:[3,'MR'],drugstore:[2,'MR'],travel:[2,'MR']}},
   // Amex
-  {id:'amexgold', short:'Amex Gold', name:'Amex Gold', issuer:'Amex', hint:'ì™¸ì‹Â·ë¯¸êµ­ë§ˆíŠ¸ 4ë°° Â· í•­ê³µ 3ë°°',
+  {id:'amexgold', short:'Amex Gold', name:'Amex Gold', issuer:'Amex', hint:'외식·미국마트 4배 · 항공 3배',
     rates:{general:[1,'AMEX'],online:[1,'AMEX'],dining:[4,'AMEX'],grocery:[4,'AMEX'],gas:[1,'AMEX'],drugstore:[1,'AMEX'],travel:[3,'AMEX']}},
-  {id:'amexplat', short:'Amex Plat', name:'Amex Platinum', issuer:'Amex', hint:'Amexì—¬í–‰ ì˜ˆì•½ í•­ê³µÂ·í˜¸í…” 5ë°°',
+  {id:'amexplat', short:'Amex Plat', name:'Amex Platinum', issuer:'Amex', hint:'Amex여행 예약 항공·호텔 5배',
     rates:{general:[1,'AMEX'],online:[1,'AMEX'],dining:[1,'AMEX'],grocery:[1,'AMEX'],gas:[1,'AMEX'],drugstore:[1,'AMEX'],travel:[5,'AMEX']}},
-  {id:'bcp', short:'Blue Cash Pref', name:'Amex Blue Cash Preferred', issuer:'Amex', hint:'ë¯¸êµ­ë§ˆíŠ¸ 6% Â· ì£¼ìœ Â·ëŒ€ì¤‘êµí†µ 3%',
+  {id:'bcp', short:'Blue Cash Pref', name:'Amex Blue Cash Preferred', issuer:'Amex', hint:'미국마트 6% · 주유·대중교통 3%',
     rates:{general:[1,'cash'],online:[1,'cash'],dining:[1,'cash'],grocery:[6,'cash'],gas:[3,'cash'],drugstore:[1,'cash'],travel:[1,'cash']}},
-  {id:'bce', short:'Blue Cash Evd', name:'Amex Blue Cash Everyday', issuer:'Amex', hint:'ë§ˆíŠ¸Â·ì˜¨ë¼ì¸Â·ì£¼ìœ  3%',
+  {id:'bce', short:'Blue Cash Evd', name:'Amex Blue Cash Everyday', issuer:'Amex', hint:'마트·온라인·주유 3%',
     rates:{general:[1,'cash'],online:[3,'cash'],dining:[1,'cash'],grocery:[3,'cash'],gas:[3,'cash'],drugstore:[1,'cash'],travel:[1,'cash']}},
-  {id:'delta', short:'Delta Blue', name:'Amex Delta SkyMiles Blue', issuer:'Amex', hint:'ë¸íƒ€Â·ì™¸ì‹ 2ë°°',
+  {id:'delta', short:'Delta Blue', name:'Amex Delta SkyMiles Blue', issuer:'Amex', hint:'델타·외식 2배',
     rates:{general:[1,'DL'],online:[1,'DL'],dining:[2,'DL'],grocery:[1,'DL'],gas:[1,'DL'],drugstore:[1,'DL'],travel:[2,'DL']}},
-  {id:'hilton', short:'Hilton', name:'Amex Hilton Honors', issuer:'Amex', hint:'ë¯¸êµ­ ì™¸ì‹Â·ë§ˆíŠ¸Â·ì£¼ìœ  5ë°°, ê·¸ì™¸ 3ë°°',
+  {id:'hilton', short:'Hilton', name:'Amex Hilton Honors', issuer:'Amex', hint:'미국 외식·마트·주유 5배, 그외 3배',
     rates:{general:[3,'HH'],online:[3,'HH'],dining:[5,'HH'],grocery:[5,'HH'],gas:[5,'HH'],drugstore:[3,'HH'],travel:[3,'HH']}},
-  {id:'aspire', short:'Hilton Aspire', name:'Amex Hilton Aspire', issuer:'Amex', hint:'ì™¸ì‹Â·í•­ê³µ 7ë°°, ê·¸ì™¸ 3ë°°',
+  {id:'aspire', short:'Hilton Aspire', name:'Amex Hilton Aspire', issuer:'Amex', hint:'외식·항공 7배, 그외 3배',
     rates:{general:[3,'HH'],online:[3,'HH'],dining:[7,'HH'],grocery:[3,'HH'],gas:[3,'HH'],drugstore:[3,'HH'],travel:[7,'HH']}},
   // Citi
-  {id:'doublecash', short:'Double Cash', name:'Citi Double Cash', issuer:'Citi', hint:'ì „ë¶„ì•¼ 2%',
+  {id:'doublecash', short:'Double Cash', name:'Citi Double Cash', issuer:'Citi', hint:'전분야 2%',
     rates:{general:[2,'cash'],online:[2,'cash'],dining:[2,'cash'],grocery:[2,'cash'],gas:[2,'cash'],drugstore:[2,'cash'],travel:[2,'cash']}},
-  {id:'citistrata', short:'Strata Prem', name:'Citi Strata Premier', issuer:'Citi', hint:'ì™¸ì‹Â·ë§ˆíŠ¸Â·ì£¼ìœ Â·ì—¬í–‰ 3ë°°',
+  {id:'citistrata', short:'Strata Prem', name:'Citi Strata Premier', issuer:'Citi', hint:'외식·마트·주유·여행 3배',
     rates:{general:[1,'TY'],online:[1,'TY'],dining:[3,'TY'],grocery:[3,'TY'],gas:[3,'TY'],drugstore:[1,'TY'],travel:[3,'TY']}},
   // Capital One
-  {id:'venturex', short:'Venture X', name:'Capital One Venture X', issuer:'Capital One', hint:'ì „ë¶„ì•¼ 2ë°° Â· Cap1ì—¬í–‰ 5~10ë°°',
+  {id:'venturex', short:'Venture X', name:'Capital One Venture X', issuer:'Capital One', hint:'전분야 2배 · Cap1여행 5~10배',
     rates:{general:[2,'C1'],online:[2,'C1'],dining:[2,'C1'],grocery:[2,'C1'],gas:[2,'C1'],drugstore:[2,'C1'],travel:[5,'C1']}},
-  {id:'venture', short:'Venture', name:'Capital One Venture', issuer:'Capital One', hint:'ì „ë¶„ì•¼ 2ë°°',
+  {id:'venture', short:'Venture', name:'Capital One Venture', issuer:'Capital One', hint:'전분야 2배',
     rates:{general:[2,'C1'],online:[2,'C1'],dining:[2,'C1'],grocery:[2,'C1'],gas:[2,'C1'],drugstore:[2,'C1'],travel:[2,'C1']}},
-  {id:'savorone', short:'SavorOne', name:'Capital One SavorOne', issuer:'Capital One', hint:'ì™¸ì‹Â·ë§ˆíŠ¸Â·ì—”í„° 3%',
+  {id:'savorone', short:'SavorOne', name:'Capital One SavorOne', issuer:'Capital One', hint:'외식·마트·엔터 3%',
     rates:{general:[1,'cash'],online:[1,'cash'],dining:[3,'cash'],grocery:[3,'cash'],gas:[1,'cash'],drugstore:[1,'cash'],travel:[5,'cash']}},
-  {id:'quicksilver', short:'Quicksilver', name:'Capital One Quicksilver', issuer:'Capital One', hint:'ì „ë¶„ì•¼ 1.5%',
+  {id:'quicksilver', short:'Quicksilver', name:'Capital One Quicksilver', issuer:'Capital One', hint:'전분야 1.5%',
     rates:{general:[1.5,'cash'],online:[1.5,'cash'],dining:[1.5,'cash'],grocery:[1.5,'cash'],gas:[1.5,'cash'],drugstore:[1.5,'cash'],travel:[1.5,'cash']}},
   // Bank of America
-  {id:'bofacash', short:'BofA Cash', name:'BofA Customized Cash', issuer:'Bank of America', hint:'ì„ íƒ ì¹´í…Œê³ ë¦¬ 3%Â·ë§ˆíŠ¸ 2% (ê¸°ë³¸ ì˜¨ë¼ì¸ 3%ë¡œ ê°€ì •)',
+  {id:'bofacash', short:'BofA Cash', name:'BofA Customized Cash', issuer:'Bank of America', hint:'선택 카테고리 3%·마트 2% (기본 온라인 3%로 가정)',
     rates:{general:[1,'cash'],online:[3,'cash'],dining:[1,'cash'],grocery:[2,'cash'],gas:[1,'cash'],drugstore:[1,'cash'],travel:[1,'cash']}},
   // Wells Fargo
-  {id:'wfactivecash', short:'Active Cash', name:'Wells Fargo Active Cash', issuer:'Wells Fargo', hint:'ì „ë¶„ì•¼ 2%',
+  {id:'wfactivecash', short:'Active Cash', name:'Wells Fargo Active Cash', issuer:'Wells Fargo', hint:'전분야 2%',
     rates:{general:[2,'cash'],online:[2,'cash'],dining:[2,'cash'],grocery:[2,'cash'],gas:[2,'cash'],drugstore:[2,'cash'],travel:[2,'cash']}},
-  {id:'wfautograph', short:'Autograph', name:'Wells Fargo Autograph', issuer:'Wells Fargo', hint:'ì™¸ì‹Â·ì—¬í–‰Â·ì£¼ìœ  3ë°°',
+  {id:'wfautograph', short:'Autograph', name:'Wells Fargo Autograph', issuer:'Wells Fargo', hint:'외식·여행·주유 3배',
     rates:{general:[1,'cash'],online:[1,'cash'],dining:[3,'cash'],grocery:[1,'cash'],gas:[3,'cash'],drugstore:[1,'cash'],travel:[3,'cash']}},
   // Discover
-  {id:'discoverit', short:'Discover it', name:'Discover it', issuer:'Discover', hint:'ë¶„ê¸° 5% ë¡œí…Œì´ì…˜(ê·¸ì™¸ 1%)',
+  {id:'discoverit', short:'Discover it', name:'Discover it', issuer:'Discover', hint:'분기 5% 로테이션(그외 1%)',
     rates:{general:[1,'cash'],online:[1,'cash'],dining:[1,'cash'],grocery:[1,'cash'],gas:[1,'cash'],drugstore:[1,'cash'],travel:[1,'cash']}},
   // Apple
-  {id:'applecard', short:'Apple Card', name:'Apple Card', issuer:'Apple', hint:'Apple 3% Â· Apple Pay 2%',
+  {id:'applecard', short:'Apple Card', name:'Apple Card', issuer:'Apple', hint:'Apple 3% · Apple Pay 2%',
     rates:{general:[1,'cash'],online:[2,'cash'],dining:[2,'cash'],grocery:[2,'cash'],gas:[2,'cash'],drugstore:[2,'cash'],travel:[2,'cash']}},
 ];
 CARD_CATALOG.forEach(c=>{ c.note=c.note||''; c.hint=c.hint||''; c.short=c.short||c.name; });
 
-// ===== ë¶„ê¸° 5% ë¡œí…Œì´ì…˜ =====
-// ë°œí‘œëŠ” ë³´í†µ ë¶„ê¸° ì‹œìž‘ 2~3ì£¼ ì „ â†’ ì˜ˆì•½ ìž‘ì—…ì´ ë¯¸ë¦¬ ì•„ëž˜ ë°°ì—´ì— ë‹¤ìŒ ë¶„ê¸° ì„¸íŠ¸ë¥¼ ì¶”ê°€í•´ë‘ë©´
-// ë¶„ê¸° ì²«ë‚  ê³„ì‚°ê¸°ê°€ ìžë™ìœ¼ë¡œ ì „í™˜í•œë‹¤(ì²«ë‚  ë°°í¬ ë¶ˆí•„ìš”). ìˆ˜ë™ ê°±ì‹ : "ë¶„ê¸° 5% ê°±ì‹ í•´ì¤˜".
-// cats = ê³„ì‚°ê¸° ì¹´í…Œê³ ë¦¬ í‚¤. ì¶œì²˜: ChaseÂ·Discover ê³µì‹ ë°œí‘œ. (2026 Q3 í™•ì¸: 2026-08-02)
+// ===== 분기 5% 로테이션 =====
+// 발표는 보통 분기 시작 2~3주 전 → 예약 작업이 미리 아래 배열에 다음 분기 세트를 추가해두면
+// 분기 첫날 계산기가 자동으로 전환한다(첫날 배포 불필요). 수동 갱신: "분기 5% 갱신해줘".
+// cats = 계산기 카테고리 키. 출처: Chase·Discover 공식 발표. (2026 Q3 확인: 2026-08-02)
 const QUARTERLY_SETS = [
-  { q:'2026Q3', label:'2026 Q3(7~9ì›”)', cards:{
-    freedom:    { cats:['gas'],             note:'ì£¼ìœ Â·EVì¶©ì „Â·ëŒ€ì¤‘êµí†µÂ·ë¼ì´ë¸Œê³µì—°' },
-    discoverit: { cats:['gas','drugstore'], note:'ì£¼ìœ Â·EVì¶©ì „Â·êµí†µÂ·ì•½êµ­' },
+  { q:'2026Q3', label:'2026 Q3(7~9월)', cards:{
+    freedom:    { cats:['gas'],             note:'주유·EV충전·대중교통·라이브공연' },
+    discoverit: { cats:['gas','drugstore'], note:'주유·EV충전·교통·약국' },
   }},
 ];
-// í˜„ìž¬ ë¶„ê¸°ì™€ ì¼ì¹˜í•˜ëŠ” ì„¸íŠ¸ë§Œ ì ìš© â€” ì—†ìœ¼ë©´ ë¡œí…Œì´ì…˜ ë¯¸ì ìš©(ì§€ë‚œ ë¶„ê¸° 5% ì˜¤ì ìš© ë°©ì§€)
+// 현재 분기와 일치하는 세트만 적용 — 없으면 로테이션 미적용(지난 분기 5% 오적용 방지)
 const QUARTERLY = (()=>{ const d=new Date(); const q=d.getFullYear()+'Q'+(Math.floor(d.getMonth()/3)+1);
   return QUARTERLY_SETS.find(s=>s.q===q) || null; })();
-// í•´ë‹¹ ë¶„ê¸° ì¹´í…Œê³ ë¦¬ë©´ 5ë°°ë¡œ ìŠ¹ê²© (í™œì„±í™”ëŠ” ì¹´ë“œì‚¬ ì•±ì—ì„œ ì§ì ‘)
+// 해당 분기 카테고리면 5배로 승격 (활성화는 카드사 앱에서 직접)
 function effRate(c, cat){
   if(!QUARTERLY) return c.rates[cat];
   const q=QUARTERLY.cards[c.id];
@@ -433,23 +433,23 @@ function effRate(c, cat){
 }
 ['freedom','discoverit'].forEach(id=>{ const c=CARD_CATALOG.find(x=>x.id===id); if(!c) return;
   const q=QUARTERLY&&QUARTERLY.cards[id];
-  c.hint += q ? ` Â· ì´ë²ˆë¶„ê¸° 5%: ${q.note} (${QUARTERLY.label}Â·í™œì„±í™” í•„ìš”)`
-              : ` Â· âš  ì´ë²ˆ ë¶„ê¸° 5% ì •ë³´ ë¯¸ë°˜ì˜(ìžë™ ë¯¸ì ìš©)`; });
-const ISSUER_ORDER = ['Chase','Amex','Citi','Capital One','Bank of America','Wells Fargo','Discover','Apple','ì§ì ‘ ì¶”ê°€'];
+  c.hint += q ? ` · 이번분기 5%: ${q.note} (${QUARTERLY.label}·활성화 필요)`
+              : ` · ⚠ 이번 분기 5% 정보 미반영(자동 미적용)`; });
+const ISSUER_ORDER = ['Chase','Amex','Citi','Capital One','Bank of America','Wells Fargo','Discover','Apple','직접 추가'];
 const DEFAULT_WALLET = ['freedom','freedomu','marriott','delta','hilton','aspire'];
-const EXAMPLE_WALLET = ['freedomu','csp','amexgold','doublecash']; // ì²« ë°©ë¬¸ 'ì˜ˆì‹œ ë³´ê¸°'ìš© (í˜„ê¸ˆÂ·URÂ·Amex MR ì„žì—¬ ë°ëª¨ì— ì¢‹ìŒ)
+const EXAMPLE_WALLET = ['freedomu','csp','amexgold','doublecash']; // 첫 방문 '예시 보기'용 (현금·UR·Amex MR 섞여 데모에 좋음)
 
-// ===== ì¶”ì²œ(ë¦¬í¼ëŸ´) ë§í¬ â€” ë°°í¬ ì „ ë³¸ì¸ ê²ƒìœ¼ë¡œ êµì²´ =====
-// Rakuten: ë¡œê·¸ì¸ â†’ Refer & Earn â†’ ë‚´ ë§í¬ ë³µì‚¬ (ì˜ˆ: https://www.rakuten.com/r/XXXXX)
-// CapOne Shopping: ë¡œê·¸ì¸ â†’ Invite friends â†’ ë‚´ ë§í¬ ë³µì‚¬ (ì˜ˆ: https://capitaloneshopping.com/r/XXXXX)
-// ë¹„ì›Œë‘ë©´ ì¼ë°˜ ê°€ìž… ë§í¬ë¡œ í‘œì‹œë˜ê³ , ì±„ìš°ë©´ ì¶”ì²œ ë§í¬(ê°€ìž…ìžÂ·ì¶”ì²œì¸ ë‘˜ ë‹¤ ë³´ë„ˆìŠ¤)ë¡œ ë°”ë€œ.
+// ===== 추천(리퍼럴) 링크 — 배포 전 본인 것으로 교체 =====
+// Rakuten: 로그인 → Refer & Earn → 내 링크 복사 (예: https://www.rakuten.com/r/XXXXX)
+// CapOne Shopping: 로그인 → Invite friends → 내 링크 복사 (예: https://capitaloneshopping.com/r/XXXXX)
+// 비워두면 일반 가입 링크로 표시되고, 채우면 추천 링크(가입자·추천인 둘 다 보너스)로 바뀜.
 const REFERRALS = { rakuten:"https://www.rakuten.com/r/ALTAIR42", capone:"https://capitaloneshopping.com/r/9f475707-9b7b-493f-9f17-07e5be29ac7f" };
 
-// ===== í¬í„¸ ê¸°ë³¸ìœ¨ ìŠ¤ëƒ…ìƒ· =====
-// âš ï¸ ë¡œê·¸ì•„ì›ƒ "ê¸°ë³¸ìœ¨"ë§Œ â€” íšŒì› íƒ€ê²Ÿìœ¨(ë¡œê·¸ì¸)ì€ ë” ë†’ì„ ìˆ˜ ìžˆìŒ(ì˜ˆ: Crocs ê³µê°œ 3% vs ê³„ì • 7%).
-// ì´ ë‚´ìž¥ ìŠ¤ëƒ…ìƒ·ì€ í´ë°± â€” ë°°í¬ë³¸(GitHub Pages)ì€ rates.jsonì„ ë¡œë“œí•´ ë®ì–´ì”€.
-// rates.jsonì˜ Rakuten ê°’ì€ GitHub Actionsê°€ ë§¤ì¼ ìžë™ ê°±ì‹ (scripts/update-rates.mjs).
-// CapOne Shoppingì€ CAPTCHAë¡œ ìžë™ ìˆ˜ì§‘ ë¶ˆê°€ â†’ ìˆ˜ë™ ê°±ì‹ : Claudeì—ê²Œ "í¬í„¸ ê¸°ë³¸ìœ¨ ìŠ¤ëƒ…ìƒ· ê°±ì‹ í•´ì¤˜".
+// ===== 포털 기본율 스냅샷 =====
+// ⚠️ 로그아웃 "기본율"만 — 회원 타겟율(로그인)은 더 높을 수 있음(예: Crocs 공개 3% vs 계정 7%).
+// 이 내장 스냅샷은 폴백 — 배포본(GitHub Pages)은 rates.json을 로드해 덮어씀.
+// rates.json의 Rakuten 값은 GitHub Actions가 매일 자동 갱신(scripts/update-rates.mjs).
+// CapOne Shopping은 CAPTCHA로 자동 수집 불가 → 수동 갱신: Claude에게 "포털 기본율 스냅샷 갱신해줘".
 const PORTAL_RATES = { asOf:"2026-07-31", capAsOf:"2026-07-31", stores:{
   crateandbarrel:{rk:{pct:0,listed:true},    cap:{pct:0,listed:true},          tcb:{pct:0,listed:true}},
   cb2:{rk:{pct:2,upTo:true,listed:true},     cap:{pct:0.5,listed:true},        tcb:{pct:null,listed:false}},
@@ -474,40 +474,40 @@ const PORTAL_RATES = { asOf:"2026-07-31", capAsOf:"2026-07-31", stores:{
   ulta:{rk:{pct:2,listed:true},              cap:{pct:2,listed:true},          tcb:{pct:4,listed:true}},
 } };
 function baselineFor(key){ return (key && PORTAL_RATES.stores && PORTAL_RATES.stores[key]) || null; }
-function fmtBase(b){ if(!b) return "â€”"; if(b.listed===false) return "ì—†ìŒ"; if(b.flat!=null) return "$"+b.flat+" ê³ ì •"; if(b.pct==null) return "ì§ì ‘ í™•ì¸"; return (b.upTo?"ìµœëŒ€ ":"")+b.pct+"%"; }
-function ratesStamp(){ const a=PORTAL_RATES.asOf, c=PORTAL_RATES.capAsOf; return (c&&c!==a) ? `Rakuten ${a} Â· CapOne ${c}` : a; }
+function fmtBase(b){ if(!b) return "—"; if(b.listed===false) return "없음"; if(b.flat!=null) return "$"+b.flat+" 고정"; if(b.pct==null) return "직접 확인"; return (b.upTo?"최대 ":"")+b.pct+"%"; }
+function ratesStamp(){ const a=PORTAL_RATES.asOf, c=PORTAL_RATES.capAsOf; return (c&&c!==a) ? `Rakuten ${a} · CapOne ${c}` : a; }
 
-const CATNAME = { general:"ê¸°íƒ€/ì¼ë°˜", online:"ì˜¨ë¼ì¸ ì‡¼í•‘", dining:"ì™¸ì‹", grocery:"ë§ˆíŠ¸/ì‹ë£Œí’ˆ",
-                  gas:"ì£¼ìœ Â·EVÂ·ëŒ€ì¤‘êµí†µ", drugstore:"ì•½êµ­", travel:"ì—¬í–‰" };
+const CATNAME = { general:"기타/일반", online:"온라인 쇼핑", dining:"외식", grocery:"마트/식료품",
+                  gas:"주유·EV·대중교통", drugstore:"약국", travel:"여행" };
 
-// ===== í™œì„± ì§€ê°‘ =====
-let myWallet = [];                 // ì„ íƒí•œ ì¹´íƒˆë¡œê·¸ id
-let CARDS = [];                    // í™œì„± ì¹´ë“œ(= ì§€ê°‘)
-let cppValues = {};                // í†µí™” -> ì‚¬ìš©ìž ì¡°ì • ì„¼íŠ¸ê°’
+// ===== 활성 지갑 =====
+let myWallet = [];                 // 선택한 카탈로그 id
+let CARDS = [];                    // 활성 카드(= 지갑)
+let cppValues = {};                // 통화 -> 사용자 조정 센트값
 function activeCards(){ return CARD_CATALOG.filter(c=>myWallet.includes(c.id)); }
 function cppFor(code){ const x=cppValues[code]; return (x==null||isNaN(x)) ? (CURRENCIES[code]?CURRENCIES[code].cpp:1) : +x; }
-function cardMeta(c){ return c.issuer + (c.hint?(' Â· '+c.hint):''); }
+function cardMeta(c){ return c.issuer + (c.hint?(' · '+c.hint):''); }
 
-// ===== íŒë§¤ì²˜ ì‚¬ì „ =====
+// ===== 판매처 사전 =====
 function slug(s){ return (s||"").toLowerCase().replace(/&/g,"and").replace(/'/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
 function normStore(s){ return (s||"").toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]/g,""); }
-// [ì´ë¦„, ì¹´í…Œê³ ë¦¬, ì˜¤ë²„ë¼ì´ë“œ?] â€” ì¸ì‹ í‚¤Â·í¬í„¸ ìŠ¬ëŸ¬ê·¸ëŠ” ì´ë¦„ì—ì„œ ìžë™ ìƒì„±, ë‹¤ë¥¸ ê²ƒë§Œ ì˜¤ë²„ë¼ì´ë“œ(key/cbm/rk/tcb)
-// ì£¼ì˜: í•œ í‚¤ê°€ ë‹¤ë¥¸ í‚¤ë¥¼ í¬í•¨í•˜ë©´(ì˜ˆ: Nordstrom Rack âŠƒ Nordstrom) ê¸´ ê²ƒì„ ë¨¼ì € ë†“ì„ ê²ƒ
+// [이름, 카테고리, 오버라이드?] — 인식 키·포털 슬러그는 이름에서 자동 생성, 다른 것만 오버라이드(key/cbm/rk/tcb)
+// 주의: 한 키가 다른 키를 포함하면(예: Nordstrom Rack ⊃ Nordstrom) 긴 것을 먼저 놓을 것
 const STORE_LIST=[
-  // ê°€êµ¬Â·í™ˆÂ·í•˜ë“œì›¨ì–´
+  // 가구·홈·하드웨어
   ["Crate & Barrel","general",{cbm:"crate-barrel",rk:"crateandbarrel"}],
   ["CB2","general"], ["West Elm","general"], ["Pottery Barn","general",{rk:"potterybarn"}],
   ["Wayfair","general"], ["IKEA","general"], ["Overstock","general"],
   ["Bed Bath & Beyond","general",{key:"bedbath"}], ["Ashley Furniture","general"],
   ["Home Depot","general",{rk:"homedepot"}], ["Lowe's","general"], ["Ace Hardware","general"],
   ["Michaels","general"], ["Joann","general"],
-  // ëŒ€í˜•ë§ˆíŠ¸Â·í´ëŸ½Â·ë°±í™”ì 
+  // 대형마트·클럽·백화점
   ["Target","general"], ["Walmart","general"], ["Costco","general"],
   ["Sam's Club","general"], ["BJ's Wholesale","general",{key:"bjs"}],
   ["Macy's","general"], ["Kohl's","general"], ["JCPenney","general"],
   ["Nordstrom Rack","general"], ["Nordstrom","general"],
   ["Bloomingdale's","general"], ["Saks Fifth Avenue","general",{key:"saks"}], ["Neiman Marcus","general"],
-  // íŒ¨ì…˜Â·ì˜ë¥˜Â·ìž¡í™”
+  // 패션·의류·잡화
   ["Gap","general"], ["Old Navy","general"], ["Banana Republic","general"], ["J.Crew","general"],
   ["Abercrombie & Fitch","general",{key:"abercrombie"}], ["American Eagle","general"],
   ["Urban Outfitters","general"], ["Anthropologie","general"], ["Free People","general"],
@@ -516,31 +516,31 @@ const STORE_LIST=[
   ["Ralph Lauren","general"], ["Tommy Hilfiger","general"], ["Calvin Klein","general"],
   ["Coach","general"], ["Kate Spade","general"], ["Michael Kors","general"], ["Tory Burch","general"],
   ["Victoria's Secret","general"],
-  // ì‹ ë°œÂ·ìŠ¤í¬ì¸ Â·ì•„ì›ƒë„ì–´
+  // 신발·스포츠·아웃도어
   ["Nike","online"], ["adidas","online"], ["New Balance","general"], ["Under Armour","general"],
   ["Puma","general"], ["Reebok","general"], ["Foot Locker","general"], ["Finish Line","general"],
   ["DSW","general"], ["Zappos","online"], ["Steve Madden","general"], ["Crocs","online"],
   ["Athleta","general"], ["lululemon","general"], ["Columbia","general"],
   ["The North Face","general",{key:"northface"}], ["Patagonia","general"],
   ["Dick's Sporting Goods","general"], ["REI","general"], ["Fanatics","general"],
-  // ì „ìžÂ·í…Œí¬
+  // 전자·테크
   ["Amazon","online",{rk:"amazon.com"}], ["Best Buy","online",{rk:"bestbuy"}], ["Apple","online"],
   ["Samsung","online"], ["Dell","online"], ["HP","online",{key:"hp"}], ["Lenovo","online"],
   ["Microsoft","online"], ["Newegg","online"], ["GameStop","online"], ["Adorama","online"],
   ["B&H Photo","online",{key:"bhphoto"}], ["Bose","online"], ["Logitech","online"],
   ["Garmin","online"], ["Dyson","online"],
-  // ë·°í‹°Â·ì•½êµ­Â·í—¬ìŠ¤
+  // 뷰티·약국·헬스
   ["Sephora","general"], ["Ulta Beauty","general",{key:"ulta",cbm:"ulta",tcb:"ulta",rk:"ultabeauty"}],
   ["Bath & Body Works","general",{key:"bathandbody"}], ["Victoria's Secret","general"],
   ["GNC","general"], ["Vitamin Shoppe","general"], ["iHerb","online"],
   ["Walgreens","drugstore"], ["CVS","drugstore"], ["Rite Aid","drugstore"],
-  // í‚¤ì¦ˆÂ·ì™„êµ¬Â·íŽ«
+  // 키즈·완구·펫
   ["Carter's","general"], ["LEGO","online"],
   ["Chewy","online"], ["Petco","general"], ["PetSmart","general"],
-  // ì˜¤í”¼ìŠ¤Â·ì±…Â·ë§ˆì¼“í”Œë ˆì´ìŠ¤
+  // 오피스·책·마켓플레이스
   ["Staples","general"], ["Office Depot","general"], ["Barnes & Noble","general"],
   ["eBay","online"], ["Etsy","online"], ["AliExpress","online"], ["Temu","online"],
-  // ì‹ë£Œí’ˆÂ·ì—¬í–‰Â·ê°€ë°©
+  // 식료품·여행·가방
   ["Instacart","grocery"],
   ["Expedia","travel"], ["Hotels.com","travel",{key:"hotels"}], ["Booking.com","travel",{key:"booking"}], ["Priceline","travel"],
   ["Samsonite","general"], ["Tumi","general"],
@@ -548,7 +548,7 @@ const STORE_LIST=[
 const STORES={};
 STORE_LIST.forEach(e=>{ const name=e[0],cat=e[1],o=e[2]||{}; const k=o.key||normStore(name); if(STORES[k]) return;
   const s=slug(name); STORES[k]={name,cat,cbm:o.cbm||s,rk:o.rk||s,tcb:o.tcb||s}; });
-// í‚¤ê°€ 4ìž ë¯¸ë§Œì´ë©´ ì‹œìž‘ ì¼ì¹˜ë§Œ(ì˜¤íƒ ë°©ì§€: reiê°€ oreillyì— ê±¸ë¦¬ëŠ” ê²ƒ ë“±), 4ìž ì´ìƒì´ë©´ í¬í•¨ ì¼ì¹˜
+// 키가 4자 미만이면 시작 일치만(오탐 방지: rei가 oreilly에 걸리는 것 등), 4자 이상이면 포함 일치
 function storeKeyHit(h,k){ return k.length<4 ? h.startsWith(k) : h.includes(k); }
 function matchStore(hint){ const h=normStore(hint); for(const k in STORES){ if(storeKeyHit(h,k)) return {key:k,...STORES[k]}; } return null; }
 function levenshtein(a,b){ a=a||""; b=b||""; const m=a.length,n=b.length; if(!m)return n; if(!n)return m;
@@ -580,13 +580,13 @@ function portalTargets(store, domain){
 function portalLinksHTML(store, domain){
   const t=portalTargets(store,domain); const {cbm,rk,tcb,cap,known}=t;
   return `<a href="https://www.cashbackmonitor.com/cashback-store/${cbm}/" target="_blank">CashbackMonitor</a>`+
-    ` Â· <a href="https://www.rakuten.com/shop/${rk}" target="_blank">Rakuten</a>`+
-    ` Â· <a href="https://www.topcashback.com/${tcb}/" target="_blank">TopCashback</a>`+
-    ` Â· <a href="https://capitaloneshopping.com/s/${cap}/coupon" target="_blank">Capital One Shopping</a>`+
-    (known?"":` <span style="color:var(--warn)">â€” ì¶”ì • ë§í¬(ì•ˆ ì—´ë¦¬ë©´ "${store}" ê²€ìƒ‰)</span>`);
+    ` · <a href="https://www.rakuten.com/shop/${rk}" target="_blank">Rakuten</a>`+
+    ` · <a href="https://www.topcashback.com/${tcb}/" target="_blank">TopCashback</a>`+
+    ` · <a href="https://capitaloneshopping.com/s/${cap}/coupon" target="_blank">Capital One Shopping</a>`+
+    (known?"":` <span style="color:var(--warn)">— 추정 링크(안 열리면 "${store}" 검색)</span>`);
 }
 
-// ===== ê°€ê²© ìžë™ ì¡°íšŒ (CORS í”„ë¡ì‹œ ê²½ìœ , ìƒí’ˆ íŽ˜ì´ì§€ì˜ JSON-LD/og:price íŒŒì‹±) =====
+// ===== 가격 자동 조회 (CORS 프록시 경유, 상품 페이지의 JSON-LD/og:price 파싱) =====
 function findLdPrice(j){ if(!j) return null;
   if(Array.isArray(j)){ for(const x of j){ const p=findLdPrice(x); if(p) return p; } return null; }
   if(typeof j==='object'){
@@ -597,24 +597,24 @@ function findLdPrice(j){ if(!j) return null;
   return null;
 }
 function parsePriceFromHtml(html){
-  // 1) JSON-LD (ê°€ìž¥ ì‹ ë¢°)
+  // 1) JSON-LD (가장 신뢰)
   for(const m of html.matchAll(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)){
     try{ const p=findLdPrice(JSON.parse(m[1].trim())); if(p) return p; }catch(e){}
   }
-  // 2) og:price / itemprop ë©”íƒ€
+  // 2) og:price / itemprop 메타
   let m=html.match(/(?:og|product):price:amount["'][^>]*content=["']\$?([\d,]+(?:\.\d{1,2})?)/i)
       || html.match(/content=["']\$?([\d,]+(?:\.\d{1,2})?)["'][^>]*(?:og|product):price:amount/i)
       || html.match(/itemprop=["']price["'][^>]*content=["']\$?([\d,]+(?:\.\d{1,2})?)/i);
   if(m){ const n=+m[1].replace(/,/g,''); if(n>0) return n; }
-  // 3) "price":"123.45" JSON íŒ¨í„´
+  // 3) "price":"123.45" JSON 패턴
   m=html.match(/"price"\s*:\s*"?\$?(\d{1,5}(?:\.\d{1,2})?)"?/);
   if(m&&+m[1]>0) return +m[1];
-  // 4) ë³¸ë¬¸ í…ìŠ¤íŠ¸ "$24.99" (í…ìŠ¤íŠ¸ í”„ë¡ì‹œìš© ë§ˆì§€ë§‰ ìˆ˜ë‹¨)
+  // 4) 본문 텍스트 "$24.99" (텍스트 프록시용 마지막 수단)
   m=html.match(/\$\s?(\d{1,3}(?:,\d{3})*\.\d{2})/);
   if(m){ const n=+m[1].replace(/,/g,''); if(n>0) return n; }
   return null;
 }
-// í”„ë¡ì‹œ í´ë°± ì²´ì¸ â€” í•˜ë‚˜ê°€ ì£½ì–´ë„ ë‹¤ìŒìœ¼ë¡œ (ì „ë¶€ ë¬´ë£Œ ê³µê°œ í”„ë¡ì‹œ, ìƒí’ˆ URLë§Œ ì „ë‹¬ë¨)
+// 프록시 폴백 체인 — 하나가 죽어도 다음으로 (전부 무료 공개 프록시, 상품 URL만 전달됨)
 const PRICE_PROXIES=[
   u=>'https://corsproxy.io/?url='+encodeURIComponent(u),
   u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
@@ -632,32 +632,32 @@ async function fetchPrice(url){
   return null;
 }
 async function tryFetchPrice(url, sc, statusEl){
-  if(statusEl) statusEl.innerHTML+=' <span class="fetchp">Â· â³ ê°€ê²© ìžë™ ì¡°íšŒ ì¤‘â€¦</span>';
+  if(statusEl) statusEl.innerHTML+=' <span class="fetchp">· ⏳ 가격 자동 조회 중…</span>';
   let p=null; try{ p=await fetchPrice(url); }catch(e){}
   const clean=()=>{ if(statusEl){ const s=statusEl.querySelector('.fetchp'); if(s) s.remove(); } };
   if(p&&p>0&&findScenario(sc.id)){
     sc.price=p; const el=document.getElementById('scard-'+sc.id);
     if(el) el.querySelector('.s-price').value=p;
-    clean(); if(statusEl) statusEl.innerHTML+=` <b style="color:var(--accent)">ðŸ’² ${money(p)} ìžë™ ìž…ë ¥ë¨ â€” ë§žëŠ”ì§€ í™•ì¸!</b>`;
+    clean(); if(statusEl) statusEl.innerHTML+=` <b style="color:var(--accent)">💲 ${money(p)} 자동 입력됨 — 맞는지 확인!</b>`;
     recompute();
   } else {
-    clean(); if(statusEl) statusEl.innerHTML+=' <b style="color:var(--warn)">ê°€ê²© ìžë™ ì¡°íšŒ ì‹¤íŒ¨(ì‚¬ì´íŠ¸ê°€ ë§‰ìŒ) â€” ì§ì ‘ ë„£ì–´ì¤˜</b>';
+    clean(); if(statusEl) statusEl.innerHTML+=' <b style="color:var(--warn)">가격 자동 조회 실패(사이트가 막음) — 직접 넣어줘</b>';
   }
 }
 
-// ===== ìœ í‹¸ =====
+// ===== 유틸 =====
 function v(id){ return document.getElementById(id).value; }
 function money(n){ const s=(n<0?"-$":"$"); return s+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function daysSince(s){ if(!s) return null; const then=new Date(s+"T00:00:00"), now=new Date(); return Math.floor((now-then)/86400000); }
 const STALE_DAYS = 7;
 
-// ===== ìƒíƒœ =====
+// ===== 상태 =====
 let scenarios = [];
 let nextId = 1;
 function blankScenario(seed){ seed=seed||{}; return { id:nextId++, store:seed.store||"", domain:seed.domain||"", price:seed.price||0, portalPct:seed.portalPct||0, portalName:seed.portalName||"", offers:seed.offers||{}, lastChecked:seed.lastChecked||null }; }
 
-// ===== ì§€ê°‘(ì˜¨ë³´ë”©) UI =====
+// ===== 지갑(온보딩) UI =====
 function renderWallet(){
   const box=document.getElementById('walletCatalog');
   const groups={}; CARD_CATALOG.forEach(c=>{ (groups[c.issuer]=groups[c.issuer]||[]).push(c); });
@@ -668,7 +668,7 @@ function renderWallet(){
       html+=`<label class="checkrow wrow" data-name="${(c.name).toLowerCase()}" style="cursor:pointer">`+
         `<input type="checkbox" style="width:auto" data-wal="${c.id}" ${myWallet.includes(c.id)?'checked':''}>`+
         `<span class="name">${c.name} <small>${c.hint||''}</small></span>`+
-        (c.custom?`<span style="display:flex;gap:4px"><button type="button" class="mini ccedit" data-cc="${c.id}" title="ìˆ˜ì •">âœŽ</button><button type="button" class="mini del ccdel" data-cc="${c.id}" title="ì‚­ì œ">âœ•</button></span>`:'')+
+        (c.custom?`<span style="display:flex;gap:4px"><button type="button" class="mini ccedit" data-cc="${c.id}" title="수정">✎</button><button type="button" class="mini del ccdel" data-cc="${c.id}" title="삭제">✕</button></span>`:'')+
         `</label>`;
     });
     html+='</div>';
@@ -685,12 +685,12 @@ function renderWallet(){
   box.querySelectorAll('.ccdel').forEach(b=>b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); ccDelete(e.target.dataset.cc); }));
   updateWalletCount();
 }
-function updateWalletCount(){ const el=document.getElementById('walletCount'); if(el) el.textContent=myWallet.length+'ìž¥'; updateWalletWelcome(); }
+function updateWalletCount(){ const el=document.getElementById('walletCount'); if(el) el.textContent=myWallet.length+'장'; updateWalletWelcome(); }
 function updateWalletWelcome(){ const el=document.getElementById('walletWelcome'); if(el) el.style.display = myWallet.length ? 'none' : ''; }
 function applyWallet(){
   CARDS = activeCards();
   renderCppInputs();
-  buildAll();          // ì‹œë‚˜ë¦¬ì˜¤ ì¹´ë“œì˜ ì˜¤í¼ í–‰ì„ ìƒˆ ì§€ê°‘ì— ë§žê²Œ ìž¬ìƒì„±
+  buildAll();          // 시나리오 카드의 오퍼 행을 새 지갑에 맞게 재생성
   buildSiteOffers();
   recompute();
   if(mode==='site') computeSite();
@@ -698,16 +698,16 @@ function applyWallet(){
   saveState();
 }
 
-// ===== ì§ì ‘ ì¶”ê°€ ì¹´ë“œ =====
+// ===== 직접 추가 카드 =====
 const CAT_KEYS=['general','online','dining','grocery','gas','drugstore','travel'];
-let customCards=[];   // ì‚¬ìš©ìžê°€ ì§ì ‘ ë“±ë¡í•œ ì¹´ë“œ (localStorageÂ·ê³µìœ ë§í¬ì— ì‹¤ë¦¼)
+let customCards=[];   // 사용자가 직접 등록한 카드 (localStorage·공유링크에 실림)
 let ccEditing=null;
 function makeCustomCard(id,name,cur,mults){
   const t=CURRENCIES[cur]?cur:'cash';
   const m=CAT_KEYS.map((_,i)=>{ const x=+((mults||[])[i]); return x>0?x:1; });
   const rates={}; CAT_KEYS.forEach((k,i)=>{ rates[k]=[m[i],t]; });
-  return {id, short:String(name).slice(0,20), name:String(name), issuer:'ì§ì ‘ ì¶”ê°€',
-    hint:'ì§ì ‘ ë“±ë¡ Â· '+CURRENCIES[t].label+' ì ë¦½', note:'', cur:t, mults:m, rates, custom:true};
+  return {id, short:String(name).slice(0,20), name:String(name), issuer:'직접 추가',
+    hint:'직접 등록 · '+CURRENCIES[t].label+' 적립', note:'', cur:t, mults:m, rates, custom:true};
 }
 function registerCustomCard(card){
   const i=CARD_CATALOG.findIndex(c=>c.id===card.id);
@@ -716,7 +716,7 @@ function registerCustomCard(card){
 }
 function renderCcForm(){
   document.getElementById('ccCur').innerHTML=CURRENCY_ORDER.map(code=>
-    `<option value="${code}">${CURRENCIES[code].full}${code==='cash'?' (%)':' (í¬ì¸íŠ¸ ë°°ìˆ˜)'}</option>`).join('');
+    `<option value="${code}">${CURRENCIES[code].full}${code==='cash'?' (%)':' (포인트 배수)'}</option>`).join('');
   document.getElementById('ccCatGrid').innerHTML=CAT_KEYS.map(k=>
     `<div><label>${CATNAME[k]}</label><input type="number" step="0.5" min="0" data-cck="${k}" value="1"></div>`).join('');
 }
@@ -726,21 +726,21 @@ function ccReset(){
   document.getElementById('ccName').value=''; document.getElementById('ccCur').value='cash';
   document.getElementById('ccBase').value=1; ccFill(1);
   document.getElementById('ccCatDetails').open=false;
-  document.getElementById('ccSave').textContent='ï¼‹ ì¹´ë“œ ì¶”ê°€';
+  document.getElementById('ccSave').textContent='＋ 카드 추가';
   document.getElementById('ccCancel').style.display='none';
   document.getElementById('ccMsg').textContent='';
 }
 function ccSubmit(){
   const name=(v('ccName')||'').trim().replace(/[|]/g,'');
   const msg=document.getElementById('ccMsg');
-  if(!name){ msg.textContent='ì¹´ë“œ ì´ë¦„ì„ ë„£ì–´ì¤˜.'; return; }
+  if(!name){ msg.textContent='카드 이름을 넣어줘.'; return; }
   const mults=CAT_KEYS.map(k=>+document.querySelector(`#ccCatGrid input[data-cck="${k}"]`).value||0);
   const id=ccEditing||('cu'+Date.now().toString(36));
   const edited=!!ccEditing;
   registerCustomCard(makeCustomCard(id,name,v('ccCur'),mults));
   if(!myWallet.includes(id)) myWallet.push(id);
   ccReset();
-  msg.textContent=edited?'âœ… ìˆ˜ì •í–ˆì–´!':'âœ… ì¶”ê°€í–ˆê³  ì§€ê°‘ì—ë„ ë„£ì—ˆì–´!';
+  msg.textContent=edited?'✅ 수정했어!':'✅ 추가했고 지갑에도 넣었어!';
   renderWallet(); applyWallet();
 }
 function ccEdit(id){
@@ -752,14 +752,14 @@ function ccEdit(id){
   document.getElementById('ccBase').value=c.mults[0];
   CAT_KEYS.forEach((k,i)=>{ const el=document.querySelector(`#ccCatGrid input[data-cck="${k}"]`); if(el) el.value=c.mults[i]; });
   document.getElementById('ccCatDetails').open=c.mults.some(x=>x!==c.mults[0]);
-  document.getElementById('ccSave').textContent='âœ” ìˆ˜ì • ì €ìž¥';
+  document.getElementById('ccSave').textContent='✔ 수정 저장';
   document.getElementById('ccCancel').style.display='';
-  document.getElementById('ccMsg').textContent='"'+c.name+'" íŽ¸ì§‘ ì¤‘';
+  document.getElementById('ccMsg').textContent='"'+c.name+'" 편집 중';
   panel.scrollIntoView({behavior:'smooth',block:'center'});
 }
 function ccDelete(id){
   const c=CARD_CATALOG.find(x=>x.id===id&&x.custom); if(!c) return;
-  if(!confirm('"'+c.name+'" ì¹´ë“œë¥¼ ì‚­ì œí• ê¹Œ?')) return;
+  if(!confirm('"'+c.name+'" 카드를 삭제할까?')) return;
   const i=CARD_CATALOG.findIndex(x=>x.id===id); if(i>=0) CARD_CATALOG.splice(i,1);
   customCards=customCards.filter(x=>x.id!==id);
   myWallet=myWallet.filter(x=>x!==id);
@@ -767,12 +767,12 @@ function ccDelete(id){
   renderWallet(); applyWallet();
 }
 
-// ===== í¬ì¸íŠ¸ ê°€ì¹˜ ìž…ë ¥(ë™ì ) =====
+// ===== 포인트 가치 입력(동적) =====
 function usedCurrencies(){ const set=new Set(); CARDS.forEach(c=>Object.values(c.rates).forEach(([m,cur])=>set.add(cur))); return CURRENCY_ORDER.filter(code=>set.has(code)); }
 function renderCppInputs(){
   const box=document.getElementById('cppInputs'); const codes=usedCurrencies();
   const srcBox=document.getElementById('cppSrc');
-  if(!codes.length){ box.innerHTML='<p class="muted" style="grid-column:1/-1">ìœ„ì—ì„œ ì¹´ë“œë¥¼ ê³ ë¥´ë©´, ê·¸ ì¹´ë“œê°€ ìŒ“ëŠ” í¬ì¸íŠ¸ì˜ ê°€ì¹˜ë¥¼ ì—¬ê¸°ì„œ ì¡°ì •í•  ìˆ˜ ìžˆì–´.</p>'; if(srcBox) srcBox.innerHTML=''; return; }
+  if(!codes.length){ box.innerHTML='<p class="muted" style="grid-column:1/-1">위에서 카드를 고르면, 그 카드가 쌓는 포인트의 가치를 여기서 조정할 수 있어.</p>'; if(srcBox) srcBox.innerHTML=''; return; }
   box.innerHTML=codes.map(code=>{ const c=CURRENCIES[code]; const val=(cppValues[code]!=null?cppValues[code]:c.cpp);
     return `<div><label>${c.full}</label><input type="number" step="0.1" data-cpp="${code}" value="${val}"></div>`;
   }).join('');
@@ -785,48 +785,48 @@ function renderCppSrc(){
   const srcBox=document.getElementById('cppSrc'); if(!srcBox) return;
   const codes=usedCurrencies(); if(!codes.length){ srcBox.innerHTML=''; return; }
   const rows=codes.map(code=>{ const c=CURRENCIES[code]; const cur=cppFor(code); const edited=(+cur!==c.cpp);
-    return `<div style="padding:5px 0;border-bottom:1px solid var(--line)"><b>${c.full}</b> <span class="tag">ê¸°ë³¸ ${c.cpp}Â¢${edited?` Â· ì§€ê¸ˆ <b style="color:var(--accent)">${cur}Â¢</b>ë¡œ ì¡°ì •ë¨`:''}</span><div class="tag" style="margin-top:1px">${c.src}</div></div>`;
+    return `<div style="padding:5px 0;border-bottom:1px solid var(--line)"><b>${c.full}</b> <span class="tag">기본 ${c.cpp}¢${edited?` · 지금 <b style="color:var(--accent)">${cur}¢</b>로 조정됨`:''}</span><div class="tag" style="margin-top:1px">${c.src}</div></div>`;
   }).join('');
-  srcBox.innerHTML=`<summary>ì´ ê¸°ë³¸ê°’ì€ ì–´ë””ì„œ ì™”ì–´? <span class="muted" style="font-weight:600">â€” ê·¼ê±° & ì¡°ì • ì•ˆë‚´</span></summary>`+
-    `<p class="muted" style="margin:6px 0 4px">ì•„ëž˜ëŠ” ì—¬í–‰ ë¸”ë¡œê·¸Â·ì¹´ë“œ ë¹„êµ ì‚¬ì´íŠ¸ë“¤ì´ ë§¤ë…„ ë‚´ëŠ” <b>í¬ì¸íŠ¸ ê°€ì¹˜ ì¶”ì •</b>ì„ <b>ë³´ìˆ˜ì ìœ¼ë¡œ</b> ìž¡ì€ ê°’ì´ì•¼(1í¬ì¸íŠ¸ë‹¹ ì„¼íŠ¸). ìƒí™˜ ë°©ë²•ì— ë”°ë¼ ì‹¤ì œ ê°€ì¹˜ëŠ” ë‹¬ë¼ì§€ë‹ˆ, <b>ë„¤ ì‚¬ìš© íŒ¨í„´ì— ë§žê²Œ ìœ„ ì¹¸ì—ì„œ ë°”ê¿”</b> â€” ì˜ˆ: ë¸íƒ€ë¥¼ ë¹„ì¦ˆë‹ˆìŠ¤ì„ì— ìž˜ íƒœìš°ë©´ 1.1ë³´ë‹¤ ë†’ê²Œ, ê·¸ëƒ¥ í˜„ê¸ˆì„±ìœ¼ë¡œë§Œ ì“°ë©´ ë‚®ê²Œ.</p>`+rows;
+  srcBox.innerHTML=`<summary>이 기본값은 어디서 왔어? <span class="muted" style="font-weight:600">— 근거 & 조정 안내</span></summary>`+
+    `<p class="muted" style="margin:6px 0 4px">아래는 여행 블로그·카드 비교 사이트들이 매년 내는 <b>포인트 가치 추정</b>을 <b>보수적으로</b> 잡은 값이야(1포인트당 센트). 상환 방법에 따라 실제 가치는 달라지니, <b>네 사용 패턴에 맞게 위 칸에서 바꿔</b> — 예: 델타를 비즈니스석에 잘 태우면 1.1보다 높게, 그냥 현금성으로만 쓰면 낮게.</p>`+rows;
 }
 
-// ===== ì‹œë‚˜ë¦¬ì˜¤ ì¹´ë“œ DOM =====
+// ===== 시나리오 카드 DOM =====
 function buildScenarioCard(sc){
   const el = document.createElement('div');
   el.className='scard'; el.id='scard-'+sc.id; el.dataset.sid=sc.id;
   const offerInputs = CARDS.map(c=>
     `<div class="checkrow"><div class="name">${c.short} <small>${cardMeta(c)}</small></div>`+
     `<input type="number" min="0" step="1" value="${sc.offers[c.id]||0}" data-sid="${sc.id}" data-off="${c.id}"> <span class="muted">$</span></div>`
-  ).join("") || '<p class="muted">ì§€ê°‘ì— ì¹´ë“œê°€ ì—†ì–´ â€” ìœ„ ðŸ‘› ë‚´ ì¹´ë“œì—ì„œ ê³¨ë¼ì¤˜.</p>';
+  ).join("") || '<p class="muted">지갑에 카드가 없어 — 위 👛 내 카드에서 골라줘.</p>';
   el.innerHTML = `
     <div class="shead">
       <div style="flex:1;min-width:200px">
         <div class="grid g2">
-          <div><label>íŒë§¤ì²˜</label><input class="s-store" data-sid="${sc.id}" value="${sc.store||""}"></div>
-          <div><label>ê°€ê²© ($)</label><input class="s-price" type="number" min="0" step="1" data-sid="${sc.id}" value="${sc.price||0}"></div>
+          <div><label>판매처</label><input class="s-store" data-sid="${sc.id}" value="${sc.store||""}"></div>
+          <div><label>가격 ($)</label><input class="s-price" type="number" min="0" step="1" data-sid="${sc.id}" value="${sc.price||0}"></div>
         </div>
         <p class="muted" id="shint-${sc.id}" style="margin:4px 0 0"></p>
       </div>
       <div style="text-align:right">
-        <div class="winbadge" id="badge-${sc.id}" style="display:none">ìµœì €ê°€</div>
+        <div class="winbadge" id="badge-${sc.id}" style="display:none">최저가</div>
         <div class="stamp" id="stamp-${sc.id}"></div>
       </div>
     </div>
     <div class="grid g2" style="margin-top:10px">
-      <div><label>í¬í„¸ ìºì‹œë°± (%)</label><input class="s-portal" type="number" min="0" step="0.5" data-sid="${sc.id}" value="${sc.portalPct||0}"></div>
-      <div><label>í¬í„¸ ê²½ìœ ì²˜ (ë£¨íŠ¸, ì„ íƒ)</label><input class="s-portalname" data-sid="${sc.id}" placeholder="ì˜ˆ: Rakuten" value="${sc.portalName||""}"></div>
+      <div><label>포털 캐시백 (%)</label><input class="s-portal" type="number" min="0" step="0.5" data-sid="${sc.id}" value="${sc.portalPct||0}"></div>
+      <div><label>포털 경유처 (루트, 선택)</label><input class="s-portalname" data-sid="${sc.id}" placeholder="예: Rakuten" value="${sc.portalName||""}"></div>
     </div>
     <p class="muted" style="margin:6px 0 0" id="plinks-${sc.id}"></p>
     <details>
-      <summary>ì¹´ë“œë³„ ì˜¤í¼ ìž…ë ¥ (Amex/Chase íƒ€ê²Ÿ ì˜¤í¼)</summary>
-      <p class="muted" style="margin:4px 0 6px">ì´ íŒë§¤ì²˜ì— ì˜¤í¼ê°€ ìžˆëŠ” ì¹´ë“œ ì¹¸ì— ì˜ˆìƒ í• ì¸ì•¡($) ìž…ë ¥. ì˜¤í¼ëŠ” ìˆœìœ„ë¥¼ ë°”ê¿”. (í™œì„±í™” í´ë¦­ì€ ì‚´ ë•Œ ì§ì ‘)</p>
+      <summary>카드별 오퍼 입력 (Amex/Chase 타겟 오퍼)</summary>
+      <p class="muted" style="margin:4px 0 6px">이 판매처에 오퍼가 있는 카드 칸에 예상 할인액($) 입력. 오퍼는 순위를 바꿔. (활성화 클릭은 살 때 직접)</p>
       ${offerInputs}
     </details>
     <div class="scomp">
-      <div><button class="mini recheck" data-sid="${sc.id}" type="button">ðŸ”„ ì´ íŒë§¤ì²˜ ìž¬í™•ì¸</button>
-           <button class="del delScenario" data-sid="${sc.id}" type="button">ì‚­ì œ</button></div>
-      <div style="text-align:right"><div class="tag">ìµœì  ì¹´ë“œ Â· ìˆœë¹„ìš©</div><div><b id="sbest-${sc.id}">â€”</b> Â· <span class="net" id="snet-${sc.id}">â€”</span></div></div>
+      <div><button class="mini recheck" data-sid="${sc.id}" type="button">🔄 이 판매처 재확인</button>
+           <button class="del delScenario" data-sid="${sc.id}" type="button">삭제</button></div>
+      <div style="text-align:right"><div class="tag">최적 카드 · 순비용</div><div><b id="sbest-${sc.id}">—</b> · <span class="net" id="snet-${sc.id}">—</span></div></div>
     </div>`;
   return el;
 }
@@ -836,12 +836,12 @@ function findScenario(id){ return scenarios.find(s=>s.id==id); }
 function wireScenarioCard(el){
   el.querySelector('.s-store').addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid);
     const val=e.target.value.trim();
-    if(/^https?:\/\//i.test(val)){ // ìƒí’ˆ URLì„ í†µì§¸ë¡œ ë¶™ì—¬ë„£ì€ ê²½ìš°: íŒë§¤ì²˜ íŒŒì‹± + ê°€ê²© ìžë™ ì¡°íšŒ
+    if(/^https?:\/\//i.test(val)){ // 상품 URL을 통째로 붙여넣은 경우: 판매처 파싱 + 가격 자동 조회
       try{
         const u=new URL(val); sc.domain=u.hostname.replace(/^www\./,'');
         const hit=matchStore(sc.domain); sc.store=hit?hit.name:prettyDomain(sc.domain);
         e.target.value=sc.store;
-        sc.price=0; const pEl=el.querySelector('.s-price'); if(pEl) pEl.value=0; // ìƒˆ URL â†’ ì´ì „ ê°€ê²© ë¦¬ì…‹
+        sc.price=0; const pEl=el.querySelector('.s-price'); if(pEl) pEl.value=0; // 새 URL → 이전 가격 리셋
         resetScPortal(sc, el);
         recognizeStore(sc,true); updatePortalLinks(sc); recompute();
         tryFetchPrice(val, sc, document.getElementById('shint-'+sc.id));
@@ -856,7 +856,7 @@ function wireScenarioCard(el){
     inp.addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid); sc.offers[e.target.dataset.off]=+e.target.value||0; sc.lastChecked=todayStr(); recompute(); });
   });
   el.querySelector('.delScenario').addEventListener('click',e=>{
-    if(scenarios.length<=1){ alert("íŒë§¤ì²˜ëŠ” ìµœì†Œ 1ê°œëŠ” ìžˆì–´ì•¼ í•´."); return; }
+    if(scenarios.length<=1){ alert("판매처는 최소 1개는 있어야 해."); return; }
     const id=e.target.dataset.sid; scenarios=scenarios.filter(s=>s.id!=id);
     document.getElementById('scard-'+id).remove(); recompute();
   });
@@ -870,19 +870,19 @@ function wireScenarioCard(el){
     recompute();
   });
   const sc0=findScenario(el.dataset ? el.dataset.sid : el.id.replace('scard-',''));
-  recognizeStore(sc0,false); // ë¡œë“œ ì‹œì—” ížŒíŠ¸ë§Œ (ì €ìž¥ëœ ì¹´í…Œê³ ë¦¬ ì•ˆ ë®ìŒ)
+  recognizeStore(sc0,false); // 로드 시엔 힌트만 (저장된 카테고리 안 덮음)
   updatePortalLinks(sc0);
 }
 
-// ìƒí’ˆ ëª¨ë“œ íŒë§¤ì²˜ ì¸ì‹: ì¹´í…Œê³ ë¦¬ ìžë™(setCat=trueì¼ ë•Œ) + "âœ… ì¸ì‹ë¨" ížŒíŠ¸
+// 상품 모드 판매처 인식: 카테고리 자동(setCat=true일 때) + "✅ 인식됨" 힌트
 function recognizeStore(sc, setCat){
   const h=document.getElementById('shint-'+sc.id); if(!h) return;
   const fz=fuzzyStore(sc.store) || (sc.domain?fuzzyStore(sc.domain):null);
   if(fz){
     if(setCat) document.getElementById('cat').value=fz.cat;
-    h.innerHTML=(fz.exact?`âœ… <b>${fz.name}</b> ì¸ì‹ë¨`:`ðŸ”Ž '<b>${fz.name}</b>'ë¡œ ì¸ì‹ (ì˜¤íƒ€ ë³´ì •)`)+` â€” ì¹´í…Œê³ ë¦¬: ${CATNAME[fz.cat]}`;
+    h.innerHTML=(fz.exact?`✅ <b>${fz.name}</b> 인식됨`:`🔎 '<b>${fz.name}</b>'로 인식 (오타 보정)`)+` — 카테고리: ${CATNAME[fz.cat]}`;
   } else {
-    h.innerHTML=(sc.store||'').trim()? `ë“±ë¡ ì•ˆ ëœ íŒë§¤ì²˜ â€” 1ë²ˆ ì¹´í…Œê³ ë¦¬ë¥¼ ì§ì ‘ í™•ì¸í•´ì¤˜ (ê³„ì‚°ì€ ê·¸ëŒ€ë¡œ ë¼)` : '';
+    h.innerHTML=(sc.store||'').trim()? `등록 안 된 판매처 — 1번 카테고리를 직접 확인해줘 (계산은 그대로 돼)` : '';
   }
 }
 function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id); if(!p) return;
@@ -890,7 +890,7 @@ function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id)
   const hit=matchStore(sc.domain)||matchStore(sc.store);
   const base=hit?baselineFor(hit.key):null;
   if(base && PORTAL_RATES.asOf){
-    // ê¸°ë³¸ìœ¨ ìžë™ ìž…ë ¥ â€” ì´ ì‹œë‚˜ë¦¬ì˜¤+íŒë§¤ì²˜ ì¡°í•©ë‹¹ 1íšŒ, ë¹„ì–´ ìžˆì„ ë•Œë§Œ
+    // 기본율 자동 입력 — 이 시나리오+판매처 조합당 1회, 비어 있을 때만
     if(!autoApplied['sc'+sc.id+':'+hit.key] && (+sc.portalPct||0)===0){
       autoApplied['sc'+sc.id+':'+hit.key]=true;
       const rkp=(base.rk&&base.rk.listed!==false&&base.rk.pct)||0;
@@ -898,14 +898,14 @@ function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id)
       const tcbp=(base.tcb&&base.tcb.listed!==false&&base.tcb.pct)||0;
       const bestP=Math.max(rkp,cpp2,tcbp);
       if(bestP>0){ sc.portalPct=bestP;
-        sc.portalName=(tcbp===bestP?'TopCashback':(rkp===bestP?'Rakuten':'Capital One Shopping'))+' (ê¸°ë³¸ìœ¨)';
+        sc.portalName=(tcbp===bestP?'TopCashback':(rkp===bestP?'Rakuten':'Capital One Shopping'))+' (기본율)';
         const card=document.getElementById('scard-'+sc.id);
         if(card){ card.querySelector('.s-portal').value=bestP; card.querySelector('.s-portalname').value=sc.portalName; }
       }
     }
-    extra=`<br>ðŸ“Š ê¸°ë³¸ìœ¨(${ratesStamp()}): Rakuten <b>${fmtBase(base.rk)}</b> Â· TopCashback <b>${fmtBase(base.tcb)}</b> Â· Capital One Shopping <b>${fmtBase(base.cap)}</b> <span class="tag">â€” ë†’ì€ ìª½ ìžë™ ë°˜ì˜ Â· ì‹¤ì œ %ëŠ” ë‹¤ë¥¼ ìˆ˜ ìžˆì–´</span>`;
+    extra=`<br>📊 기본율(${ratesStamp()}): Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b> · Capital One Shopping <b>${fmtBase(base.cap)}</b> <span class="tag">— 높은 쪽 자동 반영 · 실제 %는 다를 수 있어</span>`;
   }
-  p.innerHTML="ë¹„êµ: "+portalLinksHTML(sc.store, sc.domain)+extra;
+  p.innerHTML="비교: "+portalLinksHTML(sc.store, sc.domain)+extra;
 }
 
 function buildAll(){
@@ -913,7 +913,7 @@ function buildAll(){
   scenarios.forEach(sc=>{ const el=buildScenarioCard(sc); box.appendChild(el); wireScenarioCard(el); });
 }
 
-// ===== ê³„ì‚° =====
+// ===== 계산 =====
 function scenarioResult(sc, cat){
   const price=+sc.price||0;
   const rows=CARDS.map(c=>{
@@ -938,22 +938,22 @@ function renderSellerSearch(){
   const name=(v('pname')||'').trim();
   if(!name){ el.innerHTML=''; return; }
   const q=encodeURIComponent(name);
-  el.innerHTML=`ðŸ” <b>"${name}"</b> íŒŒëŠ” ë‹¤ë¥¸ ê³³ ì°¾ê¸°: `+
-    `<a target="_blank" href="https://www.google.com/search?tbm=shop&q=${q}">Google ì‡¼í•‘</a> Â· `+
-    `<a target="_blank" href="https://www.amazon.com/s?k=${q}">Amazon</a> Â· `+
-    `<a target="_blank" href="https://www.walmart.com/search?q=${q}">Walmart</a> Â· `+
-    `<a target="_blank" href="https://www.target.com/s?searchTerm=${q}">Target</a> Â· `+
+  el.innerHTML=`🔍 <b>"${name}"</b> 파는 다른 곳 찾기: `+
+    `<a target="_blank" href="https://www.google.com/search?tbm=shop&q=${q}">Google 쇼핑</a> · `+
+    `<a target="_blank" href="https://www.amazon.com/s?k=${q}">Amazon</a> · `+
+    `<a target="_blank" href="https://www.walmart.com/search?q=${q}">Walmart</a> · `+
+    `<a target="_blank" href="https://www.target.com/s?searchTerm=${q}">Target</a> · `+
     `<a target="_blank" href="https://www.ebay.com/sch/i.html?_nkw=${q}">eBay</a>`+
-    `<br><span class="tag">ì°¾ì€ ìƒí’ˆ íŽ˜ì´ì§€ì˜ <b>URLì„ ë³µì‚¬í•´ì„œ ì•„ëž˜ íŒë§¤ì²˜ ì¹¸ì— ë¶™ì—¬ë„£ìœ¼ë©´</b> íŒë§¤ì²˜Â·ê°€ê²©ì´ ìžë™ìœ¼ë¡œ ì±„ì›Œì ¸ â†’ A.ì–´ë””ì„œ Â· B.ì–´ëŠ ì¹´ë“œ Â· C.ì–´ëŠ ìºì‹œë°± ë£¨íŠ¸ê°€ í•œ ë²ˆì— ë¹„êµë¼</span>`;
+    `<br><span class="tag">찾은 상품 페이지의 <b>URL을 복사해서 아래 판매처 칸에 붙여넣으면</b> 판매처·가격이 자동으로 채워져 → A.어디서 · B.어느 카드 · C.어느 캐시백 루트가 한 번에 비교돼</span>`;
 }
 
 function recompute(){
   const cat=v('cat');
   renderSellerSearch();
   if(!CARDS.length){
-    document.getElementById('finalConclusion').innerHTML='ë¨¼ì € ìœ„ <b>ðŸ‘› ë‚´ ì¹´ë“œ</b>ì—ì„œ ì¹´ë“œë¥¼ í•˜ë‚˜ ì´ìƒ ê³¨ë¼ì¤˜.';
+    document.getElementById('finalConclusion').innerHTML='먼저 위 <b>👛 내 카드</b>에서 카드를 하나 이상 골라줘.';
     document.getElementById('compareBody').innerHTML=""; document.getElementById('cardbody').innerHTML="";
-    scenarios.forEach(sc=>{ const b=document.getElementById('sbest-'+sc.id); if(b) b.textContent='â€”'; const n=document.getElementById('snet-'+sc.id); if(n) n.textContent='â€”'; });
+    scenarios.forEach(sc=>{ const b=document.getElementById('sbest-'+sc.id); if(b) b.textContent='—'; const n=document.getElementById('snet-'+sc.id); if(n) n.textContent='—'; });
     saveState(); return;
   }
   const results=scenarios.map(sc=>scenarioResult(sc,cat));
@@ -961,14 +961,14 @@ function recompute(){
   results.forEach(r=>{
     const sc=r.sc;
     document.getElementById('sbest-'+sc.id).innerHTML = r.price>0
-      ? `${r.best.c.short} <span class="pill ${TYPE[r.best.type].cls}">${TYPE[r.best.type].label}</span>`+(r.flipped?` <span class="pill flip">ì˜¤í¼ë¡œ ì—­ì „</span>`:``)
-      : 'ê°€ê²© ìž…ë ¥';
-    document.getElementById('snet-'+sc.id).textContent = r.price>0 ? money(r.net) : "â€”";
+      ? `${r.best.c.short} <span class="pill ${TYPE[r.best.type].cls}">${TYPE[r.best.type].label}</span>`+(r.flipped?` <span class="pill flip">오퍼로 역전</span>`:``)
+      : '가격 입력';
+    document.getElementById('snet-'+sc.id).textContent = r.price>0 ? money(r.net) : "—";
     const st=document.getElementById('stamp-'+sc.id);
     const d=daysSince(sc.lastChecked);
-    if(sc.lastChecked==null) st.innerHTML=`<span class="fresh">ì˜¤í¼ ë¯¸í™•ì¸</span>`;
-    else if(d>=STALE_DAYS) st.innerHTML=`<span class="stale">${d}ì¼ ì „ í™•ì¸ Â· ìž¬í™•ì¸ í•„ìš”</span>`;
-    else st.innerHTML=`<span class="fresh">${d===0?'ì˜¤ëŠ˜':d+'ì¼ ì „'} í™•ì¸</span>`;
+    if(sc.lastChecked==null) st.innerHTML=`<span class="fresh">오퍼 미확인</span>`;
+    else if(d>=STALE_DAYS) st.innerHTML=`<span class="stale">${d}일 전 확인 · 재확인 필요</span>`;
+    else st.innerHTML=`<span class="fresh">${d===0?'오늘':d+'일 전'} 확인</span>`;
   });
 
   const ranked=results.filter(r=>r.price>0).sort((a,b)=>a.net-b.net);
@@ -978,8 +978,8 @@ function recompute(){
   ranked.forEach((r,i)=>{
     if(i===0){ const c=document.getElementById('scard-'+r.sc.id); if(c) c.classList.add('win'); const b=document.getElementById('badge-'+r.sc.id); if(b) b.style.display='inline-block'; }
     const tr=document.createElement('tr'); if(i===0) tr.className='best';
-    const route=r.sc.portalPct>0 ? ((r.sc.portalName||'í¬í„¸')+` ${r.sc.portalPct}%`) : 'ì—†ìŒ';
-    tr.innerHTML=`<td><b>${i+1}. ${r.sc.store||'(íŒë§¤ì²˜?)'}</b>${r.flipped?' <span class="pill flip">ì—­ì „</span>':''}</td>
+    const route=r.sc.portalPct>0 ? ((r.sc.portalName||'포털')+` ${r.sc.portalPct}%`) : '없음';
+    tr.innerHTML=`<td><b>${i+1}. ${r.sc.store||'(판매처?)'}</b>${r.flipped?' <span class="pill flip">역전</span>':''}</td>
       <td>${money(r.price)}</td>
       <td>${r.best.c.short} <span class="pill ${TYPE[r.best.type].cls}">${TYPE[r.best.type].label}</span></td>
       <td class="r">${money(r.rewardVal)}</td>
@@ -989,50 +989,50 @@ function recompute(){
   });
 
   const fc=document.getElementById('finalConclusion');
-  if(ranked.length===0){ fc.innerHTML='íŒë§¤ì²˜ì— ê°€ê²©ì„ ë„£ìœ¼ë©´ ë¹„êµê°€ ì‹œìž‘ë¼.'; }
+  if(ranked.length===0){ fc.innerHTML='판매처에 가격을 넣으면 비교가 시작돼.'; }
   else {
     const w=ranked[0];
     const saved=w.price-w.net, savedPct=w.price>0?(saved/w.price*100):0;
     const ptsN=Math.round(w.price*w.best.mult).toLocaleString();
-    const cardDetail = w.best.type==='cash' ? `${w.best.mult}% ìºì‹œë°±` : `${w.best.mult}ë°° ì ë¦½ = ${ptsN} í¬ì¸íŠ¸ Ã— ${w.best.cv}Â¢`;
+    const cardDetail = w.best.type==='cash' ? `${w.best.mult}% 캐시백` : `${w.best.mult}배 적립 = ${ptsN} 포인트 × ${w.best.cv}¢`;
     let diff='';
-    if(ranked.length>1){ const gap=ranked[1].net-w.net; diff=`<div class="tag" style="margin-top:6px">2ìœ„ ${ranked[1].sc.store||'?'}ë³´ë‹¤ <b>${money(gap)}</b> ì €ë ´</div>`; }
+    if(ranked.length>1){ const gap=ranked[1].net-w.net; diff=`<div class="tag" style="margin-top:6px">2위 ${ranked[1].sc.store||'?'}보다 <b>${money(gap)}</b> 저렴</div>`; }
     fc.innerHTML=
-      `<div style="font-size:15px"><span class="big">${w.sc.store||'?'}</span> ì—ì„œ ì´ë ‡ê²Œ ì‚¬ë©´:</div>`+
+      `<div style="font-size:15px"><span class="big">${w.sc.store||'?'}</span> 에서 이렇게 사면:</div>`+
       `<div class="receipt">`+
-      `<div class="line"><span class="lab">ìƒí’ˆ ê°€ê²©</span><span>${money(w.price)}</span></div>`+
-      (w.portalVal>0?`<div class="line"><span class="lab">ðŸ”— <b>${w.sc.portalName||'í¬í„¸'}</b> ë§í¬ë¡œ ë“¤ì–´ê°€ì„œ <span class="tag">ìºì‹œë°± ${w.sc.portalPct}%</span></span><span class="minus">âˆ’${money(w.portalVal)}</span></div>`:``)+
-      `<div class="line"><span class="lab">ðŸ’³ <b>${w.best.c.name}</b> ë¡œ ê²°ì œ <span class="tag">${cardDetail} <span class="pill ${TYPE[w.best.type].cls}">${TYPE[w.best.type].label}</span></span></span><span class="minus">âˆ’${money(w.best.val)}</span></div>`+
-      (w.best.offer>0?`<div class="line"><span class="lab">ðŸŽ ì´ ì¹´ë“œì˜ ${w.sc.store||''} ì˜¤í¼</span><span class="minus">âˆ’${money(w.best.offer)}</span></div>`:``)+
-      `<div class="line total"><span>ì‹¤ì§ˆ ë¹„ìš©</span><span>${money(w.net)}</span></div>`+
+      `<div class="line"><span class="lab">상품 가격</span><span>${money(w.price)}</span></div>`+
+      (w.portalVal>0?`<div class="line"><span class="lab">🔗 <b>${w.sc.portalName||'포털'}</b> 링크로 들어가서 <span class="tag">캐시백 ${w.sc.portalPct}%</span></span><span class="minus">−${money(w.portalVal)}</span></div>`:``)+
+      `<div class="line"><span class="lab">💳 <b>${w.best.c.name}</b> 로 결제 <span class="tag">${cardDetail} <span class="pill ${TYPE[w.best.type].cls}">${TYPE[w.best.type].label}</span></span></span><span class="minus">−${money(w.best.val)}</span></div>`+
+      (w.best.offer>0?`<div class="line"><span class="lab">🎁 이 카드의 ${w.sc.store||''} 오퍼</span><span class="minus">−${money(w.best.offer)}</span></div>`:``)+
+      `<div class="line total"><span>실질 비용</span><span>${money(w.net)}</span></div>`+
       `</div>`+
-      `<div class="savebadge">ðŸ’° ì´ ${money(saved)} ì•„ë‚Œ (${savedPct.toFixed(1)}%)</div>`+
+      `<div class="savebadge">💰 총 ${money(saved)} 아낌 (${savedPct.toFixed(1)}%)</div>`+
       diff+
-      (w.flipped?`<div class="tag" style="margin-top:4px">â€» ì˜¤í¼ ë•ë¶„ì— í‰ì†Œ ìµœì  ì¹´ë“œê°€ ì•„ë‹Œ ${w.best.c.short}ê°€ 1ìœ„ê°€ ë¨</div>`:``);
-    document.getElementById('detailStore').textContent = 'Â· '+(w.sc.store||'')+' ê¸°ì¤€ Â· '+CATNAME[cat];
+      (w.flipped?`<div class="tag" style="margin-top:4px">※ 오퍼 덕분에 평소 최적 카드가 아닌 ${w.best.c.short}가 1위가 됨</div>`:``);
+    document.getElementById('detailStore').textContent = '· '+(w.sc.store||'')+' 기준 · '+CATNAME[cat];
     const tbody=document.getElementById('cardbody'); tbody.innerHTML="";
     w.rows.forEach((r,i)=>{
       const t=TYPE[r.type]; const ptsR=Math.round(w.price*r.mult).toLocaleString();
-      const detail = r.type==='cash' ? `${r.mult}% í˜„ê¸ˆ` : `${ptsR}pts Ã— ${r.cv}Â¢`;
+      const detail = r.type==='cash' ? `${r.mult}% 현금` : `${ptsR}pts × ${r.cv}¢`;
       const tr=document.createElement('tr'); if(i===0) tr.className='best';
-      tr.innerHTML=`<td><b>${r.c.short}</b> <span class="pill ${t.cls}">${t.label}</span> ${i===0?'<span class="pill win">1ìœ„</span>'+(w.flipped?'<span class="pill flip">ì˜¤í¼ë¡œ ì—­ì „</span>':''):''}<div class="tag">${r.c.hint}</div></td>
+      tr.innerHTML=`<td><b>${r.c.short}</b> <span class="pill ${t.cls}">${t.label}</span> ${i===0?'<span class="pill win">1위</span>'+(w.flipped?'<span class="pill flip">오퍼로 역전</span>':''):''}<div class="tag">${r.c.hint}</div></td>
         <td class="r">${money(r.val)}<div class="tag">${detail}</div></td>
-        <td class="r">${r.offer>0?('+'+money(r.offer)):'<span class="tag">â€”</span>'}</td>
+        <td class="r">${r.offer>0?('+'+money(r.offer)):'<span class="tag">—</span>'}</td>
         <td class="r"><b>${money(r.tot)}</b></td>`;
       tbody.appendChild(tr);
     });
     const sr=w.price*0.10;
-    document.getElementById('storeBox').innerHTML=`<b>ìŠ¤í† ì–´ ì¹´ë“œ?</b> â€” ${w.sc.store||'ì´ íŒë§¤ì²˜'} ìžì‚¬ ì¹´ë“œ(ë³´í†µ 5~10%)ê°€ ìžˆë‹¤ë©´ 10% ê¸°ì¤€ â‰ˆ ${money(sr)}. ë§Œë£ŒÂ·ì‚¬ìš©ì²˜ ì œì•½ì€ í™•ì¸.`;
+    document.getElementById('storeBox').innerHTML=`<b>스토어 카드?</b> — ${w.sc.store||'이 판매처'} 자사 카드(보통 5~10%)가 있다면 10% 기준 ≈ ${money(sr)}. 만료·사용처 제약은 확인.`;
   }
   saveState();
 }
 
-// ===== ì‚¬ì´íŠ¸ ëª¨ë“œ =====
+// ===== 사이트 모드 =====
 let mode = 'product';
 let siteOffers = {};
-let autoApplied = {}; // ê¸°ë³¸ìœ¨ ìžë™ìž…ë ¥ 1íšŒ ì¶”ì  (site:key / sc<id>:key)
-let lastSiteKey;      // ì‚¬ì´íŠ¸ ëª¨ë“œ ë§ˆì§€ë§‰ íŒë§¤ì²˜ í‚¤ â€” íŒë§¤ì²˜ ë³€ê²½ ê°ì§€ìš©
-// ì‹œë‚˜ë¦¬ì˜¤ íŒë§¤ì²˜ê°€ ë°”ë€Œë©´ ì´ì „ íŒë§¤ì²˜ì˜ í¬í„¸ %Â·ìžë™ìž…ë ¥ ê¸°ë¡ì„ ë¦¬ì…‹
+let autoApplied = {}; // 기본율 자동입력 1회 추적 (site:key / sc<id>:key)
+let lastSiteKey;      // 사이트 모드 마지막 판매처 키 — 판매처 변경 감지용
+// 시나리오 판매처가 바뀌면 이전 판매처의 포털 %·자동입력 기록을 리셋
 function resetScPortal(sc, el){
   sc.portalPct=0; sc.portalName='';
   const p=el.querySelector('.s-portal'); if(p) p.value=0;
@@ -1045,7 +1045,7 @@ function buildSiteOffers(){
     `<label class="checkrow" style="cursor:pointer">`+
     `<input type="checkbox" style="width:auto" data-soff="${c.id}" ${siteOffers[c.id]?'checked':''}>`+
     `<span class="name">${c.short} <small>${cardMeta(c)}</small></span></label>`
-  ).join("") || '<p class="muted">ì§€ê°‘ì— ì¹´ë“œê°€ ì—†ì–´.</p>';
+  ).join("") || '<p class="muted">지갑에 카드가 없어.</p>';
   box.querySelectorAll('input[data-soff]').forEach(inp=>{
     inp.addEventListener('change',e=>{ siteOffers[e.target.dataset.soff]=e.target.checked; computeSite(); });
   });
@@ -1062,10 +1062,10 @@ function setMode(m){
 function computeSite(){
   const store=(v('siteStore')||'').trim();
   const cat=v('siteCat');
-  // ê¸°ë³¸ìœ¨ ìžë™ ìž…ë ¥ â€” íŒë§¤ì²˜ ì¸ì‹ ì‹œ 1íšŒ (ì´í›„ ì§ì ‘ ìˆ˜ì • ìžìœ )
+  // 기본율 자동 입력 — 판매처 인식 시 1회 (이후 직접 수정 자유)
   const fz=fuzzyStore(store);
   const base=fz?baselineFor(fz.key):null;
-  // íŒë§¤ì²˜ê°€ ë°”ë€Œë©´ ì„¸ í¬í„¸ %ë¥¼ ìƒˆ íŒë§¤ì²˜ ê¸°ë³¸ìœ¨ë¡œ êµì²´(ë°ì´í„° ì—†ìœ¼ë©´ 0) â€” ì²« ë¡œë“œëŠ” ì €ìž¥ê°’ ìœ ì§€
+  // 판매처가 바뀌면 세 포털 %를 새 판매처 기본율로 교체(데이터 없으면 0) — 첫 로드는 저장값 유지
   const siteKey=fz?fz.key:normStore(store);
   if(lastSiteKey===undefined){ lastSiteKey=siteKey; }
   else if(siteKey!==lastSiteKey){
@@ -1086,7 +1086,7 @@ function computeSite(){
   const pBest=Math.max(cp,rp,tp);
   const pName= pBest<=0 ? '' : (tp===pBest?'TopCashback':(rp===pBest?'Rakuten':'Capital One Shopping'));
   const rec=document.getElementById('siteRec');
-  if(!CARDS.length){ rec.innerHTML='<p class="muted">ìœ„ ðŸ‘› ë‚´ ì¹´ë“œì—ì„œ ì¹´ë“œë¥¼ ê³¨ë¼ì¤˜.</p>'; }
+  if(!CARDS.length){ rec.innerHTML='<p class="muted">위 👛 내 카드에서 카드를 골라줘.</p>'; }
   else {
   const rows=CARDS.map(c=>{ const [mult,type]=effRate(c,cat); const cv=cppFor(type); return {c,type,mult,cv,eff:mult*cv}; })
     .sort((a,b)=> b.eff-a.eff || (a.type==='UR'?-1:1));
@@ -1094,30 +1094,30 @@ function computeSite(){
   const bestOff = !!siteOffers[best.c.id];
   const flagged = rows.filter(r=>siteOffers[r.c.id]);
   const tot=best.eff+pBest;
-  let html=`<div class="bigrec"><div class="lab">ì´ ì‚¬ì´íŠ¸ ìµœì  ì¡°í•©</div>`+
+  let html=`<div class="bigrec"><div class="lab">이 사이트 최적 조합</div>`+
     `<div class="big">${best.c.name}</div>`+
     `<div class="tag">${best.c.hint}</div>`+
-    (bestOff?`<div style="margin-top:4px"><span class="pill flip">â­ ì´ ì¹´ë“œì— ì˜¤í¼ë„ ìžˆìŒ</span></div>`:``)+
+    (bestOff?`<div style="margin-top:4px"><span class="pill flip">⭐ 이 카드에 오퍼도 있음</span></div>`:``)+
     `</div>`+
     `<div class="receipt">`+
-    `<div class="line"><span class="lab">ðŸ”— ${pBest>0?`<b>${pName}</b> ë§í¬ë¡œ ìž…ìž¥`:`í¬í„¸ ìºì‹œë°± ì—†ìŒ`} <span class="tag">RK ${rp}% Â· TCB ${tp}% Â· CapOne ${cp}%${pBest>0?` â†’ ${pName} ìŠ¹`:''}</span></span><span class="minus">+${pBest}%</span></div>`+
-    `<div class="line"><span class="lab">ðŸ’³ <b>${best.c.short}</b> ë¡œ ê²°ì œ <span class="tag">${CATNAME[cat]} ${best.mult}ë°° <span class="pill ${TYPE[best.type].cls}">${TYPE[best.type].label}</span></span></span><span class="minus">+${best.eff.toFixed(1)}%</span></div>`+
-    `<div class="line total"><span>ì´ ëŒë ¤ë°›ìŒ</span><span>${tot.toFixed(1)}%</span></div>`+
+    `<div class="line"><span class="lab">🔗 ${pBest>0?`<b>${pName}</b> 링크로 입장`:`포털 캐시백 없음`} <span class="tag">RK ${rp}% · TCB ${tp}% · CapOne ${cp}%${pBest>0?` → ${pName} 승`:''}</span></span><span class="minus">+${pBest}%</span></div>`+
+    `<div class="line"><span class="lab">💳 <b>${best.c.short}</b> 로 결제 <span class="tag">${CATNAME[cat]} ${best.mult}배 <span class="pill ${TYPE[best.type].cls}">${TYPE[best.type].label}</span></span></span><span class="minus">+${best.eff.toFixed(1)}%</span></div>`+
+    `<div class="line total"><span>총 돌려받음</span><span>${tot.toFixed(1)}%</span></div>`+
     `</div>`+
-    `<div class="savebadge">ðŸ’° $100 ì“¸ ë•Œë§ˆë‹¤ â‰ˆ ${money(tot)} ëŒì•„ì˜´</div>`;
-  html+=`<div style="overflow-x:auto"><table><thead><tr><th>ì¹´ë“œ</th><th>ì´ ì¹´í…Œê³ ë¦¬</th><th class="r">ì¢…ë¥˜</th><th class="r">ì‹¤ì§ˆ ì ë¦½ìœ¨</th></tr></thead><tbody>`;
+    `<div class="savebadge">💰 $100 쓸 때마다 ≈ ${money(tot)} 돌아옴</div>`;
+  html+=`<div style="overflow-x:auto"><table><thead><tr><th>카드</th><th>이 카테고리</th><th class="r">종류</th><th class="r">실질 적립율</th></tr></thead><tbody>`;
   rows.forEach((r,i)=>{
-    html+=`<tr class="${i===0?'best':''}"><td><b>${r.c.short}</b> ${i===0?'<span class="pill win">1ìœ„</span>':''}${siteOffers[r.c.id]?'<span class="pill flip">â­ì˜¤í¼</span>':''}<div class="tag">${r.c.hint||''}</div></td>`+
-      `<td>${r.mult}ë°°</td><td class="r"><span class="pill ${TYPE[r.type].cls}">${TYPE[r.type].label}</span></td>`+
+    html+=`<tr class="${i===0?'best':''}"><td><b>${r.c.short}</b> ${i===0?'<span class="pill win">1위</span>':''}${siteOffers[r.c.id]?'<span class="pill flip">⭐오퍼</span>':''}<div class="tag">${r.c.hint||''}</div></td>`+
+      `<td>${r.mult}배</td><td class="r"><span class="pill ${TYPE[r.type].cls}">${TYPE[r.type].label}</span></td>`+
       `<td class="r"><b>${r.eff.toFixed(1)}%</b></td></tr>`;
   });
   html+=`</tbody></table></div>`;
   if(flagged.length){
     if(bestOff && flagged.length===1){
-      html+=`<p class="muted" style="margin:8px 0 0"><b style="color:var(--accent)">âœ… ìµœì  ì¹´ë“œì— ì˜¤í¼ê¹Œì§€</b> â€” <b>${best.c.short}</b> í•˜ë‚˜ë¡œ ì ë¦½ë¥  1ìœ„ + ì˜¤í¼. ìž˜ ê³¨ëžì–´.</p>`;
+      html+=`<p class="muted" style="margin:8px 0 0"><b style="color:var(--accent)">✅ 최적 카드에 오퍼까지</b> — <b>${best.c.short}</b> 하나로 적립률 1위 + 오퍼. 잘 골랐어.</p>`;
     } else {
       const names=flagged.map(r=>r.c.short).join(', ');
-      html+=`<p class="muted" style="margin:8px 0 0"><b style="color:var(--warn)">â­ ì˜¤í¼ ìžˆëŠ” ì¹´ë“œ: ${names}</b> â€” ê¸ˆì•¡ì´ í¬ë©´ ì˜¤í¼($)ê°€ ì ë¦½ë¥  ì°¨ì´ë¥¼ ë„˜ì–´ <b>${best.c.short}(1ìœ„)ë¥¼ ë’¤ì§‘ì„ ìˆ˜</b> ìžˆì–´. ì •í™•í•œ ë¹„êµëŠ” ðŸ›’ <b>ìƒí’ˆ ëª¨ë“œ</b>(ê°€ê²© ë„£ê³  ì˜¤í¼ $ ìž…ë ¥)ë¡œ.</p>`;
+      html+=`<p class="muted" style="margin:8px 0 0"><b style="color:var(--warn)">⭐ 오퍼 있는 카드: ${names}</b> — 금액이 크면 오퍼($)가 적립률 차이를 넘어 <b>${best.c.short}(1위)를 뒤집을 수</b> 있어. 정확한 비교는 🛒 <b>상품 모드</b>(가격 넣고 오퍼 $ 입력)로.</p>`;
     }
   }
   rec.innerHTML=html;
@@ -1125,15 +1125,15 @@ function computeSite(){
 
   const t = fz ? {known:true, cbm:fz.cbm, rk:fz.rk, tcb:fz.tcb, cap:fz.key+".com"} : portalTargets(store,'');
 
-  // ê¸°ë³¸ìœ¨ í‘œì‹œ (+ë˜ëŒë¦¬ê¸°)
+  // 기본율 표시 (+되돌리기)
   const bEl=document.getElementById('siteBaseline');
   if(base && PORTAL_RATES.asOf){
     const capOk=base.cap&&base.cap.pct!=null&&base.cap.listed!==false;
     const rkOk=base.rk&&base.rk.pct!=null&&base.rk.listed!==false;
     const tcbOk=base.tcb&&base.tcb.pct!=null&&base.tcb.listed!==false;
-    bEl.innerHTML=`ðŸ“Š ê¸°ë³¸ìœ¨(${ratesStamp()}) <b>ìžë™ ìž…ë ¥ë¨</b>: Rakuten <b>${fmtBase(base.rk)}</b> Â· TopCashback <b>${fmtBase(base.tcb)}</b> Â· Capital One Shopping <b>${fmtBase(base.cap)}</b>`+
-      ((capOk||rkOk||tcbOk)?` <button class="mini" type="button" id="fillBase">â†º ê¸°ë³¸ìœ¨ë¡œ ë˜ëŒë¦¬ê¸°</button>`:``)+
-      ` <span class="tag">â€” ê·¸ ë‚ ì§œì˜ ê³µê°œ ê¸°ë³¸ ìºì‹œë°± % Â· ë‚´ ê³„ì •(ë¡œê·¸ì¸)ì—ì„  ë” ë†’ì„ ìˆ˜ë„ ìžˆì–´</span>`;
+    bEl.innerHTML=`📊 기본율(${ratesStamp()}) <b>자동 입력됨</b>: Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b> · Capital One Shopping <b>${fmtBase(base.cap)}</b>`+
+      ((capOk||rkOk||tcbOk)?` <button class="mini" type="button" id="fillBase">↺ 기본율로 되돌리기</button>`:``)+
+      ` <span class="tag">— 그 날짜의 공개 기본 캐시백 % · 내 계정(로그인)에선 더 높을 수도 있어</span>`;
     const fb=document.getElementById('fillBase');
     if(fb) fb.addEventListener('click',()=>{
       if(capOk) document.getElementById('capPct').value=base.cap.pct;
@@ -1142,63 +1142,63 @@ function computeSite(){
       computeSite();
     });
   } else {
-    bEl.innerHTML = (fz&&PORTAL_RATES.asOf) ? `ðŸ“Š ì´ íŒë§¤ì²˜ëŠ” ê¸°ë³¸ìœ¨ ìŠ¤ëƒ…ìƒ·ì— ì—†ì–´ â€” ì•„ëž˜ ë§í¬ë¡œ ì˜¤ëŠ˜ %ë¥¼ ì§ì ‘ í™•ì¸í•´ì¤˜` : '';
+    bEl.innerHTML = (fz&&PORTAL_RATES.asOf) ? `📊 이 판매처는 기본율 스냅샷에 없어 — 아래 링크로 오늘 %를 직접 확인해줘` : '';
   }
   const capUrl=`https://capitaloneshopping.com/s/${t.cap}/coupon`;
   const rkUrl=`https://www.rakuten.com/shop/${t.rk}`;
   const tcbUrl=`https://www.topcashback.com/${t.tcb}/`;
   const cbmUrl=`https://www.cashbackmonitor.com/cashback-store/${t.cbm}/`;
   document.getElementById('sitePortalBtns').innerHTML=
-    `<a class="pbtn rk" href="${rkUrl}" target="_blank">Rakuten â†—<small>ì—¬ê¸° ê²½ìœ  í›„ ì‚¬ì´íŠ¸ë¡œ</small></a>`+
-    `<a class="pbtn tcb" href="${tcbUrl}" target="_blank">TopCashback â†—<small>ì—¬ê¸° ê²½ìœ  í›„ ì‚¬ì´íŠ¸ë¡œ</small></a>`+
-    `<a class="pbtn cap" href="${capUrl}" target="_blank">Capital One Shopping â†—<small>ì—¬ê¸° ê²½ìœ  í›„ ì‚¬ì´íŠ¸ë¡œ</small></a>`;
+    `<a class="pbtn rk" href="${rkUrl}" target="_blank">Rakuten ↗<small>여기 경유 후 사이트로</small></a>`+
+    `<a class="pbtn tcb" href="${tcbUrl}" target="_blank">TopCashback ↗<small>여기 경유 후 사이트로</small></a>`+
+    `<a class="pbtn cap" href="${capUrl}" target="_blank">Capital One Shopping ↗<small>여기 경유 후 사이트로</small></a>`;
   document.getElementById('siteCompare').innerHTML=
-    `ì˜¤ëŠ˜ ì‹¤ì œ %ëŠ” ìˆ˜ì‹œë¡œ ë°”ë€œ â€” ì „ì²´ í¬í„¸ ë¹„êµ: <a href="${cbmUrl}" target="_blank">CashbackMonitor</a>`+
-    (t.known?'':` <span style="color:var(--warn)">â€” ì¶”ì • ë§í¬, ì•ˆ ì—´ë¦¬ë©´ "${store||'ì‚¬ì´íŠ¸ëª…'}" ì§ì ‘ ê²€ìƒ‰</span>`);
+    `오늘 실제 %는 수시로 바뀜 — 전체 포털 비교: <a href="${cbmUrl}" target="_blank">CashbackMonitor</a>`+
+    (t.known?'':` <span style="color:var(--warn)">— 추정 링크, 안 열리면 "${store||'사이트명'}" 직접 검색</span>`);
 
   const wEl=document.getElementById('portalWinner');
   if(pBest>0){
-    if(!(cp===rp&&rp===tp)) wEl.innerHTML=`âš–ï¸ Rakuten <b>${rp}%</b> vs TopCashback <b>${tp}%</b> vs Capital One Shopping <b>${cp}%</b> â†’ <span class="winner">${pName} ì„ íƒ</span>`;
-    else wEl.innerHTML=`âš–ï¸ ì…‹ ë‹¤ ${cp}% â€” ì•„ë¬´ ìª½ì´ë‚˜ (ë˜ëŠ” ê±¸ë¡œ)`;
+    if(!(cp===rp&&rp===tp)) wEl.innerHTML=`⚖️ Rakuten <b>${rp}%</b> vs TopCashback <b>${tp}%</b> vs Capital One Shopping <b>${cp}%</b> → <span class="winner">${pName} 선택</span>`;
+    else wEl.innerHTML=`⚖️ 셋 다 ${cp}% — 아무 쪽이나 (되는 걸로)`;
   } else {
-    wEl.innerHTML=`í¬í„¸ë“¤ì˜ ìºì‹œë°± %ë¥¼ ë„£ìœ¼ë©´ ë¹„êµí•´ì„œ ì •í•´ì¤„ê²Œ. (ìœ„ CashbackMonitorë¡œ í™•ì¸)`;
+    wEl.innerHTML=`포털들의 캐시백 %를 넣으면 비교해서 정해줄게. (위 CashbackMonitor로 확인)`;
   }
   renderRefBox();
   saveState();
 }
 
-// ===== ì¶”ì²œ(ë¦¬í¼ëŸ´) ë°•ìŠ¤ =====
+// ===== 추천(리퍼럴) 박스 =====
 function renderRefBox(){
   const slots=document.querySelectorAll('.refslot'); if(!slots.length) return;
   const hasRef = !!(REFERRALS.rakuten||REFERRALS.capone);
   const capUrl = REFERRALS.capone  || "https://capitaloneshopping.com/";
   const rkUrl  = REFERRALS.rakuten || "https://www.rakuten.com/";
-  const html = `<div class="storebox" style="margin-top:10px"><b>ì•„ì§ í¬í„¸ ê³„ì •ì´ ì—†ì–´?</b> â€” ë¬´ë£Œ ê°€ìž…ë§Œ í•´ë‘ë©´ ì•žìœ¼ë¡œ ëª¨ë“  ì˜¨ë¼ì¸ ì‡¼í•‘ì—ì„œ ìºì‹œë°±ì„ ë°›ì•„: `+
-    `<a href="${capUrl}" target="_blank">Capital One Shopping ê°€ìž… â†—</a> Â· <a href="${rkUrl}" target="_blank">Rakuten ê°€ìž… â†—</a>`+
-    (hasRef?` <span class="tag">(ì´ˆëŒ€ ë§í¬ â€” ê°€ìž…í•˜ê³  ì¡°ê±´ ì±„ìš°ë©´ ë„ˆë„ ë‚˜ë„ ë³´ë„ˆìŠ¤ë¥¼ ë°›ì•„, íˆ¬ëª…í•˜ê²Œ ë°í˜€ë‘˜ê²Œ!)</span>`:``)+
+  const html = `<div class="storebox" style="margin-top:10px"><b>아직 포털 계정이 없어?</b> — 무료 가입만 해두면 앞으로 모든 온라인 쇼핑에서 캐시백을 받아: `+
+    `<a href="${capUrl}" target="_blank">Capital One Shopping 가입 ↗</a> · <a href="${rkUrl}" target="_blank">Rakuten 가입 ↗</a>`+
+    (hasRef?` <span class="tag">(초대 링크 — 가입하고 조건 채우면 너도 나도 보너스를 받아, 투명하게 밝혀둘게!)</span>`:``)+
     `</div>`;
   slots.forEach(s=>{ s.innerHTML=html; });
 }
 
-// ===== ë¶™ì—¬ë„£ê¸° íŒŒì‹± =====
+// ===== 붙여넣기 파싱 =====
 function parsePaste(){
   const raw=(v('paste')||"").trim(); const msg=document.getElementById('pasteMsg');
-  if(!raw){ msg.textContent="ë¶™ì—¬ë„£ì€ ë‚´ìš©ì´ ì—†ì–´."; return; }
+  if(!raw){ msg.textContent="붙여넣은 내용이 없어."; return; }
   const sc=scenarios[0]; const el=document.getElementById('scard-'+sc.id); const filled=[];
   const um=raw.match(/https?:\/\/[^\s]+/i);
   if(um){ let domain=""; try{ domain=new URL(um[0]).hostname.replace(/^www\./,""); }catch(e){}
     if(domain){ sc.domain=domain; const hit=matchStore(domain);
-      if(hit){ sc.store=hit.name; document.getElementById('cat').value=hit.cat; filled.push("íŒë§¤ì²˜("+hit.name+")","ì¹´í…Œê³ ë¦¬"); }
-      else { sc.store=prettyDomain(domain); filled.push("íŒë§¤ì²˜(ì¶”ì •)"); }
+      if(hit){ sc.store=hit.name; document.getElementById('cat').value=hit.cat; filled.push("판매처("+hit.name+")","카테고리"); }
+      else { sc.store=prettyDomain(domain); filled.push("판매처(추정)"); }
       el.querySelector('.s-store').value=sc.store; recognizeStore(sc,true); updatePortalLinks(sc);
     }
   }
   const pm=raw.match(/\$\s?(\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)/);
-  if(pm){ sc.price=+pm[1].replace(/,/g,""); el.querySelector('.s-price').value=sc.price; filled.push("ê°€ê²©"); }
+  if(pm){ sc.price=+pm[1].replace(/,/g,""); el.querySelector('.s-price').value=sc.price; filled.push("가격"); }
   const parts=raw.split(/\n|\s{2,}/).map(x=>x.trim()).filter(Boolean);
   let named=false;
-  for(const ln of parts){ if(/https?:\/\//i.test(ln)) continue; if(/^\$?\s?[\d.,]+$/.test(ln)) continue; if(ln.length<2) continue; document.getElementById('pname').value=ln.slice(0,80); filled.push("ì´ë¦„"); named=true; break; }
-  // URLë§Œ ë¶™ì—¬ë„£ì€ ê²½ìš°: ê²½ë¡œ ìŠ¬ëŸ¬ê·¸ì—ì„œ ìƒí’ˆëª… ì¶”ì • (ì˜ˆ: /p/adidas-kids-...-shoes-ìŠ¤í â†’ "Adidas Kids ... Shoes")
+  for(const ln of parts){ if(/https?:\/\//i.test(ln)) continue; if(/^\$?\s?[\d.,]+$/.test(ln)) continue; if(ln.length<2) continue; document.getElementById('pname').value=ln.slice(0,80); filled.push("이름"); named=true; break; }
+  // URL만 붙여넣은 경우: 경로 슬러그에서 상품명 추정 (예: /p/adidas-kids-...-shoes-스큐 → "Adidas Kids ... Shoes")
   if(um && !named){
     try{
       const segs=new URL(um[0]).pathname.split('/').filter(s=>(s.match(/-/g)||[]).length>=2);
@@ -1207,20 +1207,20 @@ function parsePaste(){
           .filter(w=>w && w.length<16 && !(/\d/.test(w)&&w.length>5));
         if(words.length>=2){
           const nm=words.join(' ').replace(/\b\w/g,c=>c.toUpperCase()).slice(0,80);
-          document.getElementById('pname').value=nm; filled.push("ì´ë¦„(URL ì¶”ì •)");
+          document.getElementById('pname').value=nm; filled.push("이름(URL 추정)");
         }
       }
     }catch(e){}
   }
   recompute();
-  msg.innerHTML = filled.length ? ('<b style="color:var(--accent)">âœ… ì±„ì› ì–´:</b> '+[...new Set(filled)].join(", ")) : "URL/ê°€ê²©ì„ ëª» ì°¾ì•˜ì–´ â€” ì œëª©+ê°€ê²©ì„ í†µì§¸ë¡œ ë¶™ì—¬ë„£ì–´ë´.";
-  if(um && !pm && filled.length){ // ìƒˆ ìƒí’ˆ URLì¸ë° ê°€ê²©ì´ ì—†ìœ¼ë©´: ì´ì „ ê°€ê²© ë¦¬ì…‹ í›„ ìžë™ ì¡°íšŒ
+  msg.innerHTML = filled.length ? ('<b style="color:var(--accent)">✅ 채웠어:</b> '+[...new Set(filled)].join(", ")) : "URL/가격을 못 찾았어 — 제목+가격을 통째로 붙여넣어봐.";
+  if(um && !pm && filled.length){ // 새 상품 URL인데 가격이 없으면: 이전 가격 리셋 후 자동 조회
     sc.price=0; el.querySelector('.s-price').value=0; recompute();
     tryFetchPrice(um[0], sc, msg);
   }
 }
 
-// ===== ì €ìž¥/ë³µì› =====
+// ===== 저장/복원 =====
 const LSKEY="purchOpt_v06";
 function saveState(){ try{ localStorage.setItem(LSKEY, JSON.stringify({
   mode, myWallet, cppValues, pname:v('pname'), cat:v('cat'),
@@ -1245,10 +1245,10 @@ function loadState(){ try{ const s=JSON.parse(localStorage.getItem(LSKEY)); if(!
   return true;
 }catch(e){ return false; } }
 
-// ===== ë”¥ë§í¬ (Claude ë¸Œë¦¿ì§€ / ê³µìœ ) =====
+// ===== 딥링크 (Claude 브릿지 / 공유) =====
 function prefillFromQuery(searchStr){
   const q=new URLSearchParams(searchStr!=null?searchStr:location.search); if(![...q.keys()].length) return false;
-  // ì§ì ‘ ì¶”ê°€ ì¹´ë“œ (cc_<id>=ì´ë¦„|í†µí™”|ë°°ìˆ˜CSV) â€” wallet í•„í„°ë³´ë‹¤ ë¨¼ì € ë“±ë¡í•´ì•¼ í•¨
+  // 직접 추가 카드 (cc_<id>=이름|통화|배수CSV) — wallet 필터보다 먼저 등록해야 함
   [...q.keys()].forEach(k=>{ if(k.indexOf('cc_')===0){
     const p=(q.get(k)||'').split('|');
     if(p.length>=2 && p[0]) registerCustomCard(makeCustomCard(k.slice(3), p[0], p[1], (p[2]||'').split(',')));
@@ -1256,7 +1256,7 @@ function prefillFromQuery(searchStr){
   if(q.has('wallet')){ const ids=q.get('wallet').split(',').map(x=>x.trim()).filter(Boolean).filter(id=>CARD_CATALOG.some(c=>c.id===id)); if(ids.length) myWallet=ids; }
   if(q.has('name')) document.getElementById('pname').value=q.get('name');
   if(q.has('cat')) document.getElementById('cat').value=q.get('cat');
-  // í¬ì¸íŠ¸ ê°€ì¹˜: ë ˆê±°ì‹œ(cppUR/DL/MR/HH) + ì¼ë°˜(cpp_<code>)
+  // 포인트 가치: 레거시(cppUR/DL/MR/HH) + 일반(cpp_<code>)
   const legacy={cppUR:'UR',cppDL:'DL',cppMR:'MR',cppHH:'HH'};
   Object.keys(legacy).forEach(k=>{ if(q.has(k)) cppValues[legacy[k]]=+q.get(k)||0; });
   [...q.keys()].forEach(k=>{ if(k.indexOf('cpp_')===0){ cppValues[k.slice(4)]=+q.get(k)||0; } });
@@ -1282,25 +1282,25 @@ function prefillFromQuery(searchStr){
   return built.length>0 || siteHit || q.get('mode')==='site' || q.has('wallet');
 }
 
-// ===== ì§€ê°‘ ê³µìœ  ë§í¬ =====
+// ===== 지갑 공유 링크 =====
 function shareWallet(){
-  if(!myWallet.length){ alert("ë¨¼ì € ì¹´ë“œë¥¼ ê³¨ë¼ì¤˜."); return; }
+  if(!myWallet.length){ alert("먼저 카드를 골라줘."); return; }
   const params=new URLSearchParams(); params.set('wallet', myWallet.join(','));
   myWallet.forEach(id=>{ const c=CARD_CATALOG.find(x=>x.id===id);
     if(c&&c.custom) params.set('cc_'+id, [c.name,c.cur,c.mults.join(',')].join('|')); });
   usedCurrencies().forEach(code=>{ params.set('cpp_'+code, cppFor(code)); });
   const url=location.origin+location.pathname+'?'+params.toString();
-  const done=(ok)=>{ const msg=ok?"ë‚´ ì§€ê°‘ ë§í¬ë¥¼ ë³µì‚¬í–ˆì–´!\n\nìš©ë„: â‘  í°â†”PC ì´ë™(ìž…ë ¥ì€ ê¸°ê¸°ë³„ ì €ìž¥ì´ë¼) â‘¡ ì¹´ë“œ êµ¬ì„±ì´ ê°™ì€ ê°€ì¡±Â·ì§€ì¸ì—ê²Œ ì „ë‹¬ â€” ì—´ë©´ ê°™ì€ ì§€ê°‘ìœ¼ë¡œ ì‹œìž‘í•´.":"ë³µì‚¬ ì‹¤íŒ¨ â€” ì•„ëž˜ ë§í¬ë¥¼ ì§ì ‘ ë³µì‚¬í•´:\n\n"+url; alert(msg); };
+  const done=(ok)=>{ const msg=ok?"내 지갑 링크를 복사했어!\n\n용도: ① 폰↔PC 이동(입력은 기기별 저장이라) ② 카드 구성이 같은 가족·지인에게 전달 — 열면 같은 지갑으로 시작해.":"복사 실패 — 아래 링크를 직접 복사해:\n\n"+url; alert(msg); };
   if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(()=>done(true),()=>done(false)); }
-  else { prompt("ì´ ë§í¬ë¥¼ ë³µì‚¬í•´ì„œ ê³µìœ í•´:", url); }
+  else { prompt("이 링크를 복사해서 공유해:", url); }
 }
 
-// ===== ì´ˆê¸°í™” =====
+// ===== 초기화 =====
 function init(){
   const seededDefault=()=>{ scenarios=[ blankScenario({store:"Crate & Barrel", domain:"crateandbarrel.com", price:1699}) ]; };
   loadState();
   prefillFromQuery();
-  // ì²« ë°©ë¬¸(ì €ìž¥Â·ê³µìœ ë§í¬ ë‘˜ ë‹¤ ì—†ìŒ)ì´ë©´ ë¹ˆ ì§€ê°‘ â†’ 'ì—¬ê¸°ì„œ ì‹œìž‘' ì•ˆë‚´ë¥¼ ë³´ì—¬ì¤Œ
+  // 첫 방문(저장·공유링크 둘 다 없음)이면 빈 지갑 → '여기서 시작' 안내를 보여줌
   CARDS=activeCards();
   if(!scenarios.length) seededDefault();
 
@@ -1310,15 +1310,15 @@ function init(){
   buildSiteOffers();
   renderRefBox();
 
-  // ê³µí†µ ìž…ë ¥ ë¦¬ìŠ¤ë„ˆ
+  // 공통 입력 리스너
   ['pname','cat'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input',recompute); el.addEventListener('change',recompute); });
   document.getElementById('fillBtn').addEventListener('click',parsePaste);
   document.getElementById('paste').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); parsePaste(); } });
   document.getElementById('addScenario').addEventListener('click',()=>{ const sc=blankScenario({}); scenarios.push(sc); const el=buildScenarioCard(sc); document.getElementById('scenarios').appendChild(el); wireScenarioCard(el); recompute(); });
-  document.getElementById('updateAll').addEventListener('click',()=>{ scenarios.forEach(sc=>{ sc.lastChecked=todayStr(); }); recompute(); alert("ëª¨ë“  íŒë§¤ì²˜ë¥¼ ì˜¤ëŠ˜ í™•ì¸í•œ ê²ƒìœ¼ë¡œ ê°±ì‹ í–ˆì–´. ì‹¤ì œ ì˜¤í¼ëŠ” ê° íŒë§¤ì²˜ 'ìž¬í™•ì¸'ìœ¼ë¡œ ë‹¤ì‹œ ì—´ì–´ í™•ì¸í•´."); });
+  document.getElementById('updateAll').addEventListener('click',()=>{ scenarios.forEach(sc=>{ sc.lastChecked=todayStr(); }); recompute(); alert("모든 판매처를 오늘 확인한 것으로 갱신했어. 실제 오퍼는 각 판매처 '재확인'으로 다시 열어 확인해."); });
 
-  // ì§€ê°‘ ì»¨íŠ¸ë¡¤
-  document.getElementById('walletClear').addEventListener('click',()=>{ if(confirm("ì§€ê°‘ì„ ë¹„ìš¸ê¹Œ? (ì¹´ë“œ ì„ íƒì´ ëª¨ë‘ í•´ì œë¼)")){ myWallet=[]; renderWallet(); applyWallet(); } });
+  // 지갑 컨트롤
+  document.getElementById('walletClear').addEventListener('click',()=>{ if(confirm("지갑을 비울까? (카드 선택이 모두 해제돼)")){ myWallet=[]; renderWallet(); applyWallet(); } });
   document.getElementById('walletExample').addEventListener('click',()=>{ myWallet=EXAMPLE_WALLET.filter(id=>CARD_CATALOG.some(c=>c.id===id)); renderWallet(); applyWallet(); });
   document.getElementById('walletShare').addEventListener('click',shareWallet);
   renderCcForm();
@@ -1331,16 +1331,16 @@ function init(){
     document.querySelectorAll('#walletCatalog .wgroup').forEach(g=>{ const any=[...g.querySelectorAll('.wrow')].some(r=>r.style.display!=='none'); g.style.display=any?'':'none'; });
   });
 
-  // ëª¨ë“œ í† ê¸€ + ì‚¬ì´íŠ¸ ëª¨ë“œ ìž…ë ¥
+  // 모드 토글 + 사이트 모드 입력
   document.getElementById('modeProduct').addEventListener('click',()=>setMode('product'));
   document.getElementById('modeSite').addEventListener('click',()=>setMode('site'));
   document.getElementById('siteStore').addEventListener('input',e=>{
     const fz=fuzzyStore(e.target.value); const hint=document.getElementById('siteStoreHint');
     if(fz){ document.getElementById('siteCat').value=fz.cat;
       hint.innerHTML = fz.exact
-        ? `âœ… <b>${fz.name}</b> ì¸ì‹ë¨ â€” ì¹´í…Œê³ ë¦¬: ${CATNAME[fz.cat]}`
-        : `ðŸ”Ž '<b>${fz.name}</b>'ë¡œ ì¸ì‹í–ˆì–´ (ì˜¤íƒ€ ë³´ì •) â€” ì¹´í…Œê³ ë¦¬: ${CATNAME[fz.cat]} Â· ì•„ë‹ˆë©´ ì§ì ‘ ê³¨ë¼ì¤˜`;
-    } else { hint.innerHTML = e.target.value.trim() ? `ë“±ë¡ ì•ˆ ëœ íŒë§¤ì²˜ â€” ì¹´í…Œê³ ë¦¬ë¥¼ ì§ì ‘ ê³¨ë¼ì¤˜ (ë§í¬ëŠ” ì¶”ì •ìœ¼ë¡œ ìƒì„±)` : ''; }
+        ? `✅ <b>${fz.name}</b> 인식됨 — 카테고리: ${CATNAME[fz.cat]}`
+        : `🔎 '<b>${fz.name}</b>'로 인식했어 (오타 보정) — 카테고리: ${CATNAME[fz.cat]} · 아니면 직접 골라줘`;
+    } else { hint.innerHTML = e.target.value.trim() ? `등록 안 된 판매처 — 카테고리를 직접 골라줘 (링크는 추정으로 생성)` : ''; }
     computeSite();
   });
   document.getElementById('siteCat').addEventListener('change',computeSite);
@@ -1351,9 +1351,9 @@ function init(){
 }
 init();
 
-// ===== ì›ê²© ìš”ìœ¨ ë¡œë“œ =====
-// ë°°í¬ë³¸(GitHub Pages)ì—ì„  rates.json(Rakutenì€ ë§¤ì¼ ìžë™ ê°±ì‹ )ì„ ì½ì–´ ë‚´ìž¥ ìŠ¤ëƒ…ìƒ·ì„ ë®ì–´ì”€.
-// ë¡œì»¬ file:// ì—ì„  fetchê°€ ì‹¤íŒ¨í•´ ì¡°ìš©ížˆ ë‚´ìž¥ ìŠ¤ëƒ…ìƒ·ìœ¼ë¡œ ë™ìž‘.
+// ===== 원격 요율 로드 =====
+// 배포본(GitHub Pages)에선 rates.json(Rakuten은 매일 자동 갱신)을 읽어 내장 스냅샷을 덮어씀.
+// 로컬 file:// 에선 fetch가 실패해 조용히 내장 스냅샷으로 동작.
 fetch('rates.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
   if(!j||!j.stores) return;
   PORTAL_RATES.asOf=j.asOf||PORTAL_RATES.asOf;
@@ -1363,7 +1363,7 @@ fetch('rates.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
   if(mode==='site') computeSite(); else recompute();
 }).catch(()=>{});
 
-// ===== PWA â€” í™ˆ í™”ë©´ ì„¤ì¹˜Â·ì˜¤í”„ë¼ì¸ (ë°°í¬ë³¸ì—ì„œë§Œ; file://ì€ ì¡°ìš©ížˆ ìŠ¤í‚µ) =====
+// ===== PWA — 홈 화면 설치·오프라인 (배포본에서만; file://은 조용히 스킵) =====
 if('serviceWorker' in navigator && location.protocol==='https:'){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
