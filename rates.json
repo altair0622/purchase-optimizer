@@ -1,5 +1,5 @@
 {
- "asOf": "2026-08-04",
+ "asOf": "2026-08-05",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -213,7 +213,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 6,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -221,7 +221,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 8,
+    "pct": 10,
     "listed": true
    }
   },
