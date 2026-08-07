@@ -173,7 +173,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.22</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.23</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -370,7 +370,7 @@
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.22 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
+    v0.23 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
     📱 폰에서는 브라우저 메뉴 → <b>"홈 화면에 추가"</b>하면 앱처럼 설치돼 (오프라인에서도 열림).
   </p>
 </div>
@@ -471,7 +471,7 @@ const QUARTERLY = (()=>{ const d=new Date(); const q=d.getFullYear()+'Q'+(Math.f
   return QUARTERLY_SETS.find(s=>s.q===q) || null; })();
 const Q_CAP = 1500; // Chase Freedom Flex · Discover it 분기 5% 한도(합산 $1,500)
 
-// ===== 조건부 적립 규칙 (v0.22) =====
+// ===== 조건부 적립 규칙 (v0.23) =====
 // 카탈로그의 rates[]는 "최대 배수"라서 그대로 쓰면 실제로 못 받는 카드를 1위로 추천한다.
 // (예: Nike를 '온라인 쇼핑'으로 잡으면 Amazon Prime Visa가 5%로 1위가 됐다 — 실제론 1%)
 // 아래 cond가 그 최대치를 실제 조건으로 깎는다.
@@ -1090,7 +1090,7 @@ function buildAll(){
 }
 
 // ===== 계산 =====
-// 원칙 (v0.22):
+// 원칙 (v0.23):
 //  · 현금(캐시백·statement credit·포털)과 포인트는 성격이 다르다 → 절대 한 줄로 합치지 않는다.
 //    - 현금: 청구액에서 실제로 빠지거나 통장에 들어옴 → '실제 부담(netCash)'에 반영
 //    - 포인트: 청구액은 그대로. 나중에 잘 써야 가치가 나오는 추정치 → 별도 줄로만 표시
@@ -1346,7 +1346,11 @@ function computeSite(){
   const cashBack=(isCashCard?best.val:0)+best.offer+portalVal;  // 청구서를 실제로 줄이는 것
   const ptsVal=(isCashCard?0:best.val);                          // 포인트 추정가치
   const netCash=amt-cashBack, net=netCash-ptsVal;
-  const route = pBest>0 ? `<b>${pName}</b> 링크로 들어가서 ` : '';
+  // 포털이 0%여도 결론은 완결된 문장이어야 한다 — "왜 링크가 없는지"까지 말해준다.
+  // base가 없으면 0%는 "캐시백 없음"이 아니라 "아직 모름"이므로 확인을 권한다.
+  const route = pBest>0
+    ? `<b>${pName}</b> 링크로 들어가서 <b>${best.c.name}</b> 로 결제`
+    : `<b>${best.c.name}</b> 로 결제 <span style="font-weight:600;opacity:.85">— ${base?'이 사이트는 경유할 포털이 없어(세 곳 다 0%)':'포털 캐시백은 아직 확인 전이야'}</span>`;
   let html=`<div class="receipt">`+
     `<div class="line"><span class="lab">결제 예상액</span><span>${money(amt)}</span></div>`+
     (best.offer>0?`<div class="line"><span class="lab">🎁 <b>${best.c.short}</b> 오퍼 <span class="tag">statement credit — 청구서에서 차감</span></span><span class="minus">−${money(best.offer)}</span></div>`:``)+
@@ -1359,7 +1363,7 @@ function computeSite(){
     `</div>`+
     (pBest>0?`<p class="cashnote">* 포털 캐시백은 <b>예정</b> — 보통 30~90일 뒤 지급되고, 링크 경유가 안 잡히거나 반품하면 못 받아.</p>`:``)+
     // 마지막에 "그래서 뭘 하면 되는지" 한 문장으로
-    `<div class="savebadge">✅ ${route}<b>${best.c.name}</b> 로 결제`+
+    `<div class="savebadge">✅ ${route}`+
       `<small>${money(amt)} 쓰면 현금 ${money(cashBack)} 돌아옴${ptsVal>0?` · 포인트 ${money(ptsVal)} 상당 별도(추정)`:''}</small></div>`+
     (flipped?`<p class="cashnote" style="color:var(--warn)">🎁 <b>오퍼 덕분에 순위가 바뀌었어</b> — 적립률만 보면 ${(rows.find(r=>r.c.id===effBestId)||{c:{short:'?'}}).c.short}가 1위인데, ${money(best.offer)} 오퍼가 그 차이를 넘었어.</p>`:``)+
     (best.note?`<p class="cashnote" style="color:var(--warn)">📌 <b>이 카드 적립 조건 확인:</b> ${best.note}</p>`:'');
