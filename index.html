@@ -93,7 +93,8 @@
     list-style:none;display:inline-block;border:1px solid #cfe5d8;border-radius:999px;background:#fff}
   details summary:hover{background:var(--accent-soft)}
   details summary::-webkit-details-marker{display:none}
-  details summary::before{content:"▸";display:inline-block;margin-right:5px;font-size:10px;transition:transform .15s}
+  details summary::before{content:"▶";display:inline-block;margin-right:6px;font-size:14px;line-height:1;
+    transform-origin:45% 50%;transition:transform .15s}
   details[open] summary::before{transform:rotate(90deg)}
   .scomp{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;
     padding-top:10px;border-top:1px dashed var(--line);flex-wrap:wrap}
@@ -145,7 +146,8 @@
   .receipt .total .tag{font-size:11px;font-weight:600;color:var(--accent);opacity:.8}
   /* 각주 — 포털 지급 조건 등 '알아야 하지만 결론을 가리면 안 되는' 것 */
   .receipt .fnote{font-size:11px;color:var(--muted);line-height:1.55;padding:8px 0 0;border-bottom:none}
-  .savebadge{display:inline-block;background:var(--accent);color:#fff;font-weight:800;font-size:14px;border-radius:9px;padding:7px 14px;margin-top:10px}
+  .savebadge{display:inline-block;background:var(--accent);color:#fff;font-weight:800;font-size:14px;border-radius:9px;padding:8px 14px;margin-top:10px}
+  .savebadge small{display:block;font-weight:600;font-size:11px;opacity:.9;margin-top:2px}
   /* 정직한 결론 표시 — 기준선/증분/조건부 */
   .receipt .subtotal{border-bottom:none;border-top:2px solid var(--line);margin-top:4px;padding-top:10px}
   .receipt .subtotal>span{font-size:19px;font-weight:800;color:var(--ink)}
@@ -171,7 +173,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.21</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.22</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -294,6 +296,10 @@
         </select>
       </div>
     </div>
+    <div style="margin-top:10px;max-width:260px">
+      <label>대충 얼마 쓸 것 같아? ($) <span class="muted" style="font-weight:600">— 영수증·오퍼 비교용</span></label>
+      <input id="siteAmt" type="number" min="0" step="10" value="100">
+    </div>
 
     <div id="siteRec" style="margin-top:14px"></div>
 
@@ -316,16 +322,13 @@
     </div>
 
     <details id="siteOfferDetails" style="margin-top:14px">
-      <summary id="siteOfferSum">🎁 이 사이트에 오퍼 있는 카드 체크</summary>
-      <p class="muted" style="margin:4px 0 6px">오퍼 확인:
+      <summary id="siteOfferSum">🎁 이 사이트에 오퍼 있는 카드</summary>
+      <p class="muted" style="margin:4px 0 6px">오퍼가 있는 카드 칸에 <b>할인액($)</b>을 넣어줘 — 위 결제액 기준으로 순위에 반영돼. 확인:
         <a href="https://global.americanexpress.com/offers/eligible" target="_blank">Amex 허브</a> ·
         <a href="https://secure.chase.com/web/auth/dashboard#/dashboard/offers/hub" target="_blank">Chase 허브</a>
-        (읽기 전용 — 활성화 "적립"은 살 때 직접). 이 사이트에 오퍼 있는 카드만 체크.</p>
+        <span class="tag">(읽기 전용 — 활성화 "적립"은 살 때 직접)</span></p>
       <div id="siteOfferChecks"></div>
     </details>
-    <div class="note" id="siteOfferNote" style="margin-top:12px">
-      <b>오퍼는?</b> 금액이 있어야 정확히 계산돼 — 큰 구매면 <b>🛒 상품 모드</b>로. 여기선 ⭐ 표시만.
-    </div>
   </div>
 
   <!-- 3. 판매처 시나리오 비교 (핵심) -->
@@ -367,7 +370,7 @@
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.21 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
+    v0.22 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
     📱 폰에서는 브라우저 메뉴 → <b>"홈 화면에 추가"</b>하면 앱처럼 설치돼 (오프라인에서도 열림).
   </p>
 </div>
@@ -468,7 +471,7 @@ const QUARTERLY = (()=>{ const d=new Date(); const q=d.getFullYear()+'Q'+(Math.f
   return QUARTERLY_SETS.find(s=>s.q===q) || null; })();
 const Q_CAP = 1500; // Chase Freedom Flex · Discover it 분기 5% 한도(합산 $1,500)
 
-// ===== 조건부 적립 규칙 (v0.21) =====
+// ===== 조건부 적립 규칙 (v0.22) =====
 // 카탈로그의 rates[]는 "최대 배수"라서 그대로 쓰면 실제로 못 받는 카드를 1위로 추천한다.
 // (예: Nike를 '온라인 쇼핑'으로 잡으면 Amazon Prime Visa가 5%로 1위가 됐다 — 실제론 1%)
 // 아래 cond가 그 최대치를 실제 조건으로 깎는다.
@@ -1087,7 +1090,7 @@ function buildAll(){
 }
 
 // ===== 계산 =====
-// 원칙 (v0.21):
+// 원칙 (v0.22):
 //  · 현금(캐시백·statement credit·포털)과 포인트는 성격이 다르다 → 절대 한 줄로 합치지 않는다.
 //    - 현금: 청구액에서 실제로 빠지거나 통장에 들어옴 → '실제 부담(netCash)'에 반영
 //    - 포인트: 청구액은 그대로. 나중에 잘 써야 가치가 나오는 추정치 → 별도 줄로만 표시
@@ -1267,24 +1270,26 @@ function resetScPortal(sc, el){
 function buildSiteOffers(){
   const box=document.getElementById('siteOfferChecks'); if(!box) return;
   box.innerHTML = CARDS.map(c=>
-    `<label class="checkrow${siteOffers[c.id]?' hasoffer':''}" data-offrow="${c.id}" style="cursor:pointer">`+
-    `<input type="checkbox" style="width:auto" data-soff="${c.id}" ${siteOffers[c.id]?'checked':''}>`+
-    `<span class="name">${c.short} <small>${cardMeta(c)}</small></span></label>`
+    `<div class="checkrow${siteOff(c.id)>0?' hasoffer':''}" data-offrow="${c.id}">`+
+    `<div class="name">${c.short} <small>${cardMeta(c)}</small></div>`+
+    `<input type="number" min="0" step="1" value="${siteOff(c.id)}" data-soff="${c.id}"> <span class="muted">$</span></div>`
   ).join("") || '<p class="muted">지갑에 카드가 없어.</p>';
   box.querySelectorAll('input[data-soff]').forEach(inp=>{
-    inp.addEventListener('change',e=>{ siteOffers[e.target.dataset.soff]=e.target.checked;
+    inp.addEventListener('input',e=>{ siteOffers[e.target.dataset.soff]=+e.target.value||0;
       const row=box.querySelector(`.checkrow[data-offrow="${e.target.dataset.soff}"]`);
-      if(row) row.classList.toggle('hasoffer', e.target.checked);
+      if(row) row.classList.toggle('hasoffer', (+e.target.value||0)>0);
       updateSiteOfferSum(); computeSite(); });
   });
   updateSiteOfferSum();
 }
+// 예전 버전은 siteOffers가 true/false(있다/없다)였다 → 숫자로 통일. 불리언 true는 금액 미상이므로 0.
+function siteOff(id){ const v=siteOffers[id]; return (typeof v==='number' && v>0) ? v : 0; }
 function updateSiteOfferSum(){
   const el=document.getElementById('siteOfferSum'); if(!el) return;
-  const on=CARDS.filter(c=>siteOffers[c.id]);
+  const on=CARDS.map(c=>({c,v:siteOff(c.id)})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
   el.innerHTML = on.length
-    ? `🎁 오퍼 <span class="offsum">${on.length}장 · ${on.map(c=>c.short).join(', ')}</span>`
-    : `🎁 이 사이트에 오퍼 있는 카드 체크 <span class="muted" style="font-weight:600">— 있으면 ⭐</span>`;
+    ? `🎁 오퍼 ${on.length}개 <span class="offsum">최대 ${money(on[0].v)} · ${on[0].c.short}</span>`
+    : `🎁 이 사이트에 오퍼 있는 카드 <span class="muted" style="font-weight:600">— 있으면 금액 입력</span>`;
 }
 function setMode(m){
   mode = (m==='site') ? 'site' : 'product';
@@ -1324,46 +1329,50 @@ function computeSite(){
   const rec=document.getElementById('siteRec');
   if(!CARDS.length){ rec.innerHTML='<p class="muted">위 👛 내 카드에서 카드를 골라줘.</p>'; }
   else {
-  // 사이트 모드는 가격이 없으니 한도(cap)는 판정 불가 — 가맹처·포털 조건만 반영하고 한도는 안내로
-  const sctx={storeKey:fz?fz.key:null, price:0};
-  const rows=CARDS.map(c=>{ const {mult,type,note}=rateInfo(c,cat,sctx); const cv=cppFor(type); return {c,type,mult,cv,note,eff:mult*cv}; })
-    .sort((a,b)=> b.eff-a.eff || (a.type==='UR'?-1:1));
+  // 사이트 모드는 한도(cap)를 금액으로 판정하기 애매해 가맹처·포털 조건만 반영한다
+  const amt=Math.max(0,+v('siteAmt')||0);
+  const sctx={storeKey:fz?fz.key:null, price:amt};
+  // 오퍼($)가 적립률 차이를 넘으면 순위가 바뀐다 → 총 돌려받는 금액으로 정렬
+  const rows=CARDS.map(c=>{ const {mult,type,note}=rateInfo(c,cat,sctx); const cv=cppFor(type);
+    const eff=mult*cv, val=amt*eff/100, offer=siteOff(c.id);
+    return {c,type,mult,cv,note,eff,val,offer,tot:val+offer}; });
+  const effBestId=rows.slice().sort((a,b)=> b.eff-a.eff || (a.type==='UR'?-1:1))[0].c.id;
+  rows.sort((a,b)=> b.tot-a.tot || b.eff-a.eff);
   const best=rows[0];
-  const bestOff = !!siteOffers[best.c.id];
-  const flagged = rows.filter(r=>siteOffers[r.c.id]);
+  const flagged=rows.filter(r=>r.offer>0);
+  const flipped = best.offer>0 && best.c.id!==effBestId;
   const isCashCard=(best.type==='cash');
-  const cashPct=(isCashCard?best.eff:0)+pBest;   // 실제 현금(포털은 조건부·지연)
-  const ptsPct =(isCashCard?0:best.eff);         // 포인트 추정가치
-  const tot=best.eff+pBest;
-  let html=`<div class="bigrec"><div class="lab">이 사이트 최적 조합</div>`+
-    `<div class="big">${best.c.name}</div>`+
-    `<div class="tag">${best.c.hint}</div>`+
-    (bestOff?`<div style="margin-top:4px"><span class="pill flip">⭐ 이 카드에 오퍼도 있음</span></div>`:``)+
-    `</div>`+
-    `<div class="receipt">`+
-    `<div class="line"><span class="lab">🔗 ${pBest>0?`<b>${pName}</b> 링크로 입장`:`포털 캐시백 ${(rp||tp||cp)?'0%':'미확인'}`} <span class="tag">RK ${rp}% · TCB ${tp}% · CapOne ${cp}%${pBest>0?` → ${pName} 승`:''}</span></span><span class="minus">+${pBest}%${pBest>0?'<span class="pending">&nbsp;*</span>':''}</span></div>`+
-    (isCashCard?`<div class="line"><span class="lab">💳 <b>${best.c.short}</b> 로 결제 <span class="tag">${CATNAME[cat]} ${fmtMult(best.mult)}% 캐시백</span></span><span class="minus">+${best.eff.toFixed(1)}%</span></div>`:``)+
-    `<div class="line ${ptsPct>0?'subtotal':'total'}"><span>현금으로 돌아옴 <span class="tag">확정</span></span><span>${cashPct.toFixed(1)}%</span></div>`+
-    (ptsPct>0?`<div class="line ptsline"><span class="lab">✈️ ${fmtMult(best.mult)}배 <span class="pill ${TYPE[best.type].cls}">${TYPE[best.type].label}</span> <span class="tag">청구액은 안 줄어듦 — ${best.cv}¢ 가정한 추정치</span></span><span class="minus">(${ptsPct.toFixed(1)}%)</span></div>`:``)+
-    (ptsPct>0?`<div class="line total"><span>포인트까지 반영 <span class="tag">최종</span></span><span>${tot.toFixed(1)}%</span></div>`:``)+
+  const portalVal=amt*pBest/100;
+  const cashBack=(isCashCard?best.val:0)+best.offer+portalVal;  // 청구서를 실제로 줄이는 것
+  const ptsVal=(isCashCard?0:best.val);                          // 포인트 추정가치
+  const netCash=amt-cashBack, net=netCash-ptsVal;
+  const route = pBest>0 ? `<b>${pName}</b> 링크로 들어가서 ` : '';
+  let html=`<div class="receipt">`+
+    `<div class="line"><span class="lab">결제 예상액</span><span>${money(amt)}</span></div>`+
+    (best.offer>0?`<div class="line"><span class="lab">🎁 <b>${best.c.short}</b> 오퍼 <span class="tag">statement credit — 청구서에서 차감</span></span><span class="minus">−${money(best.offer)}</span></div>`:``)+
+    (pBest>0?`<div class="line"><span class="lab">🔗 <b>${pName}</b> 링크로 입장 <span class="tag">캐시백 ${pBest}% · RK ${rp}% · TCB ${tp}% · CapOne ${cp}%</span></span><span class="minus">−${money(portalVal)}<span class="pending">&nbsp;*</span></span></div>`:
+      `<div class="line"><span class="lab">🔗 포털 캐시백 <span class="tag">${(rp||tp||cp)?'세 곳 모두 0%':'아직 미확인'}</span></span><span>—</span></div>`)+
+    (isCashCard?`<div class="line"><span class="lab">💳 <b>${best.c.short}</b> 로 결제 <span class="tag">${CATNAME[cat]} ${fmtMult(best.mult)}% 캐시백</span></span><span class="minus">−${money(best.val)}</span></div>`:``)+
+    `<div class="line ${ptsVal>0?'subtotal':'total'}"><span>실제 부담 <span class="tag">현금 기준</span></span><span>${money(netCash)}</span></div>`+
+    (ptsVal>0?`<div class="line ptsline"><span class="lab">✈️ <b>${best.c.short}</b> ${fmtMult(best.mult)}배 <span class="pill ${TYPE[best.type].cls}">${TYPE[best.type].label}</span> <span class="tag">청구액은 안 줄어듦 — ${best.cv}¢ 가정한 추정치</span></span><span class="minus">(${money(ptsVal)})</span></div>`:``)+
+    (ptsVal>0?`<div class="line total"><span>포인트까지 반영 <span class="tag">최종</span></span><span>${money(net)}</span></div>`:``)+
     `</div>`+
     (pBest>0?`<p class="cashnote">* 포털 캐시백은 <b>예정</b> — 보통 30~90일 뒤 지급되고, 링크 경유가 안 잡히거나 반품하면 못 받아.</p>`:``)+
-    `<div class="badgerow"><span class="edgebadge">💰 $100당 현금 ${money(cashPct)}${ptsPct>0?`<small>+ 포인트 ${money(ptsPct)} 상당(추정 · 현금 아님)</small>`:'<small>실제 현금 기준</small>'}</span></div>`+
+    // 마지막에 "그래서 뭘 하면 되는지" 한 문장으로
+    `<div class="savebadge">✅ ${route}<b>${best.c.name}</b> 로 결제`+
+      `<small>${money(amt)} 쓰면 현금 ${money(cashBack)} 돌아옴${ptsVal>0?` · 포인트 ${money(ptsVal)} 상당 별도(추정)`:''}</small></div>`+
+    (flipped?`<p class="cashnote" style="color:var(--warn)">🎁 <b>오퍼 덕분에 순위가 바뀌었어</b> — 적립률만 보면 ${(rows.find(r=>r.c.id===effBestId)||{c:{short:'?'}}).c.short}가 1위인데, ${money(best.offer)} 오퍼가 그 차이를 넘었어.</p>`:``)+
     (best.note?`<p class="cashnote" style="color:var(--warn)">📌 <b>이 카드 적립 조건 확인:</b> ${best.note}</p>`:'');
-  html+=`<div style="overflow-x:auto"><table><thead><tr><th>카드</th><th>이 카테고리</th><th class="r">종류</th><th class="r">실질 적립율</th></tr></thead><tbody>`;
+  html+=`<div style="overflow-x:auto"><table><thead><tr><th>카드</th><th>적립</th><th class="r">오퍼</th><th class="r">총 돌려받음</th></tr></thead><tbody>`;
   rows.forEach((r,i)=>{
-    html+=`<tr class="${i===0?'best':''}"><td><b>${r.c.short}</b> ${i===0?'<span class="pill win">1위</span>':''}${siteOffers[r.c.id]?'<span class="pill flip">⭐오퍼</span>':''}<div class="tag">${r.c.hint||''}</div>${r.note?`<div class="tag" style="color:var(--warn)">📌 ${r.note}</div>`:''}</td>`+
-      `<td>${fmtMult(r.mult)}${r.type==='cash'?'%':'배'}</td><td class="r"><span class="pill ${TYPE[r.type].cls}">${TYPE[r.type].label}</span></td>`+
-      `<td class="r"><b>${r.eff.toFixed(1)}%</b></td></tr>`;
+    html+=`<tr class="${i===0?'best':''}"><td><b>${r.c.short}</b> ${i===0?'<span class="pill win">1위</span>':''}${i===0&&flipped?'<span class="pill flip">오퍼로 역전</span>':''}<div class="tag">${r.c.hint||''}</div>${r.note?`<div class="tag" style="color:var(--warn)">📌 ${r.note}</div>`:''}</td>`+
+      `<td>${money(r.val)}<div class="tag">${fmtMult(r.mult)}${r.type==='cash'?'% 현금':'배 '+TYPE[r.type].label} · ${r.eff.toFixed(1)}%</div></td>`+
+      `<td class="r">${r.offer>0?('+'+money(r.offer)):'<span class="tag">—</span>'}</td>`+
+      `<td class="r"><b>${money(r.tot)}</b></td></tr>`;
   });
   html+=`</tbody></table></div>`;
-  if(flagged.length){
-    if(bestOff && flagged.length===1){
-      html+=`<p class="muted" style="margin:8px 0 0"><b style="color:var(--accent)">✅ 최적 카드에 오퍼까지</b> — <b>${best.c.short}</b> 하나로 적립률 1위 + 오퍼. 잘 골랐어.</p>`;
-    } else {
-      const names=flagged.map(r=>r.c.short).join(', ');
-      html+=`<p class="muted" style="margin:8px 0 0"><b style="color:var(--warn)">⭐ 오퍼 있는 카드: ${names}</b> — 금액이 크면 오퍼($)가 적립률 차이를 넘어 <b>${best.c.short}(1위)를 뒤집을 수</b> 있어. 정확한 비교는 🛒 <b>상품 모드</b>(가격 넣고 오퍼 $ 입력)로.</p>`;
-    }
+  if(!flagged.length){
+    html+=`<p class="muted" style="margin:8px 0 0">🎁 아직 오퍼를 안 넣었어 — 아래에서 Amex/Chase 허브를 확인하고 금액을 넣으면 순위에 바로 반영돼.</p>`;
   }
   rec.innerHTML=html;
   }
@@ -1478,7 +1487,7 @@ const LSKEY="purchOpt_v06";
 function saveState(){ try{ localStorage.setItem(LSKEY, JSON.stringify({
   mode, myWallet, cppValues, pname:v('pname'), cat:v('cat'), taxPct:v('taxPct'),
   customCards: customCards.map(c=>({id:c.id,name:c.name,cur:c.cur,mults:c.mults})),
-  siteStore:v('siteStore'), siteCat:v('siteCat'), capPct:v('capPct'), rkPct:v('rkPct'), tcbPct:v('tcbPct'), siteOffers,
+  siteStore:v('siteStore'), siteCat:v('siteCat'), siteAmt:v('siteAmt'), capPct:v('capPct'), rkPct:v('rkPct'), tcbPct:v('tcbPct'), siteOffers,
   scenarios: scenarios.map(s=>({store:s.store,domain:s.domain,price:s.price,ship:s.ship,coupon:s.coupon,portalPct:s.portalPct,portalName:s.portalName,offers:s.offers,lastChecked:s.lastChecked}))
 })); }catch(e){} }
 function loadState(){ try{ const s=JSON.parse(localStorage.getItem(LSKEY)); if(!s) return false;
@@ -1493,7 +1502,10 @@ function loadState(){ try{ const s=JSON.parse(localStorage.getItem(LSKEY)); if(!
   if(s.capPct!=null) document.getElementById('capPct').value=s.capPct;
   if(s.rkPct!=null) document.getElementById('rkPct').value=s.rkPct;
   if(s.tcbPct!=null) document.getElementById('tcbPct').value=s.tcbPct;
-  if(s.siteOffers && typeof s.siteOffers==='object') siteOffers=s.siteOffers;
+  if(s.siteAmt!=null) document.getElementById('siteAmt').value=s.siteAmt;
+  // 구버전은 siteOffers가 true/false였다 → 숫자로 정규화(true는 금액 미상이라 0)
+  if(s.siteOffers && typeof s.siteOffers==='object'){ siteOffers={};
+    Object.keys(s.siteOffers).forEach(k=>{ const x=s.siteOffers[k]; siteOffers[k]=(typeof x==='number')?x:0; }); }
   if(s.mode==='site') mode='site';
   if(Array.isArray(s.scenarios) && s.scenarios.length) scenarios=s.scenarios.map(x=>blankScenario(x));
   return true;
@@ -1533,7 +1545,10 @@ function prefillFromQuery(searchStr){
   if(q.has('cap')){ document.getElementById('capPct').value=+q.get('cap')||0; siteHit=true; }
   if(q.has('rk')){ document.getElementById('rkPct').value=+q.get('rk')||0; siteHit=true; }
   if(q.has('tcb')){ document.getElementById('tcbPct').value=+q.get('tcb')||0; siteHit=true; }
-  if(q.has('soff')){ siteOffers={}; q.get('soff').split(',').map(x=>x.trim()).filter(Boolean).forEach(id=>{ if(CARD_CATALOG.some(c=>c.id===id)) siteOffers[id]=true; }); siteHit=true; }
+  if(q.has('samt')){ document.getElementById('siteAmt').value=+q.get('samt')||0; siteHit=true; }
+  // soff=freedomu:25,hilton:50 (구형 soff=freedomu,hilton 도 허용 — 금액 0으로)
+  if(q.has('soff')){ siteOffers={}; q.get('soff').split(',').map(x=>x.trim()).filter(Boolean).forEach(tok=>{
+    const [id,amt]=tok.split(':'); if(CARD_CATALOG.some(c=>c.id===id)) siteOffers[id]=+amt||0; }); siteHit=true; }
   if(q.get('mode')==='site' || siteHit){ mode='site'; }
   return built.length>0 || siteHit || q.get('mode')==='site' || q.has('wallet');
 }
@@ -1600,7 +1615,7 @@ function init(){
     computeSite();
   });
   document.getElementById('siteCat').addEventListener('change',computeSite);
-  ['capPct','rkPct','tcbPct'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input',computeSite); });
+  ['capPct','rkPct','tcbPct','siteAmt'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input',computeSite); });
 
   recompute();
   setMode(mode);
