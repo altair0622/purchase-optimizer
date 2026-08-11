@@ -173,7 +173,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.25</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.26</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -239,7 +239,7 @@ https://www.target.com/p/...
   <!-- 1. 상품 (공통) -->
   <div class="card product-only">
     <h2><span class="num">1</span> 무엇을 사려고?</h2>
-    <!-- 판매세 입력은 뺐다(v0.25) — 어느 판매처든 비슷하게 붙어 순위를 거의 안 바꾸는데
+    <!-- 판매세 입력은 뺐다(v0.26) — 어느 판매처든 비슷하게 붙어 순위를 거의 안 바꾸는데
          입력 부담만 컸다. 계산은 taxPct=0으로 돌고, 한계는 "안 들어간 것"에 적어둔다. -->
     <input type="hidden" id="taxPct" value="0">
     <div class="grid g2">
@@ -367,7 +367,7 @@ https://www.target.com/p/...
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.25 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
+    v0.26 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
     📱 폰에서는 브라우저 메뉴 → <b>"홈 화면에 추가"</b>하면 앱처럼 설치돼 (오프라인에서도 열림).
   </p>
 </div>
@@ -468,7 +468,7 @@ const QUARTERLY = (()=>{ const d=new Date(); const q=d.getFullYear()+'Q'+(Math.f
   return QUARTERLY_SETS.find(s=>s.q===q) || null; })();
 const Q_CAP = 1500; // Chase Freedom Flex · Discover it 분기 5% 한도(합산 $1,500)
 
-// ===== 조건부 적립 규칙 (v0.25) =====
+// ===== 조건부 적립 규칙 (v0.26) =====
 // 카탈로그의 rates[]는 "최대 배수"라서 그대로 쓰면 실제로 못 받는 카드를 1위로 추천한다.
 // (예: Nike를 '온라인 쇼핑'으로 잡으면 Amazon Prime Visa가 5%로 1위가 됐다 — 실제론 1%)
 // 아래 cond가 그 최대치를 실제 조건으로 깎는다.
@@ -785,7 +785,7 @@ function parsePriceFromHtml(html){
 // 1순위 = 내 Cloudflare Worker (site/worker/). 배포 후 URL을 여기 넣으면 켜진다.
 // 비워두면 아래 공개 프록시 체인으로만 동작한다.
 //   배포법: cd site/worker && npx wrangler login && npx wrangler deploy
-const PRICE_API = "";
+const PRICE_API = "https://fancy-voice-cabf.altair0622.workers.dev";
 
 // 폴백 = 무료 공개 프록시 (상품 URL만 전달됨)
 // ⚠️ 순서 중요(2026-08-11 점검): corsproxy.io는 403, allorigins는 무응답이라
@@ -826,13 +826,27 @@ async function tryFetchPrice(url, sc, statusEl){
   const clean=()=>{ if(statusEl){ const s=statusEl.querySelector('.fetchp'); if(s) s.remove(); } };
   const p = r && r.price;
   if(p>0 && findScenario(sc.id)){
+    clean();
+    // 본문 $텍스트에서 주운 값은 실제로 틀린 적이 있다 — Amazon $249짜리를 $35.99로 집었다.
+    // 자동으로 넣으면 잘못된 값이 조용히 판매처 순위를 뒤집으므로, 확인을 받고 넣는다.
+    if(r.confidence==='low'){
+      if(statusEl){
+        const bid='acc-'+sc.id;
+        statusEl.innerHTML+=` <b style="color:var(--warn)">💲 ${money(p)} 같은데 확실하지 않아</b> `+
+          `<button type="button" class="mini" id="${bid}">이 값 넣기</button> <span class="tag">아니면 직접 입력</span>`;
+        const b=document.getElementById(bid);
+        if(b) b.addEventListener('click',()=>{
+          const s2=findScenario(sc.id); if(!s2) return;
+          s2.price=p; const e2=document.getElementById('scard-'+sc.id);
+          if(e2) e2.querySelector('.s-price').value=p;
+          b.outerHTML='<b style="color:var(--accent)">넣었어</b>'; recompute();
+        });
+      }
+      return 0;   // 아직 반영 전이라 '성공'으로 세지 않는다
+    }
     sc.price=p; const el=document.getElementById('scard-'+sc.id);
     if(el) el.querySelector('.s-price').value=p;
-    clean();
-    // 본문 텍스트에서 주운 값은 틀릴 수 있다(할부금·다른 상품 가격을 집기도 함) → 다르게 말한다
-    if(statusEl) statusEl.innerHTML += (r.confidence==='low')
-      ? ` <b style="color:var(--warn)">💲 ${money(p)}? — 추측한 값이라 <u>꼭 확인</u>해줘</b>`
-      : ` <b style="color:var(--accent)">💲 ${money(p)} 자동 입력됨 — 맞는지 확인!</b>`;
+    if(statusEl) statusEl.innerHTML+=` <b style="color:var(--accent)">💲 ${money(p)} 자동 입력됨 — 맞는지 확인!</b>`;
     recompute();
     return p;
   } else {
@@ -1147,7 +1161,7 @@ function buildAll(){
 }
 
 // ===== 계산 =====
-// 원칙 (v0.25):
+// 원칙 (v0.26):
 //  · 현금(캐시백·statement credit·포털)과 포인트는 성격이 다르다 → 절대 한 줄로 합치지 않는다.
 //    - 현금: 청구액에서 실제로 빠지거나 통장에 들어옴 → '실제 부담(netCash)'에 반영
 //    - 포인트: 청구액은 그대로. 나중에 잘 써야 가치가 나오는 추정치 → 별도 줄로만 표시
