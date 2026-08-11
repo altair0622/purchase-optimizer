@@ -43,9 +43,23 @@ const ctx = { waitUntil: p => { if (p && p.catch) p.catch(() => {}); } };
 // ===== fetch 스텁 — 나간 요청을 기록하고 적대적 응답을 준다 =====
 let fetchLog = [];
 let responder = () => new Response('<html></html>', { headers: { 'content-type': 'text/html' } });
+// 실제 런타임처럼 redirect 옵션을 존중한다. 'manual' 이 아니면 **스텁이 알아서 따라간다**.
+// 이게 없으면 워커가 redirect:'follow' 로 되돌아가도(=런타임이 몰래 따라가서 호스트 검사를
+// 우회하는 상황) 스텁이 302 를 워커에 그대로 넘겨줘 워커의 홉 검사가 계속 작동하는 것처럼
+// 보인다 — 음성 대조군에서 실제로 안 잡혔다.
+const STUB_MAX_HOPS = 10;
 globalThis.fetch = async (url, opt) => {
-  fetchLog.push(String(url));
-  return responder(String(url), opt);
+  opt = opt || {};
+  let cur = String(url);
+  for (let i = 0; i < STUB_MAX_HOPS; i++) {
+    fetchLog.push(cur);
+    const res = await responder(cur, opt);
+    const loc = res.headers && res.headers.get ? res.headers.get('Location') : null;
+    const isRedir = res.status >= 300 && res.status < 400 && loc;
+    if (!isRedir || opt.redirect === 'manual' || opt.redirect === 'error') return res;
+    cur = new URL(loc, cur).href;
+  }
+  throw new Error('스텁 리다이렉트 상한 초과');
 };
 
 const worker = (await import(pathToFileURL(copy).href)).default;
@@ -79,10 +93,22 @@ const SSRF_HOSTS = [
   ['127.0.0.1.', '127.0.0.1 (끝점)'],
   ['127.1', '127.0.0.1 (축약)'],
   ['[::ffff:127.0.0.1]', '127.0.0.1 (IPv4 매핑)'],
+  ['[::ffff:7f00:1]', '127.0.0.1 (IPv4 매핑·정규형)'],
+  ['[64:ff9b::127.0.0.1]', '127.0.0.1 (NAT64)'],
+  ['[::127.0.0.1]', '127.0.0.1 (IPv4 호환)'],
   ['[0:0:0:0:0:0:0:1]', '루프백 IPv6 (전체표기)'],
+  ['[fd00::1]', '사설 IPv6 (ULA)'],
+  ['[fe80::1]', '링크로컬 IPv6'],
+  ['127.000.000.001', '127.0.0.1 (0 채움)'],
   ['LOCALHOST', '루프백 (대문자)'],
-  ['127.0.0.1:8080', '루프박 + 포트'],
+  ['foo.localhost', '루프백 (서브도메인)'],
+  ['127.0.0.1:8080', '루프백 + 포트'],
   ['169.254.169.254.nip.io', '메타데이터 (DNS 와일드카드)'],
+  ['127.0.0.1.nip.io', '루프백 (DNS 와일드카드)'],
+  // 공인 IP 리터럴 — v0.26 정책은 "IP 리터럴은 형태 불문 거부"이므로 이것도 나가면 안 된다.
+  // (상품 URL이 raw IP인 경우는 없다. 여기서 실패하면 정책이 느슨해진 것)
+  ['8.8.8.8', '공인 IP 리터럴'],
+  ['1.1.1.1', '공인 IP 리터럴'],
 ];
 // 이 호스트로 나가면 안 된다고 판단하는 기준 (스텁이 받은 URL 기준)
 function isPrivateTarget(u) {
@@ -144,9 +170,15 @@ const pick = a => a[Math.floor(rnd() * a.length)];
 
 function add(why, detail) { fails.push({ why, ...detail }); }
 
-// ===== 1) SSRF — 차단 대상 호스트가 fetch 로 새는지 =====
-// URL 파서가 호스트를 어떻게 정규화하는지까지 같이 기록한다.
-// (예: http://2130706433/ 은 WHATWG URL 파서가 127.0.0.1 로 바꿔주므로 워커의 점4자리 검사에 걸린다)
+// ===== 1) SSRF — 차단 대상으로 외부 요청이 한 번이라도 나가면 실패 =====
+// 합격선은 "나간 곳이 사설인가"가 아니라 **egress === 0**(아예 안 나감)이다.
+// 처음엔 나간 URL을 isPrivateTarget()으로 다시 판정해서 셌는데, 그러면 정규화 뒤
+// 판정기가 못 알아보는 형태가 '차단'으로 잘못 집계된다(`[::ffff:127.0.0.1]` →
+// `[::ffff:7f00:1]` 이 그렇게 통과했다). SSRF_HOSTS 는 전부 '가면 안 되는 곳'이므로
+// 요청이 나갔다는 사실 자체가 실패다. isPrivateTarget 은 보고용 참고값으로만 남긴다.
+//
+// URL 파서가 호스트를 어떻게 정규화하는지도 같이 기록한다.
+// (예: http://2130706433/ 은 WHATWG URL 파서가 127.0.0.1 로 바꿔주므로 점4자리 검사에 걸린다)
 const ssrfTable = [];
 for (const [host, what] of SSRF_HOSTS) {
   for (const scheme of ['http', 'https']) {
@@ -160,25 +192,56 @@ for (const [host, what] of SSRF_HOSTS) {
     } catch (e) { add('예외 발생', { host, what, msg: e.message }); continue; }
     stats.n++;
     let norm = '?'; try { norm = new URL(target).hostname; } catch {}
-    const leaked = fetchLog.filter(isPrivateTarget);
     const wentOut = fetchLog.length > 0;
-    if (scheme === 'http') ssrfTable.push({ 입력: host, 정규화: norm, 요청나감: wentOut, 판정: leaked.length ? '유출' : (wentOut ? '나갔지만 사설아님' : '차단') });
-    if (leaked.length) add('SSRF — 내부 주소로 요청이 나갔다', { host, 정규화: norm, what, 나간요청: leaked[0] });
-    else stats.blocked++;
+    if (scheme === 'http') ssrfTable.push({ 입력: host, 정규화: norm, 판정: wentOut ? '유출' : '차단' });
+    if (wentOut) {
+      add('SSRF — 차단 대상으로 요청이 나갔다',
+          { host, 정규화: norm, what, 나간요청: fetchLog[0], 사설로도판정됨: isPrivateTarget(fetchLog[0]) });
+    } else stats.blocked++;
   }
 }
 
-// ===== 2) 리다이렉트로 우회되는지 (redirect:'follow') =====
-// 스텁은 실제 리다이렉트를 못 흉내내므로, 워커가 redirect 옵션을 어떻게 주는지로 판정한다
+// ===== 2) 리다이렉트 — 홉마다 호스트가 재검사되는가 =====
+// 예전에는 fetch 옵션이 redirect:'follow' 인지만 봤다. 워커가 홉을 직접 추적하는
+// 방식(redirect:'manual')으로 바뀐 뒤엔 그 검사가 아무것도 보증하지 않으므로,
+// 실제 302 를 먹여서 "가면 안 되는 곳은 안 가고, 가야 하는 곳은 간다"를 본다.
+const redirTable = [];
+// ⚠️ 케이스마다 최초 URL을 다르게 준다 — 워커는 성공 결과를 30분 캐시하므로,
+//    같은 URL로 돌리면 두 번째 케이스부터 캐시 히트로 fetch 가 아예 안 나가고
+//    "리다이렉트를 안 따라갔다"는 가짜 실패가 난다.
+let rcase = 0;
+for (const [label, next, shouldReach] of [
+  ['공개 → 메타데이터', 'http://169.254.169.254/meta', false],
+  ['공개 → 루프백', 'http://127.0.0.1/x', false],
+  ['공개 → 사설망', 'http://10.0.0.5/x', false],
+  ['공개 → 공개', 'https://www.pub.example.com/a', true],
+  ['http → https', 'https://pub.example.com/a', true],
+  ['상대경로 Location', '/b', true],
+]) {
+  fetchLog = [];
+  responder = () => fetchLog.length === 1
+    ? new Response('', { status: 302, headers: { Location: next } })
+    : new Response('<html>$42.00</html>', { headers: { 'content-type': 'text/html' } });
+  const start = 'http://pub.example.com/a?case=' + (++rcase);
+  const res = await worker.fetch(
+    new Request('https://w.dev/?url=' + encodeURIComponent(start)), {}, ctx);
+  const j = await res.json();
+  const reached = fetchLog.length >= 2;
+  redirTable.push({ 케이스: label, 홉수: fetchLog.length, 가격: j.price ?? null, error: (j.error || '').slice(0, 40) });
+  if (reached !== shouldReach) {
+    add(shouldReach ? '따라가야 하는 리다이렉트를 안 따라갔다' : '차단해야 하는 리다이렉트를 따라갔다',
+        { 케이스: label, 홉: fetchLog.slice(0, 3) });
+  }
+}
+// 무한 루프에서 멈추는가
 {
   fetchLog = [];
-  let opts = null;
-  responder = (u, o) => { opts = o; return new Response('<html>$1.00</html>', { headers: { 'content-type': 'text/html' } }); };
-  await worker.fetch(new Request('https://w.dev/?url=' + encodeURIComponent('https://public.example.com/p')), {}, ctx);
-  if (opts && opts.redirect === 'follow') {
-    add('리다이렉트 추적 — 공개 URL이 내부 주소로 리다이렉트하면 호스트 검사를 우회한다',
-        { redirect: opts.redirect, 설명: '차단은 최초 URL에만 적용됨' });
-  }
+  responder = () => new Response('', { status: 302, headers: { Location: 'http://loop.example.com/' + fetchLog.length } });
+  const t0 = performance.now();
+  await worker.fetch(new Request('https://w.dev/?url=' + encodeURIComponent('http://loop.example.com/0')), {}, ctx);
+  const dt = performance.now() - t0;
+  redirTable.push({ 케이스: '무한 루프', 홉수: fetchLog.length, 가격: null, error: dt.toFixed(0) + 'ms' });
+  if (fetchLog.length > 8) add('리다이렉트 홉 상한이 안 걸린다', { 홉수: fetchLog.length });
 }
 
 // ===== 3) 이상한 URL·스킴·메서드·오리진 랜덤 조합 =====
@@ -266,6 +329,7 @@ console.log(JSON.stringify({
   검사수: stats.n,
   실패: fails.length,
   SSRF검사: { 시도: SSRF_HOSTS.length * 2, 차단됨: stats.blocked, 표: ssrfTable },
+  리다이렉트: redirTable,
   통계: { 외부요청나감: stats.fetched, 가격찾음: stats.priceFound, 에러응답: stats.errors, 캐시히트: stats.cached,
           최장처리ms: +stats.slowest.toFixed(1), 최장케이스: stats.slowCase },
   파싱: parseResults,
