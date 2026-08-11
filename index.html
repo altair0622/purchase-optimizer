@@ -173,7 +173,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.24</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.25</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -239,7 +239,7 @@ https://www.target.com/p/...
   <!-- 1. 상품 (공통) -->
   <div class="card product-only">
     <h2><span class="num">1</span> 무엇을 사려고?</h2>
-    <!-- 판매세 입력은 뺐다(v0.24) — 어느 판매처든 비슷하게 붙어 순위를 거의 안 바꾸는데
+    <!-- 판매세 입력은 뺐다(v0.25) — 어느 판매처든 비슷하게 붙어 순위를 거의 안 바꾸는데
          입력 부담만 컸다. 계산은 taxPct=0으로 돌고, 한계는 "안 들어간 것"에 적어둔다. -->
     <input type="hidden" id="taxPct" value="0">
     <div class="grid g2">
@@ -367,7 +367,7 @@ https://www.target.com/p/...
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.24 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
+    v0.25 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
     📱 폰에서는 브라우저 메뉴 → <b>"홈 화면에 추가"</b>하면 앱처럼 설치돼 (오프라인에서도 열림).
   </p>
 </div>
@@ -468,7 +468,7 @@ const QUARTERLY = (()=>{ const d=new Date(); const q=d.getFullYear()+'Q'+(Math.f
   return QUARTERLY_SETS.find(s=>s.q===q) || null; })();
 const Q_CAP = 1500; // Chase Freedom Flex · Discover it 분기 5% 한도(합산 $1,500)
 
-// ===== 조건부 적립 규칙 (v0.24) =====
+// ===== 조건부 적립 규칙 (v0.25) =====
 // 카탈로그의 rates[]는 "최대 배수"라서 그대로 쓰면 실제로 못 받는 카드를 1위로 추천한다.
 // (예: Nike를 '온라인 쇼핑'으로 잡으면 Amazon Prime Visa가 5%로 1위가 됐다 — 실제론 1%)
 // 아래 cond가 그 최대치를 실제 조건으로 깎는다.
@@ -745,15 +745,23 @@ function parsePriceFromHtml(html){
       || html.match(/content=["']\$?([\d,]+(?:\.\d{1,2})?)["'][^>]*(?:og|product):price:amount/i)
       || html.match(/itemprop=["']price["'][^>]*content=["']\$?([\d,]+(?:\.\d{1,2})?)/i);
   if(m){ const n=+m[1].replace(/,/g,''); if(n>0) return n; }
-  // 3) "price":"123.45" JSON 패턴
-  m=html.match(/"price"\s*:\s*"?\$?(\d{1,5}(?:\.\d{1,2})?)"?/);
-  if(m&&+m[1]>0) return +m[1];
-  // 4) 본문 텍스트 "$24.99" (텍스트 프록시용 마지막 수단)
-  m=html.match(/\$\s?(\d{1,3}(?:,\d{3})*\.\d{2})/);
-  if(m){ const n=+m[1].replace(/,/g,''); if(n>0) return n; }
+  // 3)·4) "첫 매치"가 아니라 "0보다 큰 첫 매치"를 써야 한다.
+  //   자리표시자 0이 앞에 오는 페이지가 흔하다 — Crocs는 본문에 $0.00 이 $34.99 보다
+  //   앞서 있어서, 첫 매치만 보면 0을 얻고 가격을 못 찾은 것으로 처리됐다.
+  for(const mm of html.matchAll(/"(?:priceAmount|price|currentPrice|salePrice|listPrice)"\s*:\s*"?\$?(\d{1,7}(?:\.\d{1,2})?)"?/gi)){
+    const n=+mm[1]; if(n>0) return n;
+  }
+  for(const mm of html.matchAll(/\$\s?(\d{1,3}(?:,\d{3})*\.\d{2})/g)){
+    const n=+mm[1].replace(/,/g,''); if(n>0) return n;
+  }
   return null;
 }
-// 프록시 폴백 체인 — 하나가 죽어도 다음으로 (전부 무료 공개 프록시, 상품 URL만 전달됨)
+// 1순위 = 내 Cloudflare Worker (site/worker/). 배포 후 URL을 여기 넣으면 켜진다.
+// 비워두면 아래 공개 프록시 체인으로만 동작한다.
+//   배포법: cd site/worker && npx wrangler login && npx wrangler deploy
+const PRICE_API = "";
+
+// 폴백 = 무료 공개 프록시 (상품 URL만 전달됨)
 // ⚠️ 순서 중요(2026-08-11 점검): corsproxy.io는 403, allorigins는 무응답이라
 //    이 둘을 먼저 두면 살아있는 jina에 닿기까지 20초를 버린다 → jina를 1순위로.
 const PRICE_PROXIES=[
@@ -762,28 +770,48 @@ const PRICE_PROXIES=[
   u=>'https://corsproxy.io/?url='+encodeURIComponent(u),
 ];
 async function fetchPrice(url){
+  if(PRICE_API){
+    const ctrl=new AbortController(); const tm=setTimeout(()=>ctrl.abort(),14000);
+    try{
+      const res=await fetch(PRICE_API.replace(/\/$/,'')+'/?url='+encodeURIComponent(url),{signal:ctrl.signal});
+      if(res.ok){ const j=await res.json();
+        if(j && +j.price>0) return {price:+j.price, confidence:j.confidence||'high'};
+        if(j && j.error) lastErr=j.error;   // "봇 차단" 같은 구체적 사유를 그대로 보여준다
+      }
+    }catch(e){}
+    finally{ clearTimeout(tm); }
+  }
+  // 공개 프록시는 HTML을 마크다운으로 뭉개 넘겨서, 본문 $텍스트 추측이 된다 → 신뢰도 낮음
   for(const mk of PRICE_PROXIES){
     const ctrl=new AbortController(); const tm=setTimeout(()=>ctrl.abort(),8000);
     try{
       const res=await fetch(mk(url),{signal:ctrl.signal});
-      if(res.ok){ const p=parsePriceFromHtml(await res.text()); if(p) return p; }
+      if(res.ok){ const p=parsePriceFromHtml(await res.text()); if(p) return {price:p, confidence:'low'}; }
     }catch(e){}
     finally{ clearTimeout(tm); }
   }
   return null;
 }
+let lastErr='';
 async function tryFetchPrice(url, sc, statusEl){
+  lastErr='';
   if(statusEl) statusEl.innerHTML+=' <span class="fetchp">· ⏳ 가격 자동 조회 중…</span>';
-  let p=null; try{ p=await fetchPrice(url); }catch(e){}
+  let r=null; try{ r=await fetchPrice(url); }catch(e){}
   const clean=()=>{ if(statusEl){ const s=statusEl.querySelector('.fetchp'); if(s) s.remove(); } };
-  if(p&&p>0&&findScenario(sc.id)){
+  const p = r && r.price;
+  if(p>0 && findScenario(sc.id)){
     sc.price=p; const el=document.getElementById('scard-'+sc.id);
     if(el) el.querySelector('.s-price').value=p;
-    clean(); if(statusEl) statusEl.innerHTML+=` <b style="color:var(--accent)">💲 ${money(p)} 자동 입력됨 — 맞는지 확인!</b>`;
+    clean();
+    // 본문 텍스트에서 주운 값은 틀릴 수 있다(할부금·다른 상품 가격을 집기도 함) → 다르게 말한다
+    if(statusEl) statusEl.innerHTML += (r.confidence==='low')
+      ? ` <b style="color:var(--warn)">💲 ${money(p)}? — 추측한 값이라 <u>꼭 확인</u>해줘</b>`
+      : ` <b style="color:var(--accent)">💲 ${money(p)} 자동 입력됨 — 맞는지 확인!</b>`;
     recompute();
     return p;
   } else {
-    clean(); if(statusEl) statusEl.innerHTML+=' <b style="color:var(--warn)">가격 자동 조회 실패(사이트가 막음) — 직접 넣어줘</b>';
+    clean(); if(statusEl) statusEl.innerHTML+=` <b style="color:var(--warn)">가격 자동조회 실패 — 직접 넣어줘</b>`+
+      (lastErr?` <span class="tag">(${lastErr})</span>`:'');
     return 0;
   }
 }
@@ -1093,7 +1121,7 @@ function buildAll(){
 }
 
 // ===== 계산 =====
-// 원칙 (v0.24):
+// 원칙 (v0.25):
 //  · 현금(캐시백·statement credit·포털)과 포인트는 성격이 다르다 → 절대 한 줄로 합치지 않는다.
 //    - 현금: 청구액에서 실제로 빠지거나 통장에 들어옴 → '실제 부담(netCash)'에 반영
 //    - 포인트: 청구액은 그대로. 나중에 잘 써야 가치가 나오는 추정치 → 별도 줄로만 표시

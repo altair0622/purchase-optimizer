@@ -1,0 +1,10 @@
+name = "purchase-optimizer-price"
+main = "index.js"
+compatibility_date = "2025-09-01"
+
+# 무료 플랜: 10만 요청/일. 이 용도로는 넘칠 일이 거의 없다.
+# 배포 후 나오는 URL(https://purchase-optimizer-price.<계정>.workers.dev)을
+# index.html 의 PRICE_API 상수에 넣으면 계산기가 1순위로 쓴다.
+
+[observability]
+enabled = true
