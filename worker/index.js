@@ -19,11 +19,13 @@
  */
 
 // 계산기가 올라가 있는 오리진만 허용. 'null'은 file:// 로컬 테스트용.
+// 로컬 포트는 흔한 개발 서버 포트를 '명시적으로' 나열한다 — 정규식으로 반사하면
+// 허용목록 밖의 값이 Access-Control-Allow-Origin 에 실려나가므로 그렇게 하지 않는다.
+const LOCAL_PORTS = [3000, 4173, 5000, 5173, 8000, 8080, 8081, 8888];
 const ALLOW_ORIGINS = [
   'https://altair0622.github.io',
-  'http://localhost:8080',
-  'http://127.0.0.1:8080',
   'null',
+  ...LOCAL_PORTS.flatMap(p => [`http://localhost:${p}`, `http://127.0.0.1:${p}`]),
 ];
 
 // 평범한 브라우저처럼 보이게 — 헤더가 없으면 대부분의 소매 사이트가 바로 막는다.
@@ -37,7 +39,9 @@ const BROWSER_HEADERS = {
 };
 
 const CACHE_SECONDS = 1800;   // 30분 — 가격은 분 단위로 안 바뀐다
-const MAX_HTML = 2_000_000;   // 2MB 넘으면 잘라서 파싱(메모리 보호)
+const MAX_HTML = 2_000_000;   // 파싱에 쓰는 최대 글자 수
+const MAX_BYTES = 4_000_000;  // 네트워크에서 실제로 읽는 최대 바이트 (여기서 끊는다)
+const MAX_REDIRECTS = 5;
 const FETCH_TIMEOUT = 12_000;
 
 export default {
@@ -73,13 +77,13 @@ export default {
 
     let html = '', status = 0;
     try {
-      const res = await fetchWithTimeout(t.href, FETCH_TIMEOUT);
+      const res = await fetchFollowing(t.href, FETCH_TIMEOUT);
       status = res.status;
       const ct = (res.headers.get('content-type') || '').toLowerCase();
       if (!/text\/html|xhtml|text\/plain|application\/json/.test(ct)) {
         return json({ price: null, status, error: 'HTML 응답이 아니야 (' + (ct || '알 수 없음') + ')' }, 200, cors);
       }
-      html = (await res.text()).slice(0, MAX_HTML);
+      html = await readCapped(res);
     } catch (e) {
       // 봇 차단·타임아웃 — 실패를 200으로 알려서 계산기가 조용히 직접입력으로 넘어가게 한다
       return json({ price: null, status, error: '가져오기 실패: ' + (e && e.message || e) }, 200, cors);
@@ -120,34 +124,103 @@ function json(obj, status, cors) {
     headers: { 'content-type': 'application/json; charset=utf-8', ...cors },
   });
 }
-async function fetchWithTimeout(url, ms) {
+async function fetchOnce(url, ms) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), ms);
   try {
-    return await fetch(url, { headers: BROWSER_HEADERS, redirect: 'follow', signal: ctrl.signal });
+    // redirect:'manual' — 자동 추적을 쓰면 호스트 검사가 '최초 URL'에만 걸린다.
+    // 공개 URL이 302로 내부 주소를 가리키면 그대로 통과해버리므로, 홉마다 직접 검사한다.
+    return await fetch(url, { headers: BROWSER_HEADERS, redirect: 'manual', signal: ctrl.signal });
   } finally { clearTimeout(timer); }
+}
+// 리다이렉트를 직접 따라가되, 홉마다 목적지 호스트를 다시 검사한다.
+// 소매 사이트는 http→https, non-www→www, 로케일 등으로 여러 번 넘기므로 추적은 필요하다.
+async function fetchFollowing(startUrl, ms) {
+  let url = startUrl;
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    const res = await fetchOnce(url, ms);
+    if (res.status < 300 || res.status >= 400) return res;
+    const loc = res.headers.get('Location');
+    if (!loc) return res;                       // 3xx인데 Location이 없으면 그대로 넘긴다
+    let next;
+    try { next = new URL(loc, url); }
+    catch { throw new Error('리다이렉트 주소가 잘못됐어'); }
+    if (next.protocol !== 'http:' && next.protocol !== 'https:') {
+      throw new Error('리다이렉트가 http(s)가 아닌 곳을 가리켜');
+    }
+    if (isBlockedHost(next.hostname)) {
+      throw new Error('리다이렉트가 허용되지 않은 호스트로 향해');
+    }
+    url = next.href;
+  }
+  throw new Error('리다이렉트가 너무 많아');
+}
+// 응답 본문을 상한까지만 읽는다.
+// res.text()는 자르기 전에 전부 버퍼링해서, 거대 응답이면 Worker 메모리 한도(128MB)에
+// 걸린다. MAX_HTML은 '파싱량'만 제한할 뿐 '읽는 양'은 못 막는다.
+async function readCapped(res) {
+  const cl = +(res.headers.get('content-length') || 0);
+  if (cl && cl > MAX_BYTES) throw new Error(`응답이 너무 커 (${(cl / 1e6).toFixed(1)}MB)`);
+  if (!res.body || typeof res.body.getReader !== 'function') {
+    return (await res.text()).slice(0, MAX_HTML);   // 스트림이 없는 환경(테스트 스텁 등)
+  }
+  const reader = res.body.getReader();
+  const dec = new TextDecoder('utf-8');
+  let out = '', total = 0;
+  try {
+    while (total < MAX_BYTES && out.length < MAX_HTML) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      out += dec.decode(value, { stream: true });
+    }
+    out += dec.decode();
+  } finally {
+    try { await reader.cancel(); } catch { /* 이미 닫혔으면 무시 */ }
+  }
+  return out.slice(0, MAX_HTML);
 }
 
 // ===== SSRF 차단 =====
-// 사설망·루프백·링크로컬·클라우드 메타데이터로 요청이 새어나가지 않게 막는다.
+// 방침: **IP 리터럴은 전부 거부하고 도메인만 허용한다.**
+//
+// 처음엔 사설 대역을 하나씩 나열했는데, 퍼즈 테스트(2026-08-11)에서
+// `[::ffff:127.0.0.1]`(IPv4 매핑 IPv6)이 그물을 빠져나갔다. 나열식은 변종이 나올 때마다
+// 뚫린다 — NAT64(`64:ff9b::`), IPv4 호환 IPv6, 8진/16진 표기 등 끝이 없다.
+// 상품 페이지 URL이 raw IP인 경우는 실질적으로 없으므로, 대역을 쫓는 대신
+// "IP 리터럴이면 무조건 거부"가 훨씬 단순하고 강하다.
 function isBlockedHost(host) {
-  const h = (host || '').toLowerCase().replace(/^\[|\]$/g, '');
+  const h = (host || '').toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '');
   if (!h) return true;
-  if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.local') || h.endsWith('.internal')) return true;
-  if (h === '::1' || h === '0.0.0.0') return true;
-  if (h.startsWith('fc') || h.startsWith('fd') || h.startsWith('fe80:')) return true;   // IPv6 ULA/링크로컬
+
+  // 1) 이름 기반
+  if (h === 'localhost' || h.endsWith('.localhost')) return true;
+  if (h.endsWith('.local') || h.endsWith('.internal') || h.endsWith('.home.arpa')) return true;
   if (h === 'metadata.google.internal') return true;
 
-  const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
-  if (m) {
-    const [a, b] = [+m[1], +m[2]];
-    if (a === 10 || a === 127 || a === 0) return true;
-    if (a === 192 && b === 168) return true;
-    if (a === 172 && b >= 16 && b <= 31) return true;
-    if (a === 169 && b === 254) return true;   // AWS/GCP 메타데이터 169.254.169.254
-    if (a >= 224) return true;                 // 멀티캐스트/예약
+  // 2) IP 리터럴 — 형태를 가리지 않고 전부 거부
+  if (h.includes(':')) return true;                    // IPv6 (::1, ::ffff:7f00:1, 64:ff9b::, fd00:: …)
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(h)) return true;  // IPv4 점4자리
+  if (/^\d+$/.test(h)) return true;                    // 10진 정수형(2130706433) — URL 정규화 전 방어
+  if (/^0x[0-9a-f]+$/.test(h)) return true;            // 16진형 — 같은 이유
+
+  // 3) 이름 안에 사설 IP가 박힌 와일드카드 DNS (nip.io / sslip.io 류)
+  //    169.254.169.254.nip.io → DNS가 169.254.169.254 를 돌려준다.
+  //    ⚠️ 이건 DNS 리바인딩 '일반'의 해결이 아니다. 임의의 도메인이 사설 IP를 가리키는지는
+  //       이름만 봐서는 알 수 없고, Workers에선 해석 결과를 볼 수 없다.
+  //       여기서 막는 건 '이름에 IP를 담는' 알려진 패턴뿐이다.
+  for (const seg of h.match(/(\d{1,3})[.-](\d{1,3})[.-](\d{1,3})[.-](\d{1,3})/g) || []) {
+    const p = seg.split(/[.-]/).map(Number);
+    if (p.every(n => n <= 255) && isPrivateV4(p)) return true;
   }
   return false;
+}
+function isPrivateV4([a, b]) {
+  return a === 10 || a === 127 || a === 0 ||
+         (a === 192 && b === 168) ||
+         (a === 172 && b >= 16 && b <= 31) ||
+         (a === 169 && b === 254) ||          // 클라우드 메타데이터
+         a >= 224;                            // 멀티캐스트/예약
 }
 
 // ===== 봇 차단 페이지 감지 =====
