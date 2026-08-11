@@ -97,10 +97,10 @@ Cloudflare IP가 AWS보다는 덜 막히지만 만능은 아니다.
 
 ## 퍼즈 테스트 결과 (2026-08-11)
 
-하니스: `../../tests/fuzz-worker.mjs` (배포 대상 아님)
+하니스: `../tests/fuzz-worker.mjs` (Pages에 같이 올라가지만 실행되진 않는다)
 
 ```bash
-node tests/fuzz-worker.mjs site/worker/index.js 42
+node site/tests/fuzz-worker.mjs site/worker/index.js 42
 ```
 
 워커를 Node에서 모듈째 import하고 `fetch`·`caches`·`ctx`를 스텁으로 갈아끼운다 →
