@@ -173,7 +173,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.26</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.27</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
@@ -233,7 +233,8 @@ https://www.target.com/p/...
       <button id="fillBtn" type="button">비교 시작</button>
       <span class="muted" id="pasteMsg"></span>
     </div>
-    <p class="cpp-note">URL마다 <b>판매처 칸이 자동으로 만들어지고, 캐시백 요율과 가격까지 채워져</b>. 가격은 일부 사이트가 막아서 실패할 수 있는데, 그럴 땐 그 칸만 직접 넣으면 돼. <b>카드는 없어도 계산돼</b> — 어디서·어느 캐시백으로 사면 싼지는 그대로 나와.</p>
+    <p class="cpp-note">URL마다 <b>판매처 칸이 자동으로 만들어지고, 캐시백 요율과 가격까지 채워져</b>. 가격은 일부 사이트가 막아서 실패할 수 있는데, 그럴 땐 그 칸만 직접 넣으면 돼. <b>카드는 없어도 계산돼</b> — 어디서·어느 캐시백으로 사면 싼지는 그대로 나와.<br>
+      🔒 가격을 대신 읽어오려면 <b>붙여넣은 상품 URL만</b> 조회 서버로 나가(다른 입력은 이 브라우저 밖으로 안 나감). 싫으면 URL 대신 가격을 직접 넣으면 돼 — <a href="#disclosures" onclick="openDisclosures(event)">자세히</a>.</p>
   </div>
 
   <!-- 1. 상품 (공통) -->
@@ -367,9 +368,52 @@ https://www.target.com/p/...
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.26 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
+    v0.27 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
     📱 폰에서는 브라우저 메뉴 → <b>"홈 화면에 추가"</b>하면 앱처럼 설치돼 (오프라인에서도 열림).
   </p>
+
+  <!-- 고지 (v0.27) — 출시 체크리스트: 데이터 흐름 · 면책 · 리퍼럴.
+       프라이버시가 셀링포인트인데 가격 자동조회 때 상품 URL이 밖으로 나가는 건
+       코드 주석에만 있었다. 셀링포인트와 모순되지 않으려면 UI에 있어야 한다. -->
+  <div class="card" id="disclosures">
+    <details>
+      <summary><b>🔒 내 데이터는 어디로 가나</b> — 한 가지만 밖으로 나가</summary>
+      <p class="cashnote">
+        <b>계정도 로그인도 없어.</b> 카드 지갑·포인트 가치·가격·쿠폰·계산 결과는 전부 <b>이 브라우저 안에만</b>(localStorage) 있고 서버로 안 보내. 계산도 전부 이 페이지 안에서 돌아.
+        광고·애널리틱스·추적 스크립트는 한 개도 안 붙어 있어(외부 스크립트·폰트도 없음).
+      </p>
+      <p class="cashnote">
+        <b>딱 하나 나가는 것 = 가격 자동 조회를 쓸 때, 그 상품 URL.</b> 붙여넣은 링크가 아래 순서로 전달돼:
+      </p>
+      <p class="cashnote">
+        ① <b>내 가격조회 서버</b>(Cloudflare Worker) — 상품 URL만 받아서 <b>가격·제목만</b> 돌려줘. 페이지 원문은 안 넘겨주고, 저장하거나 기록하는 코드도 없어(<a href="https://github.com/altair0622/purchase-optimizer/tree/main/worker" target="_blank" rel="noopener">코드 공개</a>). 결과는 30분 캐시.<br>
+        ② ①이 실패하면(사이트가 봇을 막는 경우) <b>제3자 공개 프록시 <code>r.jina.ai</code></b>로 한 번 더 시도해. 이때 상품 URL은 <b>내가 통제하지 못하는 남의 서버</b>로 가고, 그쪽 로그 정책도 내가 보장 못 해. 여기서 온 값은 신뢰도가 낮아 <b>자동 입력하지 않고 확인 버튼</b>으로만 보여줘.
+      </p>
+      <p class="cashnote">
+        <b>이게 싫으면:</b> URL을 붙여넣지 말고 <b>가격을 직접 입력</b>하면 돼 — 그러면 아무것도 밖으로 안 나가. (판매처 이름만 넣는 건 조회를 안 일으켜.)
+      </p>
+      <p class="cashnote">
+        그 밖에 이 페이지가 부르는 건 <b>같은 사이트의 캐시백 요율 파일 하나</b>(<code>rates.json</code>, 제3자 아님)뿐이야. 캐시백 포털·판매처 링크는 <b>네가 눌렀을 때만</b> 그쪽으로 이동해.
+      </p>
+    </details>
+    <details style="margin-top:8px">
+      <summary><b>⚖️ 이 계산기의 한계와 면책</b></summary>
+      <p class="cashnote">
+        이건 <b>금융 자문이 아니야</b>. 카드 발급·소비 결정을 대신해주는 도구가 아니라, 네가 입력한 숫자로 <b>산수를 대신 해주는 계산기</b>야.
+        캐시백 요율·카드 적립 조건·오퍼는 수시로 바뀌고 여기 값은 스냅샷이라, <b>결제 직전에 실제 화면에서 다시 확인</b>해야 해.
+        포털 캐시백은 <b>확정이 아니라 예정</b>(트래킹 실패·반품·기프트카드는 미지급)이고, 포인트 가치는 네가 실제로 잘 썼을 때의 <b>추정치</b>야 — 청구액을 줄여주지 않아.
+        판매세·반품비는 계산에 안 들어가 있어.
+      </p>
+    </details>
+    <details style="margin-top:8px">
+      <summary><b>🤝 리퍼럴 고지</b></summary>
+      <p class="cashnote">
+        Rakuten·Capital One Shopping 가입 링크는 <b>내 초대 링크</b>라 가입하면 보통 둘 다 보너스를 받아. TopCashback에 링크가 없는 건 <b>초대 제도가 없어서</b>지 나쁜 포털이라서가 아니야.
+        <b>어느 포털이 이기는지는 네가 넣은 % 만으로 계산</b>돼서 초대 링크와 아무 상관이 없고, 초대 없이 직접 가입해도 조건은 같아.
+        카드 발급 어필리에이트는 <b>일부러 안 붙였어</b> — 추천 순위가 수수료에 휘둘리면 안 되니까.
+      </p>
+    </details>
+  </div>
 </div>
 
 <script>
@@ -1222,7 +1266,8 @@ function renderSellerSearch(){
     `<a target="_blank" href="https://www.walmart.com/search?q=${q}">Walmart</a> · `+
     `<a target="_blank" href="https://www.target.com/s?searchTerm=${q}">Target</a> · `+
     `<a target="_blank" href="https://www.ebay.com/sch/i.html?_nkw=${q}">eBay</a>`+
-    `<br><span class="tag">찾은 상품 페이지의 <b>URL을 복사해서 아래 판매처 칸에 붙여넣으면</b> 판매처·가격이 자동으로 채워져 → A.어디서 · B.어느 카드 · C.어느 캐시백 루트가 한 번에 비교돼</span>`;
+    `<br><span class="tag">찾은 상품 페이지의 <b>URL을 복사해서 아래 판매처 칸에 붙여넣으면</b> 판매처·가격이 자동으로 채워져 → A.어디서 · B.어느 카드 · C.어느 캐시백 루트가 한 번에 비교돼`+
+    ` · 🔒 이때 <b>그 URL만</b> 조회 서버로 나가 (<a href="#disclosures" onclick="openDisclosures(event)">자세히</a>)</span>`;
 }
 
 function bestCardLabel(r){
@@ -1766,6 +1811,14 @@ function init(){
   setMode(mode);
 }
 init();
+
+// 고지 박스로 점프할 때 첫 details(데이터 흐름)를 펴 준다 — 접힌 채로 스크롤만 되면 못 본다
+function openDisclosures(e){
+  if(e) e.preventDefault();
+  const box=document.getElementById('disclosures'); if(!box) return;
+  const d=box.querySelector('details'); if(d) d.open=true;
+  box.scrollIntoView({behavior:'smooth', block:'center'});
+}
 
 // ===== 원격 요율 로드 =====
 // 배포본(GitHub Pages)에선 rates.json(Rakuten은 매일 자동 갱신)을 읽어 내장 스냅샷을 덮어씀.
