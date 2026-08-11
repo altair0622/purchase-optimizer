@@ -519,6 +519,32 @@ const CARD_COND = {
 };
 CARD_CATALOG.forEach(c=>{ c.cond=CARD_COND[c.id]||null; });
 
+// ===== 동점 처리 — 값이 같으면 '확정 현금'이 이긴다 =====
+// 포인트는 잘 써야 나오는 추정치라, 모델상 같은 값이면 현금이 더 좋은 선택이다.
+// (없으면 정렬이 배열 순서로 정해져 무작위 페르소나의 7%가 확정 현금을 버리는 추천을 받았다 — 2026-08-11 퍼즈 테스트)
+const TIE_EPS = 1e-9;
+function byCashFirst(key){
+  return (a,b)=>{
+    const d=b[key]-a[key];
+    if(Math.abs(d)>TIE_EPS) return d;
+    const ac=(a.type==='cash'), bc=(b.type==='cash');
+    if(ac!==bc) return ac ? -1 : 1;
+    return 0;
+  };
+}
+// ===== 오퍼 검증 — 오퍼는 결제액보다 클 수 없다 =====
+// 카드 오퍼는 "Spend $X, get $Y back" 형태라 최소 사용액이 붙는다. 도구는 $Y만 받으므로
+// 결제액보다 큰 $Y는 조건을 못 맞춘 입력 → 계산에서 빼고(0) 이유를 말해준다.
+// 결제액 대비 큰 오퍼는 계산엔 넣되 최소 사용액 확인을 경고한다.
+function offerFor(raw, charge){
+  raw=+raw||0;
+  if(raw<=0) return {offer:0, warn:''};
+  if(!(charge>0)) return {offer:0, warn:'결제 금액을 넣어야 오퍼가 계산에 반영돼 — 오퍼엔 <b>최소 사용액</b>이 붙어 있어.'};
+  if(raw>charge) return {offer:0, warn:`오퍼 ${money(raw)}가 결제액 ${money(charge)}보다 커 — 오퍼는 보통 <b>"$X 이상 쓰면 $Y 환급"</b>이라 이 금액으론 조건을 못 맞춰. <b>계산에서 뺐어</b>(카드사 앱에서 최소 사용액 확인).`};
+  if(raw>charge*0.2) return {offer:raw, warn:`오퍼가 결제액의 ${Math.round(raw/charge*100)}%야 — <b>최소 사용액</b>을 넘는지 카드사 앱에서 확인해줘. 못 넘기면 이 금액은 안 들어와.`};
+  return {offer:raw, warn:''};
+}
+
 // 카드·카테고리·(판매처·가격) → 실제 적용 배수 + 알아야 할 조건
 // ctx = {storeKey, price}
 function rateInfo(c, cat, ctx){
@@ -1140,22 +1166,26 @@ function scenarioResult(sc, cat){
     const {mult,type,note}=rateInfo(c,cat,ctx);
     const cv=cppFor(type);
     const val=price*mult*cv/100;
-    const offer=+(sc.offers[c.id]||0);   // Amex/Chase 오퍼 = statement credit → 현금
+    const {offer,warn}=offerFor(+(sc.offers[c.id]||0), price);  // Amex/Chase 오퍼 = statement credit → 현금
     const isCash=(type==='cash');
-    return {c,type,mult,cv,val,offer,note,tot:val+offer,
+    const notes=[note,warn].filter(Boolean).join(' · ');
+    return {c,type,mult,cv,val,offer,note:notes,tot:val+offer,
             cashPart:(isCash?val:0)+offer, ptsPart:(isCash?0:val)};
   });
   // 카드를 하나도 등록 안 해도 "어디서 · 어느 캐시백으로"는 답할 수 있어야 한다.
   // 이때는 카드 기여를 0으로 둔 가상의 행을 써서 아래 계산을 그대로 태운다.
   const NOCARD={c:NO_CARD, type:'cash', mult:0, cv:1, val:0, offer:0, note:null,
                 tot:0, cashPart:0, ptsPart:0};
-  const baseBest=rows.length ? rows.slice().sort((a,b)=>b.val-a.val)[0] : NOCARD;
+  const baseBest=rows.length ? rows.slice().sort(byCashFirst('val'))[0] : NOCARD;
   const baseBestId=baseBest.c.id;
-  rows.sort((a,b)=>b.tot-a.tot);
+  rows.sort(byCashFirst('tot'));
   const best=rows.length ? rows[0] : NOCARD;
   const portalVal=sub*(+sc.portalPct||0)/100;     // 조건부·지연 지급(확정 아님) · 세금·배송 제외 기준
   const rewardVal=best.tot;
-  const cashBack=best.cashPart+portalVal;         // 현금으로 돌아오는 것(포털은 '예정')
+  const cashRaw=best.cashPart+portalVal;          // 현금으로 돌아오는 것(포털은 '예정')
+  // 돌려받는 돈이 결제액을 넘을 수는 없다 — 넘으면 입력이 틀린 것(대개 오퍼 금액/최소 사용액)
+  const overRefund=cashRaw>price+1e-9 && price>0;
+  const cashBack=Math.min(cashRaw, Math.max(0,price));
   const ptsVal=best.ptsPart;                      // 포인트 추정가치(청구액과 무관)
   const netCash=price-cashBack;                   // 실제 부담(포인트 제외)
   const net=netCash-ptsVal;                       // 포인트까지 반영 — 순위용
@@ -1164,7 +1194,7 @@ function scenarioResult(sc, cat){
   const basePts =(baseBest.type==='cash')?0:baseBest.val;
   const baselineNet=price-baseCash-basePts;
   const flipped=best.offer>0 && best.c.id!==baseBestId;
-  return {sc,list,coupon,ship,sub,tax,price,rows,best,baseBest,portalVal,rewardVal,cashBack,ptsVal,netCash,net,baselineNet,flipped};
+  return {sc,list,coupon,ship,sub,tax,price,rows,best,baseBest,portalVal,rewardVal,cashBack,ptsVal,netCash,net,baselineNet,flipped,overRefund};
 }
 
 function renderSellerSearch(){
@@ -1232,6 +1262,10 @@ function recompute(){
     const ptsN=Math.round(w.price*w.best.mult).toLocaleString();
     const cardDetail = w.best.type==='cash' ? `${fmtMult(w.best.mult)}% 캐시백` : `${fmtMult(w.best.mult)}배 적립 = ${ptsN} 포인트 × ${w.best.cv}¢`;
     const bestNote = w.best.note ? `<p class="cashnote" style="color:var(--warn)">📌 <b>이 카드 적립 조건 확인:</b> ${w.best.note}</p>` : '';
+    // 동점을 현금으로 끊었으면 왜 그랬는지 말해준다
+    const tied = w.rows.filter(r=>Math.abs(r.tot-w.best.tot)<1e-9);
+    const tieNote = (w.best.type==='cash' && tied.some(r=>r.type!=='cash'))
+      ? `<p class="cashnote">⚖️ ${tied.filter(r=>r.type!=='cash').map(r=>r.c.short).join('·')}와 <b>계산상 동점</b>이야 — 포인트는 잘 써야 나오는 추정치라 <b>확정 현금 쪽</b>을 골랐어.</p>` : '';
     // 기준선 = 원래 보던 판매처(첫 시나리오)에서 이 도구 없이 그냥 샀을 때
     const b0=results[0];
     const edge=(b0&&b0.price>0) ? (b0.baselineNet-w.net) : 0;
@@ -1268,6 +1302,8 @@ function recompute(){
         `<span class="basebadge">💳 카드 기본 적립 ${money(b0?b0.price-b0.baselineNet:0)}<small>어차피 받는 돈 — 절약 아님</small></span>`+
         `</div>`)+
       (w.flipped?`<div class="tag" style="margin-top:4px">※ 오퍼 덕분에 ${w.best.c.short}가 평소 1위를 제침</div>`:``)+
+      (w.overRefund?`<p class="cashnote" style="color:var(--warn)">⚠️ <b>돌려받는 금액이 결제액보다 커 — 입력을 확인해줘.</b> 오퍼 금액이나 캐시백 %가 실제보다 크게 들어갔을 가능성이 높아(오퍼엔 최소 사용액이 붙어). 실제 부담은 $0 밑으로 안 내려가니 위 숫자는 그대로 믿지 마.</p>`:``)+
+      tieNote+
       bestNote+
       `<details style="margin-top:8px"><summary>이 계산에 안 들어간 것</summary>`+
       `<p class="cashnote"><b>판매세</b>(주마다 0~10%)와 반품비·조립비는 계산에 없어. 판매세는 어느 판매처든 비슷하게 붙어서 순위를 잘 안 바꾸지만, 면세 주로 배송되는 경우엔 차이가 나. `+
@@ -1379,16 +1415,20 @@ function computeSite(){
   const sctx={storeKey:fz?fz.key:null, price:amt};
   // 오퍼($)가 적립률 차이를 넘으면 순위가 바뀐다 → 총 돌려받는 금액으로 정렬
   const rows=CARDS.map(c=>{ const {mult,type,note}=rateInfo(c,cat,sctx); const cv=cppFor(type);
-    const eff=mult*cv, val=amt*eff/100, offer=siteOff(c.id);
-    return {c,type,mult,cv,note,eff,val,offer,tot:val+offer}; });
-  const effBestId=rows.slice().sort((a,b)=> b.eff-a.eff || (a.type==='UR'?-1:1))[0].c.id;
-  rows.sort((a,b)=> b.tot-a.tot || b.eff-a.eff);
+    const eff=mult*cv, val=amt*eff/100;
+    const {offer,warn}=offerFor(siteOff(c.id), amt);
+    return {c,type,mult,cv,note:[note,warn].filter(Boolean).join(' · '),eff,val,offer,tot:val+offer}; });
+  // 동점이면 확정 현금 우선 — 상품 모드와 같은 규칙
+  const effBestId=rows.slice().sort(byCashFirst('eff'))[0].c.id;
+  rows.sort((a,b)=> byCashFirst('tot')(a,b) || byCashFirst('eff')(a,b));
   const best=rows[0];
   const flagged=rows.filter(r=>r.offer>0);
   const flipped = best.offer>0 && best.c.id!==effBestId;
   const isCashCard=(best.type==='cash');
   const portalVal=amt*pBest/100;
-  const cashBack=(isCashCard?best.val:0)+best.offer+portalVal;  // 청구서를 실제로 줄이는 것
+  const cashRaw=(isCashCard?best.val:0)+best.offer+portalVal;    // 청구서를 실제로 줄이는 것
+  const overRefund=cashRaw>amt+1e-9 && amt>0;                    // 결제액보다 많이 돌려받을 수는 없다
+  const cashBack=Math.min(cashRaw, amt);
   const ptsVal=(isCashCard?0:best.val);                          // 포인트 추정가치
   const netCash=amt-cashBack, net=netCash-ptsVal;
   // 포털이 0%여도 결론은 완결된 문장이어야 한다 — "왜 링크가 없는지"까지 말해준다.
@@ -1410,8 +1450,12 @@ function computeSite(){
     // 마지막에 "그래서 뭘 하면 되는지" 한 문장으로
     `<div class="savebadge">✅ ${route}`+
       `<small>${money(amt)} 쓰면 현금 ${money(cashBack)} 돌아옴${ptsVal>0?` · 포인트 ${money(ptsVal)} 상당 별도(추정)`:''}</small></div>`+
+    (overRefund?`<p class="cashnote" style="color:var(--warn)">⚠️ <b>돌려받는 금액이 결제액보다 커 — 입력을 확인해줘.</b> 오퍼 금액이나 캐시백 %가 실제보다 크게 들어갔을 가능성이 높아(오퍼엔 최소 사용액이 붙어).</p>`:``)+
     (flipped?`<p class="cashnote" style="color:var(--warn)">🎁 <b>오퍼 덕분에 순위가 바뀌었어</b> — 적립률만 보면 ${(rows.find(r=>r.c.id===effBestId)||{c:{short:'?'}}).c.short}가 1위인데, ${money(best.offer)} 오퍼가 그 차이를 넘었어.</p>`:``)+
-    (best.note?`<p class="cashnote" style="color:var(--warn)">📌 <b>이 카드 적립 조건 확인:</b> ${best.note}</p>`:'');
+    (best.note?`<p class="cashnote" style="color:var(--warn)">📌 <b>이 카드 적립 조건 확인:</b> ${best.note}</p>`:'')+
+    (function(){ const tied=rows.filter(r=>Math.abs(r.tot-best.tot)<1e-9);
+      return (isCashCard && tied.some(r=>r.type!=='cash'))
+        ? `<p class="cashnote">⚖️ ${tied.filter(r=>r.type!=='cash').map(r=>r.c.short).join('·')}와 <b>계산상 동점</b>이야 — 포인트는 잘 써야 나오는 추정치라 <b>확정 현금 쪽</b>을 골랐어.</p>` : ''; })();
   html+=`<div style="overflow-x:auto"><table><thead><tr><th>카드</th><th>적립</th><th class="r">오퍼</th><th class="r">총 돌려받음</th></tr></thead><tbody>`;
   rows.forEach((r,i)=>{
     html+=`<tr class="${i===0?'best':''}"><td><b>${r.c.short}</b> ${i===0?'<span class="pill win">1위</span>':''}${i===0&&flipped?'<span class="pill flip">오퍼로 역전</span>':''}<div class="tag">${r.c.hint||''}</div>${r.note?`<div class="tag" style="color:var(--warn)">📌 ${r.note}</div>`:''}</td>`+
