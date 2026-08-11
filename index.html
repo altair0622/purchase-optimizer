@@ -173,23 +173,19 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.23</span></h1>
+  <h1>구매 최적화 계산기 <span class="tag">v0.24</span></h1>
   <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
 
   <!-- 0. 내 카드 (온보딩) -->
   <div class="card walletcard" id="walletCard">
-    <h2><span class="num">👛</span> 내 카드 <span class="tag">가진 카드를 골라 지갑을 만들어 — 이 브라우저에 저장돼</span></h2>
+    <h2><span class="num">👛</span> 내 카드 <span class="tag">선택 — 안 골라도 계산은 돼</span></h2>
     <div id="walletWelcome" style="display:none">
       <div class="welcome">
-        <div class="wtitle">👋 여기서 시작하세요</div>
-        <p>가진 신용카드를 아래에서 골라 <b>내 지갑</b>을 만들면 — <b>뭘 · 어디서 · 어느 카드로</b> 사는 게 제일 이득인지 이 계산기가 자동으로 알려줘요.</p>
-        <div class="wsteps">
-          <span><b>①</b> 아래에서 내 카드 고르기</span><span class="arrow">→</span>
-          <span><b>②</b> 뭘 살지 입력</span><span class="arrow">→</span>
-          <span><b>③</b> 최적 판매처·카드·링크 확인</span>
-        </div>
-        <button class="mini" id="walletExample" type="button">🔎 일단 인기 카드로 예시 보기</button>
-        <span class="muted" style="margin-left:8px">— 어떻게 작동하는지 미리 볼 수 있어(나중에 네 카드로 바꿔)</span>
+        <div class="wtitle">💳 카드는 선택 사항이에요</div>
+        <p><b>안 골라도 됩니다.</b> 어디서 사면 제일 싼지, 어느 캐시백 링크를 타야 하는지는 카드 없이도 그대로 계산돼요.<br>
+        가진 카드를 골라두면 <b>거기서 얼마나 더 아낄 수 있는지</b>까지 얹어서 보여줄 뿐이에요.</p>
+        <button class="mini" id="walletExample" type="button">🔎 인기 카드로 예시 보기</button>
+        <span class="muted" style="margin-left:8px">— 나중에 네 카드로 바꾸면 돼</span>
       </div>
     </div>
     <input id="walletSearch" placeholder="카드 검색 (예: Sapphire, Gold, Double Cash, Venture)" style="margin-bottom:12px">
@@ -227,28 +223,29 @@
 
   <!-- 빠른 채우기 -->
   <div class="card product-only">
-    <h2><span class="num">＋</span> 빠르게 채우기 <span class="tag">URL / 상품 정보 → 첫 판매처에 입력</span></h2>
-    <label>상품 URL, 또는 상품 페이지에서 복사한 제목·가격을 붙여넣기</label>
-    <textarea id="paste" rows="2" placeholder="예)  https://www.crateandbarrel.com/grayson-loft-bed/...
-또는  Grayson 로프트 베드   $1,699   를 통째로 붙여넣기"></textarea>
+    <h2><span class="num">＋</span> 여기서 시작 <span class="tag">파는 곳 URL을 여러 개 붙여넣으면 자동 비교</span></h2>
+    <label>같은 상품을 파는 <b>여러 사이트의 URL</b>을 한 줄에 하나씩 (한 개만 넣어도 돼)</label>
+    <textarea id="paste" rows="3" placeholder="https://www.amazon.com/dp/...
+https://www.walmart.com/ip/...
+https://www.target.com/p/...
+— 또는 상품 제목과 $가격을 통째로 붙여넣기"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
-      <button id="fillBtn" type="button">채우기</button>
+      <button id="fillBtn" type="button">비교 시작</button>
       <span class="muted" id="pasteMsg"></span>
     </div>
-    <p class="cpp-note">URL을 넣으면 <b>판매처·카테고리·상품명 자동 + 가격도 자동 조회</b>(일부 사이트는 막아서 실패하면 직접 입력). 제목+가격을 통째로 붙여넣어도 돼.</p>
+    <p class="cpp-note">URL마다 <b>판매처 칸이 자동으로 만들어지고, 캐시백 요율과 가격까지 채워져</b>. 가격은 일부 사이트가 막아서 실패할 수 있는데, 그럴 땐 그 칸만 직접 넣으면 돼. <b>카드는 없어도 계산돼</b> — 어디서·어느 캐시백으로 사면 싼지는 그대로 나와.</p>
   </div>
 
   <!-- 1. 상품 (공통) -->
   <div class="card product-only">
     <h2><span class="num">1</span> 무엇을 사려고?</h2>
-    <div class="grid g3">
+    <!-- 판매세 입력은 뺐다(v0.24) — 어느 판매처든 비슷하게 붙어 순위를 거의 안 바꾸는데
+         입력 부담만 컸다. 계산은 taxPct=0으로 돌고, 한계는 "안 들어간 것"에 적어둔다. -->
+    <input type="hidden" id="taxPct" value="0">
+    <div class="grid g2">
       <div>
         <label>상품명</label>
         <input id="pname" value="Grayson 로프트 베드">
-      </div>
-      <div>
-        <label>우리 동네 판매세 (%) <span class="muted" style="font-weight:600">— 한 번만</span></label>
-        <input id="taxPct" type="number" min="0" max="15" step="0.25" value="0" placeholder="예: 8.875">
       </div>
       <div>
         <label>카테고리 (모든 판매처 공통)</label>
@@ -263,7 +260,7 @@
         </select>
       </div>
     </div>
-    <p class="cpp-note">💡 <b>판매세를 넣어야 순위가 맞아</b> — 주(州)마다 0~10%씩 차이가 나고, 세금은 카드 적립 대상이라 적립액도 달라져. 배송비·쿠폰은 판매처마다 다르니 3번의 각 판매처 칸에서 입력.</p>
+    <p class="cpp-note">💡 배송비·쿠폰은 판매처마다 다르니 아래 <b>3번의 각 판매처 칸</b>에서 넣어줘 — 이 둘은 순위를 자주 뒤집어.</p>
   </div>
 
   <!-- 2. 포인트 가치 (공통, 동적) -->
@@ -356,8 +353,8 @@
     </div>
   </div>
 
-  <!-- 5. 최적 판매처의 카드 순위 상세 -->
-  <div class="card product-only">
+  <!-- 5. 최적 판매처의 카드 순위 상세 (지갑이 비어 있으면 recompute가 숨긴다) -->
+  <div class="card product-only" id="cardDetailCard">
     <h2><span class="num">5</span> 다른 카드로 사면? <span class="tag" id="detailStore"></span></h2>
     <div style="overflow-x:auto">
       <table>
@@ -370,7 +367,7 @@
   </div>
 
   <p class="muted" style="text-align:center">
-    v0.23 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
+    v0.24 — 입력은 이 브라우저에 자동 저장. 지갑은 <b>🔗 링크 복사</b>로 다른 기기/사람에게 넘길 수 있어.<br>
     📱 폰에서는 브라우저 메뉴 → <b>"홈 화면에 추가"</b>하면 앱처럼 설치돼 (오프라인에서도 열림).
   </p>
 </div>
@@ -471,7 +468,7 @@ const QUARTERLY = (()=>{ const d=new Date(); const q=d.getFullYear()+'Q'+(Math.f
   return QUARTERLY_SETS.find(s=>s.q===q) || null; })();
 const Q_CAP = 1500; // Chase Freedom Flex · Discover it 분기 5% 한도(합산 $1,500)
 
-// ===== 조건부 적립 규칙 (v0.23) =====
+// ===== 조건부 적립 규칙 (v0.24) =====
 // 카탈로그의 rates[]는 "최대 배수"라서 그대로 쓰면 실제로 못 받는 카드를 1위로 추천한다.
 // (예: Nike를 '온라인 쇼핑'으로 잡으면 Amazon Prime Visa가 5%로 1위가 됐다 — 실제론 1%)
 // 아래 cond가 그 최대치를 실제 조건으로 깎는다.
@@ -623,6 +620,8 @@ const CATNAME = { general:"기타/일반", online:"온라인 쇼핑", dining:"�
 // ===== 활성 지갑 =====
 let myWallet = [];                 // 선택한 카탈로그 id
 let CARDS = [];                    // 활성 카드(= 지갑)
+// 카드를 하나도 안 고른 사용자를 위한 자리표시 카드(적립 0) — 지갑은 '선택'이지 '전제'가 아니다
+const NO_CARD = {id:'__none', short:'카드 없이', name:'등록한 카드 없이', issuer:'', hint:'', rates:{}};
 let cppValues = {};                // 통화 -> 사용자 조정 센트값
 function activeCards(){ return CARD_CATALOG.filter(c=>myWallet.includes(c.id)); }
 function cppFor(code){ const x=cppValues[code]; return (x==null||isNaN(x)) ? (CURRENCIES[code]?CURRENCIES[code].cpp:1) : +x; }
@@ -755,14 +754,16 @@ function parsePriceFromHtml(html){
   return null;
 }
 // 프록시 폴백 체인 — 하나가 죽어도 다음으로 (전부 무료 공개 프록시, 상품 URL만 전달됨)
+// ⚠️ 순서 중요(2026-08-11 점검): corsproxy.io는 403, allorigins는 무응답이라
+//    이 둘을 먼저 두면 살아있는 jina에 닿기까지 20초를 버린다 → jina를 1순위로.
 const PRICE_PROXIES=[
-  u=>'https://corsproxy.io/?url='+encodeURIComponent(u),
-  u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
   u=>'https://r.jina.ai/'+u,
+  u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
+  u=>'https://corsproxy.io/?url='+encodeURIComponent(u),
 ];
 async function fetchPrice(url){
   for(const mk of PRICE_PROXIES){
-    const ctrl=new AbortController(); const tm=setTimeout(()=>ctrl.abort(),10000);
+    const ctrl=new AbortController(); const tm=setTimeout(()=>ctrl.abort(),8000);
     try{
       const res=await fetch(mk(url),{signal:ctrl.signal});
       if(res.ok){ const p=parsePriceFromHtml(await res.text()); if(p) return p; }
@@ -780,8 +781,10 @@ async function tryFetchPrice(url, sc, statusEl){
     if(el) el.querySelector('.s-price').value=p;
     clean(); if(statusEl) statusEl.innerHTML+=` <b style="color:var(--accent)">💲 ${money(p)} 자동 입력됨 — 맞는지 확인!</b>`;
     recompute();
+    return p;
   } else {
     clean(); if(statusEl) statusEl.innerHTML+=' <b style="color:var(--warn)">가격 자동 조회 실패(사이트가 막음) — 직접 넣어줘</b>';
+    return 0;
   }
 }
 
@@ -1090,7 +1093,7 @@ function buildAll(){
 }
 
 // ===== 계산 =====
-// 원칙 (v0.23):
+// 원칙 (v0.24):
 //  · 현금(캐시백·statement credit·포털)과 포인트는 성격이 다르다 → 절대 한 줄로 합치지 않는다.
 //    - 현금: 청구액에서 실제로 빠지거나 통장에 들어옴 → '실제 부담(netCash)'에 반영
 //    - 포인트: 청구액은 그대로. 나중에 잘 써야 가치가 나오는 추정치 → 별도 줄로만 표시
@@ -1114,10 +1117,14 @@ function scenarioResult(sc, cat){
     return {c,type,mult,cv,val,offer,note,tot:val+offer,
             cashPart:(isCash?val:0)+offer, ptsPart:(isCash?0:val)};
   });
-  const baseBest=rows.slice().sort((a,b)=>b.val-a.val)[0];
+  // 카드를 하나도 등록 안 해도 "어디서 · 어느 캐시백으로"는 답할 수 있어야 한다.
+  // 이때는 카드 기여를 0으로 둔 가상의 행을 써서 아래 계산을 그대로 태운다.
+  const NOCARD={c:NO_CARD, type:'cash', mult:0, cv:1, val:0, offer:0, note:null,
+                tot:0, cashPart:0, ptsPart:0};
+  const baseBest=rows.length ? rows.slice().sort((a,b)=>b.val-a.val)[0] : NOCARD;
   const baseBestId=baseBest.c.id;
   rows.sort((a,b)=>b.tot-a.tot);
-  const best=rows[0];
+  const best=rows.length ? rows[0] : NOCARD;
   const portalVal=sub*(+sc.portalPct||0)/100;     // 조건부·지연 지급(확정 아님) · 세금·배송 제외 기준
   const rewardVal=best.tot;
   const cashBack=best.cashPart+portalVal;         // 현금으로 돌아오는 것(포털은 '예정')
@@ -1146,22 +1153,21 @@ function renderSellerSearch(){
     `<br><span class="tag">찾은 상품 페이지의 <b>URL을 복사해서 아래 판매처 칸에 붙여넣으면</b> 판매처·가격이 자동으로 채워져 → A.어디서 · B.어느 카드 · C.어느 캐시백 루트가 한 번에 비교돼</span>`;
 }
 
+function bestCardLabel(r){
+  return (r.best.c.id===NO_CARD.id)
+    ? `<span class="tag">카드 미등록</span>`
+    : `${r.best.c.short} <span class="pill ${TYPE[r.best.type].cls}">${TYPE[r.best.type].label}</span>`;
+}
 function recompute(){
   const cat=v('cat');
   taxPct=+v('taxPct')||0;
   renderSellerSearch();
-  if(!CARDS.length){
-    document.getElementById('finalConclusion').innerHTML='먼저 위 <b>👛 내 카드</b>에서 카드를 하나 이상 골라줘.';
-    document.getElementById('compareBody').innerHTML=""; document.getElementById('cardbody').innerHTML="";
-    scenarios.forEach(sc=>{ const b=document.getElementById('sbest-'+sc.id); if(b) b.textContent='—'; const n=document.getElementById('snet-'+sc.id); if(n) n.textContent='—'; });
-    saveState(); return;
-  }
   const results=scenarios.map(sc=>scenarioResult(sc,cat));
 
   results.forEach(r=>{
     const sc=r.sc;
     document.getElementById('sbest-'+sc.id).innerHTML = r.price>0
-      ? `${r.best.c.short} <span class="pill ${TYPE[r.best.type].cls}">${TYPE[r.best.type].label}</span>`+(r.flipped?` <span class="pill flip">오퍼로 역전</span>`:``)
+      ? bestCardLabel(r)+(r.flipped?` <span class="pill flip">오퍼로 역전</span>`:``)
       : '가격 입력';
     document.getElementById('snet-'+sc.id).innerHTML = r.price>0
       ? money(r.netCash)+(r.ptsVal>0?` <span class="tag">+ 포인트 ${money(r.ptsVal)}(추정)</span>`:'')
@@ -1183,7 +1189,7 @@ function recompute(){
     const route=r.sc.portalPct>0 ? `<div class="tag">${(r.sc.portalName||'포털')} ${r.sc.portalPct}% 포함(예정)</div>` : '';
     tr.innerHTML=`<td><b>${i+1}. ${r.sc.store||'(판매처?)'}</b>${r.flipped?' <span class="pill flip">역전</span>':''}</td>
       <td>${money(r.price)}${(r.tax>0||r.ship>0||r.coupon>0)?`<div class="tag">정가 ${money(r.list)}${r.coupon>0?` −쿠폰 ${money(r.coupon)}`:''}${r.tax>0?` +세금 ${money(r.tax)}`:''}${r.ship>0?` +배송 ${money(r.ship)}`:''}</div>`:''}</td>
-      <td>${r.best.c.short} <span class="pill ${TYPE[r.best.type].cls}">${TYPE[r.best.type].label}</span></td>
+      <td>${bestCardLabel(r)}</td>
       <td class="r">${money(r.cashBack)}${route}</td>
       <td class="r">${r.ptsVal>0?('<span class="muted">'+money(r.ptsVal)+'</span>'):'<span class="tag">—</span>'}</td>
       <td class="r"><b>${money(r.netCash)}</b></td>`;
@@ -1194,6 +1200,7 @@ function recompute(){
   if(ranked.length===0){ fc.innerHTML='판매처에 가격을 넣으면 비교가 시작돼.'; }
   else {
     const w=ranked[0];
+    const noCard=(w.best.c.id===NO_CARD.id);
     const ptsN=Math.round(w.price*w.best.mult).toLocaleString();
     const cardDetail = w.best.type==='cash' ? `${fmtMult(w.best.mult)}% 캐시백` : `${fmtMult(w.best.mult)}배 적립 = ${ptsN} 포인트 × ${w.best.cv}¢`;
     const bestNote = w.best.note ? `<p class="cashnote" style="color:var(--warn)">📌 <b>이 카드 적립 조건 확인:</b> ${w.best.note}</p>` : '';
@@ -1203,16 +1210,19 @@ function recompute(){
     const edgePct=(b0&&b0.price>0) ? (edge/b0.price*100) : 0;
     let diff='';
     if(ranked.length>1){ const gap=ranked[1].net-w.net; diff=`<div class="tag" style="margin-top:6px">2위 ${ranked[1].sc.store||'?'}보다 <b>${money(gap)}</b> 유리</div>`; }
+    // 결론 한 줄 — 카드를 안 골랐어도 "어디서 · 어느 링크로"는 그대로 답이 된다
+    const routeTxt = w.portalVal>0
+      ? `<b>${w.sc.portalName||'포털'}</b> 링크로 들어가서 <b>${w.sc.store||'?'}</b>에서 구매`
+      : `<b>${w.sc.store||'?'}</b>에서 바로 구매`;
     fc.innerHTML=
       `<div style="font-size:15px"><span class="big">${w.sc.store||'?'}</span> 에서 이렇게 사면:</div>`+
       `<div class="receipt">`+
       `<div class="line"><span class="lab">상품 가격</span><span>${money(w.list)}</span></div>`+
       (w.coupon>0?`<div class="line"><span class="lab">🏷️ 쿠폰·프로모 할인</span><span class="minus">−${money(w.coupon)}</span></div>`:``)+
-      (w.tax>0?`<div class="line"><span class="lab">＋ 판매세 <span class="tag">${taxPct}%</span></span><span>+${money(w.tax)}</span></div>`:``)+
       (w.ship>0?`<div class="line"><span class="lab">＋ 배송비</span><span>+${money(w.ship)}</span></div>`:``)+
-      ((w.tax>0||w.ship>0||w.coupon>0)?`<div class="line"><span class="lab"><b>카드에 청구되는 금액</b> <span class="tag">— 적립·순비용은 이 금액 기준</span></span><span><b>${money(w.price)}</b></span></div>`:``)+
+      ((w.ship>0||w.coupon>0)?`<div class="line"><span class="lab"><b>실제 결제 금액</b></span><span><b>${money(w.price)}</b></span></div>`:``)+
       (w.best.offer>0?`<div class="line"><span class="lab">🎁 이 카드의 ${w.sc.store||''} 오퍼 <span class="tag">statement credit — 청구서에서 차감</span></span><span class="minus">−${money(w.best.offer)}</span></div>`:``)+
-      (w.best.type==='cash'?`<div class="line"><span class="lab">💳 <b>${w.best.c.name}</b> 로 결제 <span class="tag">${cardDetail}</span></span><span class="minus">−${money(w.best.val)}</span></div>`:``)+
+      (!noCard&&w.best.type==='cash'?`<div class="line"><span class="lab">💳 <b>${w.best.c.name}</b> 로 결제 <span class="tag">${cardDetail}</span></span><span class="minus">−${money(w.best.val)}</span></div>`:``)+
       (w.portalVal>0?`<div class="line"><span class="lab">🔗 <b>${w.sc.portalName||'포털'}</b> 링크로 들어가서 <span class="tag">캐시백 ${w.sc.portalPct}%</span></span><span class="minus">−${money(w.portalVal)}<span class="pending">&nbsp;*</span></span></div>`:``)+
       // 현금 확정분과 포인트 반영분을 같은 급으로 — 포인트가 있으면 그쪽이 최종
       `<div class="line ${w.ptsVal>0?'subtotal':'total'}"><span>실제 부담 <span class="tag">현금 기준</span></span><span>${money(w.netCash)}</span></div>`+
@@ -1220,18 +1230,25 @@ function recompute(){
       (w.ptsVal>0?`<div class="line total"><span>포인트까지 반영 <span class="tag">최종</span></span><span>${money(w.net)}</span></div>`:``)+
       `</div>`+
       (w.portalVal>0?`<p class="cashnote">* 포털 캐시백은 <b>예정</b>이야 — 보통 30~90일 뒤 지급되고, 링크 경유가 안 잡히거나 반품하면 못 받아.</p>`:``)+
-      `<div class="badgerow">`+
+      `<div class="savebadge">✅ ${routeTxt}${noCard?'':` · <b>${w.best.c.name}</b> 로 결제`}`+
+        `<small>${money(w.price)} 결제 → 실제 부담 ${money(w.netCash)}${w.ptsVal>0?` · 포인트 ${money(w.ptsVal)} 상당 별도(추정)`:''}</small></div>`+
+      diff+
+      // 카드 미등록이면 "얼마나 더 아낄 수 있는지"를 보여주는 게 등록 유인이다
+      (noCard?`<p class="cashnote" style="color:var(--warn)">💳 <b>카드를 등록하면 여기서 더 아낄 수 있어</b> — 예를 들어 2% 캐시백 카드면 ${money(w.price*0.02)} 추가. 위 <b>👛 내 카드</b>에서 고르면 이 계산에 바로 합쳐져. (안 골라도 위 결론은 그대로 유효해)</p>`:
+        `<div class="badgerow">`+
         `<span class="edgebadge${edge<0.005?' zero':''}">🎯 이 계산기로 추가 확보 ${money(Math.max(0,edge))}<small>${edge<0.005?'그냥 사도 결과가 같음':`그냥 샀을 때 대비 (${edgePct.toFixed(1)}%)`}</small></span>`+
         `<span class="basebadge">💳 카드 기본 적립 ${money(b0?b0.price-b0.baselineNet:0)}<small>어차피 받는 돈 — 절약 아님</small></span>`+
-      `</div>`+
-      diff+
+        `</div>`)+
       (w.flipped?`<div class="tag" style="margin-top:4px">※ 오퍼 덕분에 ${w.best.c.short}가 평소 1위를 제침</div>`:``)+
       bestNote+
-      ((taxPct>0||w.ship>0||w.coupon>0)?``:`<p class="cashnote" style="color:var(--warn)">⚠️ <b>판매세·배송비 미입력</b> — 순위가 뒤집힐 수 있어. 1번의 판매세(%)와 판매처별 배송비를 채워줘.</p>`)+
       `<details style="margin-top:8px"><summary>이 계산에 안 들어간 것</summary>`+
-      `<p class="cashnote">반품비·조립비, 그리고 <b>포인트를 실제로 쓸 수 있는지</b>는 계산 밖이야. `+
-      `그리고 잊지 말 것 — <b>가장 큰 절약은 이 $ 차이가 아니라 "안 사는 것 / 더 싼 걸 사는 것"</b>이야.</p></details>`;
+      `<p class="cashnote"><b>판매세</b>(주마다 0~10%)와 반품비·조립비는 계산에 없어. 판매세는 어느 판매처든 비슷하게 붙어서 순위를 잘 안 바꾸지만, 면세 주로 배송되는 경우엔 차이가 나. `+
+      `그리고 <b>포인트를 실제로 쓸 수 있는지</b>도 계산 밖이야.<br>`+
+      `잊지 말 것 — <b>가장 큰 절약은 이 $ 차이가 아니라 "안 사는 것 / 더 싼 걸 사는 것"</b>이야.</p></details>`;
     document.getElementById('detailStore').textContent = '· '+(w.sc.store||'')+' 기준 · '+CATNAME[cat];
+    // 카드 상세 비교표는 지갑이 있을 때만 의미가 있다
+    const detailCard=document.getElementById('cardDetailCard');
+    if(detailCard) detailCard.style.display = noCard ? 'none' : '';
     const tbody=document.getElementById('cardbody'); tbody.innerHTML="";
     w.rows.forEach((r,i)=>{
       const t=TYPE[r.type]; const ptsR=Math.round(w.price*r.mult).toLocaleString();
@@ -1447,9 +1464,47 @@ function renderRefBox(){
 }
 
 // ===== 붙여넣기 파싱 =====
+// URL 경로 슬러그에서 상품명 추정 (예: /p/adidas-kids-purechill-shoes-123 → "Adidas Kids Purechill Shoes")
+function nameFromUrl(u){
+  try{
+    const segs=new URL(u).pathname.split('/').filter(s=>(s.match(/-/g)||[]).length>=2);
+    if(!segs.length) return null;
+    const words=segs.sort((a,b)=>b.length-a.length)[0].split(/[-_]+/)
+      .filter(w=>w && w.length<16 && !(/\d/.test(w)&&w.length>5));
+    return words.length>=2 ? words.join(' ').replace(/\b\w/g,c=>c.toUpperCase()).slice(0,80) : null;
+  }catch(e){ return null; }
+}
+// 여러 URL을 한 번에 붙여넣으면 판매처를 자동 생성하고 가격을 동시에 조회한다.
+// "어디서 사면 제일 싼가"가 이 도구의 본 목적이라, 판매처를 하나씩 손으로 추가하게 두면 안 된다.
+function fillMultiUrls(urls, msg){
+  urls=urls.slice(0,7);   // 딥링크 시나리오 상한(s0~s6)과 맞춤
+  const metas=urls.map(u=>{
+    let domain=''; try{ domain=new URL(u).hostname.replace(/^www\./,''); }catch(e){}
+    const hit=domain?matchStore(domain):null;
+    return {u, domain, store:hit?hit.name:prettyDomain(domain), cat:hit?hit.cat:null};
+  });
+  scenarios=metas.map(m=>blankScenario({store:m.store, domain:m.domain}));
+  const withCat=metas.find(m=>m.cat); if(withCat) document.getElementById('cat').value=withCat.cat;
+  const nm=nameFromUrl(metas[0].u); if(nm) document.getElementById('pname').value=nm;
+  buildAll(); recompute();
+  msg.innerHTML=`<b style="color:var(--accent)">✅ 판매처 ${scenarios.length}곳 만들었어</b> — 가격 조회 중…`;
+  let done=0, ok=0;
+  scenarios.forEach((sc,i)=>{
+    tryFetchPrice(metas[i].u, sc, document.getElementById('shint-'+sc.id))
+      .then(p=>{ if(p>0) ok++; })
+      .catch(()=>{})
+      .then(()=>{ if(++done===scenarios.length){
+        msg.innerHTML=`<b style="color:var(--accent)">✅ 판매처 ${scenarios.length}곳</b> · 가격 자동조회 <b>${ok}곳</b> 성공`+
+          (ok<scenarios.length?` <span style="color:var(--warn)">— 나머지는 사이트가 막아서 직접 넣어줘</span>`:``);
+        recompute();
+      } });
+  });
+}
 function parsePaste(){
   const raw=(v('paste')||"").trim(); const msg=document.getElementById('pasteMsg');
   if(!raw){ msg.textContent="붙여넣은 내용이 없어."; return; }
+  const allUrls=[...new Set(raw.match(/https?:\/\/[^\s]+/gi)||[])];
+  if(allUrls.length>1){ fillMultiUrls(allUrls, msg); return; }
   const sc=scenarios[0]; const el=document.getElementById('scard-'+sc.id); const filled=[];
   const um=raw.match(/https?:\/\/[^\s]+/i);
   if(um){ let domain=""; try{ domain=new URL(um[0]).hostname.replace(/^www\./,""); }catch(e){}
