@@ -419,8 +419,9 @@
     "listed": true
    },
    "tcb": {
-    "pct": null,
-    "listed": false
+    "pct": 2,
+    "listed": true,
+    "upTo": true
    }
   },
   "footlocker": {
@@ -575,8 +576,9 @@
     "listed": true
    },
    "tcb": {
-    "pct": null,
-    "listed": false
+    "pct": 4,
+    "listed": true,
+    "upTo": true
    }
   },
   "newegg": {

@@ -51,7 +51,10 @@ const STORES = [
   ['jcpenney',           'jcpenney',           'jcpenney'],
   ['saks',               'saksfifthavenue',    'saks-fifth-avenue'],
   ['zappos',             'zappos',             'zappos'],
-  ['dsw',                'dsw',                null],
+  // ⚠️ dsw·lenovo 는 처음에 'dsw'/'lenovo' 로 넣었다가 404 를 보고 "TCB 미등재"로 단정했는데,
+//    실제로는 슬러그가 -us 형태였다(scripts/check-links.mjs 전수 검증에서 드러남).
+//    **미등재 판정을 내리기 전에 슬러그부터 의심할 것.**
+  ['dsw',                'dsw',                'dsw-us'],
   ['footlocker',         'footlocker',         'foot-locker'],
   ['newbalance',         'newbalance',         'new-balance'],
   ['underarmour',        'underarmour',        'under-armour'],
@@ -62,7 +65,7 @@ const STORES = [
   ['rei',                'rei',                null],
   ['samsung',            'samsung',            'samsung'],
   ['hp',                 'hp',                 'hp'],
-  ['lenovo',             'lenovo',             null],
+  ['lenovo',             'lenovo',             'lenovo-us'],
   ['newegg',             'newegg',             'newegg'],
   ['gamestop',           'gamestop',           null],
   ['dyson',              'dyson',              'dyson'],
