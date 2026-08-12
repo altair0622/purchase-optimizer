@@ -361,22 +361,41 @@ window.__fuzz = (function () {
         document.getElementById('pname').value = G.chance(0.5) ? 'Test Item ' + i : '';
         buildAll();
         recompute();
+        // ⚠️ 여기만 의도적으로 innerText다(다른 곳은 전부 textContent). 결론은 이 도구의 답이고
+        //    **클릭 없이 보여야 한다**는 제품 불변식이라, 누가 접거나 숨기면 곧바로
+        //    "아무것도 렌더되지 않음"으로 시끄럽게 실패하는 게 맞다. 접힘 대조군에서 25/25로
+        //    확인했다. textContent로 "고치면" 이 감시가 사라지니 바꾸지 말 것.
         const concl = document.getElementById('finalConclusion').innerText;
+        // ⚠️ compareBody는 접힌 <details>(#whyPanel) 안에 있다(v0.27 UI). innerText는 접힌 내용에
+        //    빈 문자열을 주므로 검사가 통째로 헛돈다 — 접힘 상태와 무관한 textContent로 읽는다.
         const txt = concl + '\n' +
-                    document.getElementById('compareBody').innerText + '\n' +
-                    document.getElementById('cardbody').innerText;
+                    document.getElementById('compareBody').textContent + '\n' +
+                    document.getElementById('cardbody').textContent;
         if (DIRT.test(txt)) fails.push({ seed, i, mode: 'product', why: '화면에 깨진 값', hit: (txt.match(DIRT) || [])[0], excerpt: txt.slice(0, 400), p });
         // 실제로 결론이 그려졌는가 + 비교표 행 수가 가격 있는 시나리오 수와 맞는가
         const bad = [];
-        // ⚠️ 기준은 정가가 아니라 **청구액**이다. recompute() 는 `price>0`(=소계+세금+배송)로
-        //    필터하므로, 쿠폰이 정가보다 크면 청구액 0 → 그 판매처는 비교표에서 빠진다.
-        //    (정가로 셌다가 오탐 1건이 났다. 참고로 "쿠폰 ≥ 정가라 공짜인 판매처가 비교표에서
-        //     조용히 사라지는 것" 자체는 제품 쪽 판단 거리로 사용자에게 보고했다.)
-        const priced = scenarios.filter(s => scenarioResult(s, p.cat).price > 0).length;
+        // ⚠️ 기준이 두 번 바뀐 자리다. 처음엔 정가로 셌다가 오탐이 났고, 청구액(소계+세금+배송)
+        //    으로 고쳤더니 이번엔 **쿠폰 ≥ 정가로 공짜가 된 판매처가 비교에서 빠지는 제품 버그**를
+        //    하니스가 정상으로 인정하고 있었다. 그 버그를 고치면서(2026-08-12) recompute() 의
+        //    기준이 `hasInput`(정가나 배송비를 입력했는가)이 됐으므로 여기도 같은 기준으로 센다.
+        //    ⚠️ 기대값은 앱의 hasInput 을 읽어오지 않고 **여기서 독립적으로 다시 센다**.
+        //       앱이 내주는 값을 그대로 쓰면 앱이 틀려도 같이 틀려서 검사가 동어반복이 된다
+        //       (실제로 처음엔 그렇게 짰다가, 앱을 망가뜨려도 실패하지 않는 걸 보고 고쳤다).
+        const priced = scenarios.filter(s => (+s.price || 0) > 0 || (+s.ship || 0) > 0).length;
         if (priced > 0) {
           checkRendered('상품 결론', concl, ['실제 부담'], bad);
           const rowN = document.querySelectorAll('#compareBody tr').length;
           if (rowN !== priced) bad.push(`비교표 행 수 ${rowN} ≠ 가격 있는 판매처 ${priced}`);
+          // 카드 상세표(섹션 «다른 카드로 사면?»)도 검사한다. 음성 대조군에서 이 표를 통째로
+          // 비우거나 접힌 <details> 안으로 옮겨도 **0건으로 침묵**했다 — DIRT만 걸려 있었고
+          // 빈 문자열엔 오염이 없기 때문. 지갑이 비면 recompute가 이 카드를 숨기므로 그때는 건너뛴다.
+          // textContent로 읽는 이유는 compareBody와 같다(접히면 innerText가 ''이 된다).
+          if (p.wallet.length) {
+            const cb = document.getElementById('cardbody');
+            checkRendered('카드 상세표', cb.textContent, [], bad);
+            const cardN = cb.querySelectorAll('tr').length;
+            if (cardN !== p.wallet.length) bad.push(`카드 상세표 행 수 ${cardN} ≠ 지갑 카드 ${p.wallet.length}`);
+          }
         }
         if (bad.length) fails.push({ seed, i, mode: 'product', why: bad.join(' | '), excerpt: concl.slice(0, 200), p });
 
@@ -438,7 +457,8 @@ window.__fuzz = (function () {
       if (!res.length) continue;
       const truth = res.slice().sort((a, b) => a.net - b.net)[0];
       const firstRow = document.querySelector('#compareBody tr');
-      const shown = firstRow ? firstRow.querySelector('td b').innerText.replace(/^\d+\.\s*/, '') : null;
+      // textContent — 비교표는 접힌 <details> 안이라 innerText면 항상 ''이 된다(위 주석 참조)
+      const shown = firstRow ? firstRow.querySelector('td b').textContent.replace(/^\d+\.\s*/, '') : null;
       const badge = document.querySelector('#finalConclusion .savebadge');
 
       // 동점이면 '검사 생략'이 아니라 **동점 그룹 안에 있는가**로 본다.

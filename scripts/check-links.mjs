@@ -48,7 +48,12 @@ function loadStores() {
     const k = o.key || normStore(name);
     if (out[k]) continue;                                  // 계산기와 동일한 중복 가드
     const s = slug(name);
-    out[k] = { key: k, name, cat, cbm: o.cbm || s, rk: o.rk || s, tcb: o.tcb || s, cap: (o.cap || k) + '.com' };
+    // ⚠️ 계산기와 **똑같은 규칙**이어야 한다. 처음엔 `o.rk || s` 로 짰다가 두 군데서 틀렸다:
+    //   ① 명시적 null(= 그 포털에 미등재라고 확인해둔 것)을 슬러그로 되살려서, 링크를 만들지도
+    //      않는 곳을 계속 '실패'로 셌다.
+    //   ② cap 에 `.com` 을 덧붙여 bedbathandbeyond.com.com 을 만들어 8건을 허위 실패로 냈다.
+    const pick = (f) => (f in o) ? o[f] : s;
+    out[k] = { key: k, name, cat, cbm: pick('cbm'), rk: pick('rk'), tcb: pick('tcb'), cap: o.cap || (k + '.com') };
   }
   return Object.values(out);
 }
@@ -160,8 +165,14 @@ for (const t of stores) {
   const row = { key: t.key, name: t.name };
   for (const k of keys) {
     const p = PORTALS[k];
+    // 슬러그가 null = "그 포털에 없다"고 이미 확인해 링크를 만들지 않는 곳 → 요청하지 않는다.
+    // 이건 실패가 아니라 선언이다. (요청을 보내면 당연히 실패하고, 그걸 세면 영원히 안 줄어든다.)
+    if (t[k] == null) { row[k] = { slug: null, url: null, ok: null, declared: true, why: '미등재로 선언됨', title: '' }; continue; }
     const url = p.url(t);
-    const v = p.judge(await head(url), t);
+    let v = p.judge(await head(url), t);
+    // 한 번 실패했다고 바로 실패로 적지 않는다 — Rakuten 은 정상 상점에도 간헐적으로 홈을 준다
+    // (Kohl's 가 3회 중 1회 그랬다). 오탐 하나가 CI 를 빨갛게 만들면 아무도 안 보게 된다.
+    if (v.ok === false) { await sleep(1500); v = p.judge(await head(url), t); }
     row[k] = { slug: t[k], url, ...v };
     await sleep(GAP_MS);
   }
@@ -169,8 +180,10 @@ for (const t of stores) {
   done++;
   const bad = keys.filter(k => row[k].ok === false);
   const warn = keys.filter(k => row[k].ok && row[k].why);
+  const decl = keys.filter(k => row[k].declared);
   const mark = bad.length ? '❌ ' + bad.map(k => PORTALS[k].label + '(' + row[k].why + ')').join(', ')
             : warn.length ? '⚠️  ' + warn.map(k => PORTALS[k].label).join(', ')
+            : decl.length ? '✅ (미등재 선언 ' + decl.length + ')'
             : '✅';
   console.log(`[${String(done).padStart(3)}/${stores.length}] ${t.name.padEnd(24)} ${mark}`);
 }
@@ -181,9 +194,10 @@ const summary = {};
 for (const k of keys) {
   const ok = results.filter(r => r[k].ok === true).length;
   const bad = results.filter(r => r[k].ok === false);
-  const err = results.filter(r => r[k].ok === null).length;
-  summary[k] = { ok, fail: bad.length, err };
-  console.log(`${PORTALS[k].label.padEnd(16)} 정상 ${String(ok).padStart(3)} · 실패 ${String(bad.length).padStart(3)} · 요청오류 ${err}`);
+  const declared = results.filter(r => r[k].declared).length;
+  const err = results.filter(r => r[k].ok === null && !r[k].declared).length;
+  summary[k] = { ok, fail: bad.length, declared, err };
+  console.log(`${PORTALS[k].label.padEnd(16)} 정상 ${String(ok).padStart(3)} · 실패 ${String(bad.length).padStart(3)} · 미등재선언 ${String(declared).padStart(3)} · 요청오류 ${err}`);
 }
 console.log('\n===== 실패 목록 =====');
 let failCount = 0;
