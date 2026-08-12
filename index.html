@@ -712,12 +712,12 @@ const STORE_LIST=[
   ["Michaels","general"], ["Joann","general"],
   // 대형마트·클럽·백화점
   ["Target","general"], ["Walmart","general"], ["Costco","general"],
-  ["Sam's Club","general"], ["BJ's Wholesale","general",{key:"bjs"}],
+  ["Sam's Club","general",{rk:"samsclub"}], ["BJ's Wholesale","general",{key:"bjs"}],
   ["Macy's","general"], ["Kohl's","general"], ["JCPenney","general"],
   ["Nordstrom Rack","general"], ["Nordstrom","general"],
-  ["Bloomingdale's","general"], ["Saks Fifth Avenue","general",{key:"saks"}], ["Neiman Marcus","general"],
+  ["Bloomingdale's","general"], ["Saks Fifth Avenue","general",{key:"saks",rk:"saksfifthavenue"}], ["Neiman Marcus","general"],
   // 패션·의류·잡화
-  ["Gap","general"], ["Old Navy","general"], ["Banana Republic","general"], ["J.Crew","general"],
+  ["Gap","general"], ["Old Navy","general",{rk:"oldnavy"}], ["Banana Republic","general"], ["J.Crew","general"],
   ["Abercrombie & Fitch","general",{key:"abercrombie"}], ["American Eagle","general"],
   ["Urban Outfitters","general"], ["Anthropologie","general"], ["Free People","general"],
   ["H&M","general",{key:"hm"}], ["Zara","general"], ["Uniqlo","general"],
@@ -726,12 +726,12 @@ const STORE_LIST=[
   ["Coach","general"], ["Kate Spade","general"], ["Michael Kors","general"], ["Tory Burch","general"],
   ["Victoria's Secret","general"],
   // 신발·스포츠·아웃도어
-  ["Nike","online"], ["adidas","online"], ["New Balance","general"], ["Under Armour","general"],
-  ["Puma","general"], ["Reebok","general"], ["Foot Locker","general"], ["Finish Line","general"],
+  ["Nike","online"], ["adidas","online"], ["New Balance","general",{rk:"newbalance"}], ["Under Armour","general",{rk:"underarmour"}],
+  ["Puma","general"], ["Reebok","general"], ["Foot Locker","general",{rk:"footlocker"}], ["Finish Line","general"],
   ["DSW","general"], ["Zappos","online"], ["Steve Madden","general"], ["Crocs","online"],
-  ["Athleta","general"], ["lululemon","general"], ["Columbia","general"],
-  ["The North Face","general",{key:"northface"}], ["Patagonia","general"],
-  ["Dick's Sporting Goods","general"], ["REI","general"], ["Fanatics","general"],
+  ["Athleta","general"], ["lululemon","general"], ["Columbia","general",{rk:"columbiasportswear",tcb:"columbia-sportswear"}],
+  ["The North Face","general",{key:"northface",rk:"thenorthface"}], ["Patagonia","general"],
+  ["Dick's Sporting Goods","general",{rk:"dickssportinggoods"}], ["REI","general"], ["Fanatics","general"],
   // 전자·테크
   ["Amazon","online",{rk:"amazon.com"}], ["Best Buy","online",{rk:"bestbuy"}], ["Apple","online"],
   ["Samsung","online"], ["Dell","online"], ["HP","online",{key:"hp"}], ["Lenovo","online"],
@@ -739,10 +739,10 @@ const STORE_LIST=[
   ["B&H Photo","online",{key:"bhphoto"}], ["Bose","online"], ["Logitech","online"],
   ["Garmin","online"], ["Dyson","online"],
   // 뷰티·약국·헬스
-  ["Sephora","general"], ["Ulta Beauty","general",{key:"ulta",cbm:"ulta",tcb:"ulta",rk:"ultabeauty"}],
-  ["Bath & Body Works","general",{key:"bathandbody"}], ["Victoria's Secret","general"],
+  ["Sephora","general"], ["Ulta Beauty","general",{key:"ulta",cbm:"ulta",tcb:"ulta-beauty",rk:"ultabeauty"}],
+  ["Bath & Body Works","general",{key:"bathandbody",rk:"bathandbodyworks"}], ["Victoria's Secret","general"],
   ["GNC","general"], ["Vitamin Shoppe","general"], ["iHerb","online"],
-  ["Walgreens","drugstore"], ["CVS","drugstore"], ["Rite Aid","drugstore"],
+  ["Walgreens","drugstore"], ["CVS","drugstore",{tcb:"cvs-pharmacy"}], ["Rite Aid","drugstore"],
   // 키즈·완구·펫
   ["Carter's","general"], ["LEGO","online"],
   ["Chewy","online"], ["Petco","general"], ["PetSmart","general"],
