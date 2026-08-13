@@ -17,73 +17,33 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 const OUT = new URL('../rates.json', import.meta.url);
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
-// key = 계산기(purchase-optimizer)의 판매처 키, rk = rakuten.com/shop/<slug>, tcb = topcashback.com/<slug>/ (null=미등재)
-const STORES = [
-  ['crateandbarrel', 'crateandbarrel', 'crate-and-barrel'],
-  ['cb2',            'cb2',            null],
-  ['westelm',        'west-elm',       null],
-  ['potterybarn',    'potterybarn',    null],
-  ['wayfair',        'wayfair',        'wayfair'],
-  ['ikea',           'ikea',           'ikea'],
-  ['homedepot',      'homedepot',      'home-depot'],
-  ['lowes',          'lowes',          'lowes'],
-  ['target',         'target',         'target'],
-  ['walmart',        'walmart',        'walmart'],
-  ['macys',          'macys',          'macys'],
-  ['amazon',         'amazon.com',     null],
-  ['bestbuy',        'bestbuy',        'best-buy'],
-  ['apple',          'apple',          'apple'],
-  ['nike',           'nike',           'nike'],
-  ['crocs',          'crocs',          'crocs'],
-  ['costco',         'costco',         'costco'],
-  ['lululemon',      'lululemon',      'lululemon'],
-  ['sephora',        'sephora',        'sephora'],
-  ['nordstrom',      'nordstrom',      'nordstrom'],
-  ['ulta',           'ultabeauty',     'ulta-beauty'],
-  // ---- 2026-08-12 확대(21 → 57). 슬러그는 규칙이 없어 전부 실제로 찔러 확인한 값이다.
-  //      (Rakuten은 west-elm처럼 대시를 쓰기도 하고 potterybarn처럼 붙이기도 한다.)
-  //      null = 그 포털에 미등재로 확인됨 → 요청 자체를 안 보낸다.
-  //      Dell·B&H Photo는 양쪽 다 상점 페이지를 못 찾아 제외.
-  ['adidas',             'adidas',             'adidas'],
-  ['gap',                'gap',                'gap'],
-  ['oldnavy',            'oldnavy',            'old-navy'],
-  ['kohls',              'kohls',              'kohls'],
-  ['jcpenney',           'jcpenney',           'jcpenney'],
-  ['saks',               'saksfifthavenue',    'saks-fifth-avenue'],
-  ['zappos',             'zappos',             'zappos'],
-  // ⚠️ dsw·lenovo 는 처음에 'dsw'/'lenovo' 로 넣었다가 404 를 보고 "TCB 미등재"로 단정했는데,
-//    실제로는 슬러그가 -us 형태였다(scripts/check-links.mjs 전수 검증에서 드러남).
-//    **미등재 판정을 내리기 전에 슬러그부터 의심할 것.**
-  ['dsw',                'dsw',                'dsw-us'],
-  ['footlocker',         'footlocker',         'foot-locker'],
-  ['newbalance',         'newbalance',         'new-balance'],
-  ['underarmour',        'underarmour',        'under-armour'],
-  ['northface',          'thenorthface',       'the-north-face'],
-  ['patagonia',          'patagonia',          null],
-  ['columbia',           'columbiasportswear', 'columbia-sportswear'],
-  ['dickssportinggoods', 'dickssportinggoods', 'dicks-sporting-goods'],
-  ['rei',                'rei',                null],
-  ['samsung',            'samsung',            'samsung'],
-  ['hp',                 'hp',                 'hp'],
-  ['lenovo',             'lenovo',             'lenovo-us'],
-  ['newegg',             'newegg',             'newegg'],
-  ['gamestop',           'gamestop',           null],
-  ['dyson',              'dyson',              'dyson'],
-  ['chewy',              'chewy',              'chewy'],
-  ['petco',              'petco',              'petco'],
-  ['petsmart',           'petsmart',           'petsmart'],
-  ['ebay',               'ebay',               'ebay'],
-  ['etsy',               'etsy',               null],
-  ['staples',            'staples',            'staples'],
-  ['walgreens',          'walgreens',          'walgreens'],
-  ['cvs',                'cvs',                'cvs-pharmacy'],
-  ['bathandbody',        'bathandbodyworks',   'bath-and-body-works'],
-  ['lego',               'lego',               'lego'],
-  ['athleta',            'athleta',            'athleta'],
-  ['overstock',          'overstock',          'overstock'],
-  ['samsclub',           'samsclub',           'sams-club'],
-  ['carters',            'carters',            'carters'],
-];
+// ⚠️ 판매처 목록은 **계산기의 STORE_LIST 하나만** 본다.
+// 예전엔 여기에 슬러그 표를 따로 들고 있었는데, 그 이중 관리가 곧바로 사고로 이어졌다:
+// dsw·lenovo 를 'TopCashback 미등재'로 적어두고 몇 주를 보냈는데 실제로는 슬러그가
+// -us 형태였을 뿐이었다(dsw-us ≤2% · lenovo-us ≤4%). 같은 사실을 두 군데 적으면
+// 반드시 갈라진다 → index.html 의 STORE_LIST 를 그대로 파싱해서 쓴다.
+// 슬러그는 scripts/check-links.mjs 로 실측 검증된 값이고, 명시적 null = 그 포털 미등재다.
+const SRC = new URL('../index.html', import.meta.url);
+const slug = s => (s || '').toLowerCase().replace(/&/g, 'and').replace(/'/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const normStore = s => (s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+
+function loadStores() {
+  const html = readFileSync(SRC, 'utf8');
+  const m = html.match(/const STORE_LIST\s*=\s*(\[[\s\S]*?\n\];)/);
+  if (!m) throw new Error('index.html 에서 STORE_LIST 를 못 찾았어 — 상수 이름이 바뀌었나?');
+  const seen = new Set(), out = [];
+  for (const e of eval(m[1].replace(/;\s*$/, ''))) {
+    const [name, , o = {}] = e;
+    const k = o.key || normStore(name);
+    if (seen.has(k)) continue;                       // 계산기와 동일한 중복 가드
+    seen.add(k);
+    const d = slug(name);
+    const pick = f => (f in o) ? o[f] : d;           // null 이면 null 그대로 (미등재)
+    out.push([k, pick('rk'), pick('tcb')]);
+  }
+  return out;
+}
+const STORES = loadStores();
 
 function parseTitle(title) {
   if (!title) return null;
@@ -143,7 +103,9 @@ const out = {
 const fmt = r => r.flat != null ? '$' + r.flat : (r.upTo ? '≤' : '') + r.pct + '%';
 let ok = 0, failed = [];
 for (const [key, rkSlug, tcbSlug] of STORES) {
-  const rk = parseTitle(await fetchTitle(rkSlug));
+  // 슬러그가 null = 그 포털에 없다고 실측한 곳 → 요청하지 않고 '미등재'로 기록한다.
+  // (요청해봐야 실패하고, 그걸 '실패'로 세면 영원히 줄지 않는다. shop/null 을 찌르지도 않는다.)
+  const rk = rkSlug ? parseTitle(await fetchTitle(rkSlug)) : { pct: null, listed: false };
   const tcb = tcbSlug ? await fetchTcb(tcbSlug) : { pct: null, listed: false };
   const prevStore = (prev.stores && prev.stores[key]) || {};
   out.stores[key] = {
@@ -151,7 +113,8 @@ for (const [key, rkSlug, tcbSlug] of STORES) {
     cap: prevStore.cap || { pct: null, listed: true },              // CapOne Shopping은 이전 값 그대로
     tcb: tcb || prevStore.tcb || { pct: null, listed: true },
   };
-  if (rk || tcb) { ok++; console.log(`  ${key}: RK ${rk ? fmt(rk) : 'FAIL'} · TCB ${tcb ? (tcb.listed === false ? '미등재' : fmt(tcb)) : 'FAIL'}`); }
+  const show = r => !r ? 'FAIL' : (r.listed === false ? '미등재' : fmt(r));
+  if (rk || tcb) { ok++; console.log(`  ${key}: RK ${show(rk)} · TCB ${show(tcb)}`); }
   else { failed.push(key); console.log(`  ${key}: 둘 다 FAILED — 이전 값 유지`); }
   await new Promise(r => setTimeout(r, 500));
 }

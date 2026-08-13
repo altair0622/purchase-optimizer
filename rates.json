@@ -90,6 +90,48 @@
     "upTo": true
    }
   },
+  "overstock": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 1,
+    "listed": true
+   }
+  },
+  "bedbath": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 1,
+    "listed": true
+   }
+  },
+  "ashleyfurniture": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 1,
+    "listed": true
+   }
+  },
   "homedepot": {
    "rk": {
     "pct": 0,
@@ -118,6 +160,49 @@
     "pct": 15,
     "listed": true,
     "upTo": true
+   }
+  },
+  "acehardware": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true,
+    "upTo": true
+   }
+  },
+  "michaels": {
+   "rk": {
+    "pct": null,
+    "listed": false
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 1,
+    "listed": true
+   }
+  },
+  "joann": {
+   "rk": {
+    "pct": null,
+    "listed": false
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
    }
   },
   "target": {
@@ -149,6 +234,49 @@
     "upTo": true
    }
   },
+  "costco": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": 0,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "samsclub": {
+   "rk": {
+    "pct": 8,
+    "listed": true,
+    "upTo": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "bjs": {
+   "rk": {
+    "pct": null,
+    "listed": false
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
+   }
+  },
   "macys": {
    "rk": {
     "pct": 6,
@@ -164,193 +292,6 @@
     "pct": 12,
     "listed": true,
     "upTo": true
-   }
-  },
-  "amazon": {
-   "rk": {
-    "pct": null,
-    "flat": 5,
-    "listed": true
-   },
-   "cap": {
-    "pct": 0,
-    "listed": true
-   },
-   "tcb": {
-    "pct": null,
-    "listed": false
-   }
-  },
-  "bestbuy": {
-   "rk": {
-    "pct": 7,
-    "listed": true,
-    "upTo": true
-   },
-   "cap": {
-    "pct": 0.5,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 12,
-    "listed": true
-   }
-  },
-  "apple": {
-   "rk": {
-    "pct": 2,
-    "listed": true
-   },
-   "cap": {
-    "pct": 0.5,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 4,
-    "listed": true,
-    "upTo": true
-   }
-  },
-  "nike": {
-   "rk": {
-    "pct": 8,
-    "listed": true
-   },
-   "cap": {
-    "pct": 2,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 10,
-    "listed": true
-   }
-  },
-  "crocs": {
-   "rk": {
-    "pct": 3,
-    "listed": true
-   },
-   "cap": {
-    "pct": 2,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 0,
-    "listed": true
-   }
-  },
-  "costco": {
-   "rk": {
-    "pct": 0,
-    "listed": true
-   },
-   "cap": {
-    "pct": 0,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 0,
-    "listed": true
-   }
-  },
-  "lululemon": {
-   "rk": {
-    "pct": 0,
-    "listed": true
-   },
-   "cap": {
-    "pct": 1,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 0,
-    "listed": true
-   }
-  },
-  "sephora": {
-   "rk": {
-    "pct": 2,
-    "listed": true
-   },
-   "cap": {
-    "pct": 2,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 4,
-    "listed": true
-   }
-  },
-  "nordstrom": {
-   "rk": {
-    "pct": 2,
-    "listed": true
-   },
-   "cap": {
-    "pct": 0,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 0,
-    "listed": true
-   }
-  },
-  "ulta": {
-   "rk": {
-    "pct": 2,
-    "listed": true
-   },
-   "cap": {
-    "pct": 2,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 4,
-    "listed": true
-   }
-  },
-  "adidas": {
-   "rk": {
-    "pct": 4,
-    "listed": true,
-    "upTo": true
-   },
-   "cap": {
-    "pct": null,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 5,
-    "listed": true,
-    "upTo": true
-   }
-  },
-  "gap": {
-   "rk": {
-    "pct": 2,
-    "listed": true
-   },
-   "cap": {
-    "pct": null,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 4,
-    "listed": true
-   }
-  },
-  "oldnavy": {
-   "rk": {
-    "pct": 2,
-    "listed": true
-   },
-   "cap": {
-    "pct": null,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 4,
-    "listed": true
    }
   },
   "kohls": {
@@ -381,6 +322,48 @@
     "listed": true
    }
   },
+  "nordstromrack": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "nordstrom": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": 0,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "bloomingdales": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true
+   }
+  },
   "saks": {
    "rk": {
     "pct": 2,
@@ -395,9 +378,66 @@
     "listed": true
    }
   },
-  "zappos": {
+  "neimanmarcus": {
    "rk": {
-    "pct": 10,
+    "pct": 15,
+    "listed": true,
+    "upTo": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 2,
+    "listed": true
+   }
+  },
+  "gap": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true
+   }
+  },
+  "oldnavy": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true
+   }
+  },
+  "bananarepublic": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true
+   }
+  },
+  "jcrew": {
+   "rk": {
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -409,10 +449,81 @@
     "listed": true
    }
   },
-  "dsw": {
+  "abercrombie": {
    "rk": {
     "pct": 2,
     "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
+   }
+  },
+  "americaneagle": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 2,
+    "listed": true
+   }
+  },
+  "urbanoutfitters": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "anthropologie": {
+   "rk": {
+    "pct": null,
+    "listed": false
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 12,
+    "listed": true
+   }
+  },
+  "freepeople": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 3,
+    "listed": true,
+    "upTo": true
+   }
+  },
+  "handm": {
+   "rk": {
+    "pct": null,
+    "listed": false
    },
    "cap": {
     "pct": null,
@@ -424,7 +535,21 @@
     "upTo": true
    }
   },
-  "footlocker": {
+  "zara": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
+   }
+  },
+  "uniqlo": {
    "rk": {
     "pct": 2,
     "listed": true
@@ -434,7 +559,191 @@
     "listed": true
    },
    "tcb": {
+    "pct": null,
+    "listed": false
+   }
+  },
+  "asos": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "shein": {
+   "rk": {
+    "pct": 3,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 19,
+    "listed": true,
+    "upTo": true
+   }
+  },
+  "levis": {
+   "rk": {
+    "pct": 5,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 2,
+    "listed": true
+   }
+  },
+  "ralphlauren": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
+   }
+  },
+  "tommyhilfiger": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "calvinklein": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 3,
+    "listed": true
+   }
+  },
+  "coach": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "katespade": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 15,
+    "listed": true
+   }
+  },
+  "michaelkors": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 8,
+    "listed": true
+   }
+  },
+  "toryburch": {
+   "rk": {
+    "pct": 6,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "victoriassecret": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
+   }
+  },
+  "nike": {
+   "rk": {
+    "pct": 8,
+    "listed": true
+   },
+   "cap": {
+    "pct": 2,
+    "listed": true
+   },
+   "tcb": {
     "pct": 10,
+    "listed": true
+   }
+  },
+  "adidas": {
+   "rk": {
+    "pct": 4,
+    "listed": true,
+    "upTo": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 5,
     "listed": true,
     "upTo": true
    }
@@ -467,6 +776,162 @@
     "listed": true
    }
   },
+  "puma": {
+   "rk": {
+    "pct": 3,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "reebok": {
+   "rk": {
+    "pct": 4,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 6,
+    "listed": true
+   }
+  },
+  "footlocker": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 10,
+    "listed": true,
+    "upTo": true
+   }
+  },
+  "finishline": {
+   "rk": {
+    "pct": 3,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 5,
+    "listed": true
+   }
+  },
+  "dsw": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 2,
+    "listed": true,
+    "upTo": true
+   }
+  },
+  "zappos": {
+   "rk": {
+    "pct": 10,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "stevemadden": {
+   "rk": {
+    "pct": 3,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 2,
+    "listed": true
+   }
+  },
+  "crocs": {
+   "rk": {
+    "pct": 3,
+    "listed": true
+   },
+   "cap": {
+    "pct": 2,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "athleta": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true
+   }
+  },
+  "lululemon": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": 1,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "columbia": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true
+   }
+  },
   "northface": {
    "rk": {
     "pct": 2,
@@ -493,20 +958,6 @@
    "tcb": {
     "pct": null,
     "listed": false
-   }
-  },
-  "columbia": {
-   "rk": {
-    "pct": 2,
-    "listed": true
-   },
-   "cap": {
-    "pct": null,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 4,
-    "listed": true
    }
   },
   "dickssportinggoods": {
@@ -537,6 +988,65 @@
     "listed": false
    }
   },
+  "fanatics": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
+   }
+  },
+  "amazon": {
+   "rk": {
+    "pct": null,
+    "flat": 5,
+    "listed": true
+   },
+   "cap": {
+    "pct": 0,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "bestbuy": {
+   "rk": {
+    "pct": 7,
+    "listed": true,
+    "upTo": true
+   },
+   "cap": {
+    "pct": 0.5,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 12,
+    "listed": true
+   }
+  },
+  "apple": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": 0.5,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true,
+    "upTo": true
+   }
+  },
   "samsung": {
    "rk": {
     "pct": 2,
@@ -549,6 +1059,20 @@
    "tcb": {
     "pct": 2,
     "listed": true
+   }
+  },
+  "dell": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
    }
   },
   "hp": {
@@ -581,6 +1105,20 @@
     "upTo": true
    }
   },
+  "microsoft": {
+   "rk": {
+    "pct": null,
+    "listed": false
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
+   }
+  },
   "newegg": {
    "rk": {
     "pct": 1,
@@ -609,6 +1147,76 @@
     "listed": false
    }
   },
+  "adorama": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 3,
+    "listed": true
+   }
+  },
+  "bandhphoto": {
+   "rk": {
+    "pct": null,
+    "listed": false
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
+   }
+  },
+  "bose": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "logitech": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true
+   }
+  },
+  "garmin": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
+   }
+  },
   "dyson": {
    "rk": {
     "pct": 1,
@@ -620,6 +1228,163 @@
    },
    "tcb": {
     "pct": 2,
+    "listed": true
+   }
+  },
+  "sephora": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": 2,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true
+   }
+  },
+  "ulta": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": 2,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true
+   }
+  },
+  "bathandbody": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "gnc": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 6,
+    "listed": true
+   }
+  },
+  "vitaminshoppe": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
+    "listed": true
+   }
+  },
+  "iherb": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 3,
+    "listed": true,
+    "upTo": true
+   }
+  },
+  "walgreens": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true
+   }
+  },
+  "cvs": {
+   "rk": {
+    "pct": 5,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 8,
+    "listed": true,
+    "upTo": true
+   }
+  },
+  "riteaid": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
+   }
+  },
+  "carters": {
+   "rk": {
+    "pct": 4,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 2,
+    "listed": true
+   }
+  },
+  "lego": {
+   "rk": {
+    "pct": 2.5,
+    "listed": true,
+    "upTo": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 3,
     "listed": true
    }
   },
@@ -665,6 +1430,50 @@
     "listed": true
    }
   },
+  "staples": {
+   "rk": {
+    "pct": 4,
+    "listed": true,
+    "upTo": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true
+   }
+  },
+  "officedepot": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true,
+    "upTo": true
+   }
+  },
+  "barnesandnoble": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
+   }
+  },
   "ebay": {
    "rk": {
     "pct": 1,
@@ -694,53 +1503,9 @@
     "listed": false
    }
   },
-  "staples": {
-   "rk": {
-    "pct": 4,
-    "listed": true,
-    "upTo": true
-   },
-   "cap": {
-    "pct": null,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 4,
-    "listed": true
-   }
-  },
-  "walgreens": {
+  "aliexpress": {
    "rk": {
     "pct": 2,
-    "listed": true
-   },
-   "cap": {
-    "pct": null,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 4,
-    "listed": true
-   }
-  },
-  "cvs": {
-   "rk": {
-    "pct": 5,
-    "listed": true
-   },
-   "cap": {
-    "pct": null,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 8,
-    "listed": true,
-    "upTo": true
-   }
-  },
-  "bathandbody": {
-   "rk": {
-    "pct": 0,
     "listed": true
    },
    "cap": {
@@ -752,54 +1517,25 @@
     "listed": true
    }
   },
-  "lego": {
+  "temu": {
    "rk": {
-    "pct": 2.5,
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 34,
     "listed": true,
     "upTo": true
-   },
-   "cap": {
-    "pct": null,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 3,
-    "listed": true
    }
   },
-  "athleta": {
+  "instacart": {
    "rk": {
-    "pct": 2,
-    "listed": true
-   },
-   "cap": {
-    "pct": null,
-    "listed": true
-   },
-   "tcb": {
-    "pct": 4,
-    "listed": true
-   }
-  },
-  "overstock": {
-   "rk": {
-    "pct": 2,
-    "listed": true
-   },
-   "cap": {
-    "pct": null,
-    "listed": true
-   },
-   "tcb": {
     "pct": 1,
     "listed": true
-   }
-  },
-  "samsclub": {
-   "rk": {
-    "pct": 8,
-    "listed": true,
-    "upTo": true
    },
    "cap": {
     "pct": null,
@@ -810,9 +1546,73 @@
     "listed": true
    }
   },
-  "carters": {
+  "expedia": {
    "rk": {
-    "pct": 4,
+    "pct": 3,
+    "listed": true,
+    "upTo": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 12,
+    "listed": true,
+    "upTo": true
+   }
+  },
+  "hotels": {
+   "rk": {
+    "pct": 8,
+    "listed": true,
+    "upTo": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 12,
+    "listed": true,
+    "upTo": true
+   }
+  },
+  "booking": {
+   "rk": {
+    "pct": 8,
+    "listed": true,
+    "upTo": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 7,
+    "listed": true,
+    "upTo": true
+   }
+  },
+  "priceline": {
+   "rk": {
+    "pct": 8,
+    "listed": true,
+    "upTo": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 8,
+    "listed": true,
+    "upTo": true
+   }
+  },
+  "samsonite": {
+   "rk": {
+    "pct": 2.5,
     "listed": true
    },
    "cap": {
@@ -820,7 +1620,21 @@
     "listed": true
    },
    "tcb": {
+    "pct": 5,
+    "listed": true
+   }
+  },
+  "tumi": {
+   "rk": {
     "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": null,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 0,
     "listed": true
    }
   }
