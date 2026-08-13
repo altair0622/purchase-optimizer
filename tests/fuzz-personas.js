@@ -453,7 +453,12 @@ window.__fuzz = (function () {
       document.getElementById('taxPct').value = p.tax;
       buildAll(); recompute();
 
-      const res = scenarios.map(sc => scenarioResult(sc, p.cat)).filter(r => r.price > 0);
+      // ⚠️ 이 필터는 recompute() 의 순위 필터와 **글자 그대로 같아야** 한다(현재 `r.hasInput`).
+      //    한때 여기만 `r.price > 0` 으로 남아 있었다. 쿠폰 ≥ 정가 버그가 고쳐지면서 제품은
+      //    청구액 $0 인 판매처도 정상적으로 1위에 올리게 됐는데, 하니스의 '정답'에서는 그 행이
+      //    빠져 있어서 **정상 동작이 6건의 실패로 보고됐다**(seed 2026). 제품 버그가 아니라
+      //    낡은 하니스였다. 제품 필터를 바꾸면 이 줄도 반드시 같이 바꿀 것.
+      const res = scenarios.map(sc => scenarioResult(sc, p.cat)).filter(r => r.hasInput);
       if (!res.length) continue;
       const truth = res.slice().sort((a, b) => a.net - b.net)[0];
       const firstRow = document.querySelector('#compareBody tr');

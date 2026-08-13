@@ -3,34 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>구매 최적화 계산기</title>
-<meta name="theme-color" content="#2f6f4f">
+<title>PriceAfter — 다 빼고 나면, 실제로 얼마</title>
+<meta name="description" content="같은 물건을 파는 여러 곳의 실제 부담을 비교합니다. 캐시백 포털·카드 적립·오퍼를 다 반영한 순비용. 은행 로그인 없음, 계산은 전부 브라우저 안에서.">
+<meta name="theme-color" content="#0e4a35">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=3">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=3">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=4">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=4">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="구매최적화">
+<meta name="apple-mobile-web-app-title" content="PriceAfter">
 <style>
   :root{
-    --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d21; --muted:#6b7280;
-    --line:#e5e7eb; --accent:#2f6f4f; --accent-soft:#e8f2ec;
+    /* PriceAfter 브랜드 토큰 (2026-08-11, 트랙 C)
+       brand-900 = 워드마크·아이콘·PWA 타이틀바 / accent = 행동(버튼·링크·결론) */
+    --brand-900:#0e4a35; --brand-700:#15603f; --accent:#1e7a55; --accent-2:#33a375;
+    --accent-soft:#e7f3ec; --accent-line:#c9e3d5;
+    --bg:#f5f7f6; --card:#ffffff; --ink:#14181d; --ink-2:#3d4650; --muted:#6b7280;
+    --line:#e5e8eb;
     --warn:#8a5a00; --warn-soft:#fdf3e3; --gold:#b8860b; --danger:#a12727;
-    --best:#2f6f4f; --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+    --best:var(--accent); --shadow:0 1px 3px rgba(16,32,24,.06),0 1px 2px rgba(16,32,24,.04);
+    --shadow-lg:0 6px 20px rgba(16,32,24,.09),0 2px 6px rgba(16,32,24,.05);
+    /* 타이포 스케일 — 위계가 평평하던 걸 벌린다 (진단 §2) */
+    --t-hero:26px; --t-h2:17px; --t-body:14px; --t-small:12.5px; --t-micro:11.5px;
   }
+  @media(max-width:620px){ :root{ --t-hero:22px; --t-h2:16px } }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
     line-height:1.5;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:900px;margin:0 auto;padding:24px 16px 64px}
-  h1{font-size:22px;margin:0 0 4px}
-  .sub{color:var(--muted);font-size:14px;margin:0 0 20px}
+  .wrap{max-width:900px;margin:0 auto;padding:20px 16px 64px}
+  h1{font-size:var(--t-hero);margin:0 0 4px;letter-spacing:-.5px}
+  .sub{color:var(--ink-2);font-size:var(--t-body);margin:0 0 18px;max-width:56ch}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
     padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
-  .card h2{font-size:15px;margin:0 0 14px;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
+  /* h2는 제목 줄, 그 옆 .tag는 부제 — flex-wrap으로 좁은 화면에서 부제가 아래로 */
+  .card h2{font-size:var(--t-h2);margin:0 0 14px;letter-spacing:-.2px;display:flex;
+    align-items:center;gap:8px;flex-wrap:wrap;font-weight:800;color:var(--ink)}
+  .card h2 .tag{font-weight:600;flex:1 1 100%;margin-left:30px;margin-top:-2px}
+  @media(max-width:620px){ .card h2 .tag{margin-left:0} }
   .num{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--accent-soft);
-    color:var(--accent);font-size:12px;font-weight:700;align-items:center;justify-content:center}
-  label{display:block;font-size:12px;color:var(--muted);margin:0 0 4px;font-weight:600}
+    color:var(--accent);font-size:12px;font-weight:700;align-items:center;justify-content:center;flex:none}
+  label{display:block;font-size:var(--t-small);color:var(--muted);margin:0 0 4px;font-weight:600}
   input,select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;
     font-size:14px;background:#fff;color:var(--ink);font-family:inherit}
   input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
@@ -48,7 +61,7 @@
   .g3{grid-template-columns:1fr 1fr 1fr}
   .g4{grid-template-columns:repeat(4,1fr)}
   @media(max-width:620px){.g2,.g3,.g4{grid-template-columns:1fr 1fr}}
-  .cpp-note{font-size:11px;color:var(--muted);margin-top:8px}
+  .cpp-note{font-size:var(--t-micro);color:var(--muted);margin-top:8px;line-height:1.6}
   table{width:100%;border-collapse:collapse;font-size:14px}
   th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
   th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:700}
@@ -59,7 +72,7 @@
   .pill.pts{background:#f3ecff;color:#6b3fa0}
   .pill.win{background:var(--accent);color:#fff;margin-left:6px}
   .pill.flip{background:var(--warn-soft);color:var(--warn);margin-left:6px}
-  .tag{font-size:11px;color:var(--muted)}
+  .tag{font-size:var(--t-micro);color:var(--muted)}
   .checkrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
   .checkrow:last-child{border-bottom:none}
   .checkrow .name{flex:1;min-width:150px;font-size:13px}
@@ -77,7 +90,7 @@
   .note{background:var(--warn-soft);border:1px solid #f0dcb6;border-radius:10px;padding:12px 14px;
     font-size:13px;color:#5c4200;margin-top:12px}
   .note b{color:var(--warn)}
-  .muted{color:var(--muted);font-size:12px}
+  .muted{color:var(--muted);font-size:var(--t-small)}
   .storebox{border:1px dashed var(--gold);background:#fdfaf0;border-radius:10px;padding:12px 14px;font-size:13px;margin-top:12px}
   .storebox b{color:var(--gold)}
   /* 판매처 시나리오 카드 */
@@ -168,27 +181,117 @@
   .basebadge small{display:block;font-weight:600;font-size:11px}
   .pending{color:var(--warn);font-weight:700}
   .nodata{color:var(--warn);font-weight:700}
-  .cashnote{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .cashnote{font-size:var(--t-small);color:var(--muted);margin-top:8px;line-height:1.55}
+
+  /* ===== PriceAfter 아이덴티티 (트랙 C, 2026-08-11) ===== */
+  .brandbar{display:flex;align-items:center;gap:11px;margin:0 0 10px}
+  .brandbar svg{flex:none;display:block}
+  .brandtext{flex:1 1 auto;min-width:0}
+  .wordmark{font-size:var(--t-hero);font-weight:800;letter-spacing:-.7px;line-height:1.1;margin:0}
+  .wordmark .a{color:var(--accent)}
+  /* 영문 브랜드 라인 = 언어와 무관한 고정 자산(마케팅 확정안). 번역 대상 아님 —
+     그래서 data-i18n을 안 붙인다. 아래 .tagline(한국어 설명)만 번역된다. */
+  .brandline{font-size:var(--t-small);color:var(--brand-700);font-weight:600;
+    letter-spacing:.1px;margin:2px 0 0;line-height:1.3}
+  .brandbar .ver{font-size:var(--t-micro);color:var(--muted);font-weight:600;align-self:flex-end;padding-bottom:4px;flex:none}
+  .tagline{font-size:var(--t-body);color:var(--ink-2);margin:0 0 18px;max-width:56ch}
+  .tagline b{color:var(--ink)}
+
+  /* ===== 접는 카드 — "선택 사항"이 첫 화면을 먹지 않게 (진단 §1) =====
+     제목 줄만 보이고 내용은 펼쳐야 나온다. 지갑·상품정보·포인트가치가 쓴다. */
+  .foldcard{padding:0;overflow:hidden}
+  .foldcard>details{margin:0}
+  .foldcard>details>summary{display:flex;align-items:center;gap:10px;width:100%;
+    border:none;border-radius:0;background:transparent;padding:14px 18px;font-size:var(--t-body);
+    color:var(--ink);font-weight:700;box-sizing:border-box}
+  .foldcard>details>summary:hover{background:rgba(30,122,85,.05)}
+  .foldcard>details>summary::before{color:var(--accent);font-size:11px;margin-right:2px}
+  .foldcard>details[open]>summary{border-bottom:1px solid var(--line)}
+  .walletcard>details[open]>summary{border-bottom-color:var(--accent-line)}
+  .foldcard .wsum{flex:1;font-weight:600;color:var(--muted);font-size:var(--t-small);min-width:0}
+  .foldcard .wsum b{color:var(--accent);font-weight:800}
+  .foldbody{padding:14px 18px 16px}
+
+  /* ===== 결론 카드 — 위로 올라온 '답' (진단 §1) ===== */
+  .answer{border:1px solid var(--accent-line);
+    background:linear-gradient(180deg,#fbfefc,#f1f8f4);box-shadow:var(--shadow-lg)}
+  .answer>h2{color:var(--brand-900)}
+  .answer .num{background:var(--accent);color:#fff}
+  /* 구 .final 카드에서 옮겨온 판매처 이름 강조 (recompute가 .big을 쓴다) */
+  .answer .big{font-size:22px;font-weight:800;color:var(--brand-900);letter-spacing:-.4px}
+  .ansempty{color:var(--muted);font-size:var(--t-body);padding:6px 0}
+  /* 결론 상세(카드별 표)는 접어둔다 — 답이 먼저, 근거는 요청할 때 */
+  .why{margin-top:14px;border-top:1px dashed var(--accent-line);padding-top:12px}
+
+  /* ===== 첫 방문 = 예시라는 걸 명시 (진단 §5) ===== */
+  .demobar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:var(--warn-soft);border:1px solid #f0dcb6;border-radius:10px;
+    padding:9px 12px;margin:0 0 14px;font-size:var(--t-small);color:#5c4200}
+  .demobar b{color:var(--warn)}
+  .demobar button{margin-left:auto}
+
+  /* ===== 모바일 (진단 §3) ===== */
+  /* 지갑 행 = 실제 탭 타겟. 체크박스가 13px이라 행 자체를 44px로 키운다 */
+  .checkrow{min-height:44px}
+  #walletCatalog .wrow{padding:9px 6px;border-radius:8px}
+  #walletCatalog .wrow:hover{background:var(--accent-soft)}
+  #walletCatalog input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);flex:none}
+  @media(max-width:620px){
+    .g4{grid-template-columns:1fr 1fr}
+    /* 결론 표는 6열이라 375px에서 '실제 부담'이 화면 밖으로 나간다 → 카드형으로 전환 */
+    table.stackable thead{display:none}
+    table.stackable tr{display:block;border-bottom:1px solid var(--line);padding:10px 0}
+    table.stackable tr.best{background:var(--accent-soft);border-radius:10px;padding:10px 8px;margin-bottom:4px}
+    table.stackable td{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+      border:none;padding:3px 0;text-align:right}
+    table.stackable td::before{content:attr(data-l);font-size:var(--t-micro);color:var(--muted);
+      font-weight:700;text-transform:uppercase;letter-spacing:.4px;text-align:left;flex:none}
+    table.stackable td:first-child{display:block;text-align:left;font-size:15px;padding-bottom:6px}
+    table.stackable td:first-child::before{content:none}
+    table.stackable td .tag{display:block;text-align:right}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>구매 최적화 계산기 <span class="tag">v0.27</span></h1>
-  <p class="sub">내 카드를 등록하면 — <b>어디서 · 어느 카드로 · 어느 루트로</b> 사는 게 제일 싼지 자동으로 계산</p>
+  <div class="brandbar">
+    <!-- PriceAfter 마크: 초록 타일 + $ + 아래로 향하는 셰브론("가격이 내려간다").
+         파비콘/PWA 아이콘(icons/)도 같은 도형을 System.Drawing으로 생성한다. -->
+    <svg width="38" height="38" viewBox="0 0 40 40" role="img" aria-label="PriceAfter">
+      <defs><linearGradient id="pa-g" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#15603f"/><stop offset="1" stop-color="#0e4a35"/>
+      </linearGradient></defs>
+      <rect width="40" height="40" rx="11" fill="url(#pa-g)"/>
+      <text x="13.5" y="28.5" text-anchor="middle" fill="#ffffff"
+            font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="23" font-weight="800">$</text>
+      <path d="M28 12.5 V25 M23.6 20.6 L28 25.6 L32.4 20.6" fill="none" stroke="#5fd6a0"
+            stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="brandtext">
+      <h1 class="wordmark">Price<span class="a">After</span></h1>
+      <p class="brandline">The price after everything.</p>
+    </div>
+    <span class="ver">v0.27</span>
+  </div>
+  <p class="tagline" data-i18n="brand.tagline"><b>다 빼고 나면, 실제로 얼마.</b> 같은 물건을 파는 여러 곳을 캐시백·카드 적립·오퍼까지 반영한 <b>실제 부담</b>으로 비교해.
+    카드는 있으면 더 정확해지고 — <b>없어도 답은 나와.</b></p>
 
-  <!-- 0. 내 카드 (온보딩) -->
-  <div class="card walletcard" id="walletCard">
-    <h2><span class="num">👛</span> 내 카드 <span class="tag">선택 — 안 골라도 계산은 돼</span></h2>
+  <!-- 0. 내 카드 (온보딩) — 접은 상태로 시작한다.
+       "선택 사항"이라고 써놓고 카탈로그 25행이 첫 화면을 독점하던 문제(진단 §1). -->
+  <div class="card foldcard walletcard" id="walletCard">
+   <details id="walletPanel">
+    <summary><span data-i18n="wallet.title">👛 내 카드</span> <span class="wsum" id="walletSummary">안 골라도 계산은 돼 — 고르면 더 정확해져</span></summary>
+    <div class="foldbody">
     <div id="walletWelcome" style="display:none">
       <div class="welcome">
-        <div class="wtitle">💳 카드는 선택 사항이에요</div>
-        <p><b>안 골라도 됩니다.</b> 어디서 사면 제일 싼지, 어느 캐시백 링크를 타야 하는지는 카드 없이도 그대로 계산돼요.<br>
+        <div class="wtitle" data-i18n="wallet.welcome.title">💳 카드는 선택 사항이에요</div>
+        <p data-i18n="wallet.welcome.body"><b>안 골라도 됩니다.</b> 어디서 사면 제일 싼지, 어느 캐시백 링크를 타야 하는지는 카드 없이도 그대로 계산돼요.<br>
         가진 카드를 골라두면 <b>거기서 얼마나 더 아낄 수 있는지</b>까지 얹어서 보여줄 뿐이에요.</p>
-        <button class="mini" id="walletExample" type="button">🔎 인기 카드로 예시 보기</button>
+        <button class="mini" id="walletExample" type="button" data-i18n="wallet.example">🔎 인기 카드로 예시 보기</button>
         <span class="muted" style="margin-left:8px">— 나중에 네 카드로 바꾸면 돼</span>
       </div>
     </div>
-    <input id="walletSearch" placeholder="카드 검색 (예: Sapphire, Gold, Double Cash, Venture)" style="margin-bottom:12px">
+    <input id="walletSearch" data-i18n-ph="wallet.search.ph" placeholder="카드 검색 (예: Sapphire, Gold, Double Cash, Venture)" style="margin-bottom:12px">
     <div id="walletCatalog" class="walletcat"></div>
     <details id="ccPanel" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
       <summary>➕ 목록에 없는 카드 직접 추가 <span class="muted" style="font-weight:600">— 이름·적립률만 넣으면 계산에 합류</span></summary>
@@ -214,32 +317,43 @@
       <span style="display:flex;gap:8px"><button class="mini" id="walletShare" type="button" title="내 카드 구성을 URL로 복사 — 받은 사람은 같은 지갑으로 시작">🔗 내 지갑 링크 복사</button><button class="mini del" id="walletClear" type="button">비우기</button></span>
     </div>
     <p class="cpp-note">🔗 <b>내 지갑 링크 복사</b> = 내가 고른 카드 구성을 링크 하나로 — 폰↔PC 이동하거나, 카드 구성이 같은 가족에게 보내면 <b>같은 지갑으로 시작</b>해. · 적립률은 2026년 대표값(참고용, 실제 약관·한도와 다를 수 있음).</p>
+    </div><!-- /.foldbody -->
+   </details>
   </div>
 
   <div class="modebar">
-    <button id="modeProduct" type="button" class="on">🛒 상품 모드 <small style="font-weight:600;font-size:11px;opacity:.8">가격으로 순비용</small></button>
-    <button id="modeSite" type="button">🏬 사이트 모드 <small style="font-weight:600;font-size:11px;opacity:.8">가격 없이 카드+링크</small></button>
+    <button id="modeProduct" type="button" class="on" data-i18n="mode.product">🛒 상품 모드 <small style="font-weight:600;font-size:11px;opacity:.8">가격으로 순비용</small></button>
+    <button id="modeSite" type="button" data-i18n="mode.site">🏬 사이트 모드 <small style="font-weight:600;font-size:11px;opacity:.8">가격 없이 카드+링크</small></button>
   </div>
 
-  <!-- 빠른 채우기 -->
+  <!-- 1. 여기서 시작 — 붙여넣기 + 상품 정보(구 1번 카드를 여기로 합침).
+       입력 바로 다음에 결론이 오도록 순서를 바꿨다(진단 §1). -->
   <div class="card product-only">
-    <h2><span class="num">＋</span> 여기서 시작 <span class="tag">파는 곳 URL을 여러 개 붙여넣으면 자동 비교</span></h2>
-    <label>같은 상품을 파는 <b>여러 사이트의 URL</b>을 한 줄에 하나씩 (한 개만 넣어도 돼)</label>
+    <h2><span class="num">1</span> <span data-i18n="start.title">여기서 시작</span> <span class="tag" data-i18n="start.sub">파는 곳 URL을 여러 개 붙여넣으면 자동 비교</span></h2>
+    <div class="demobar" id="demoBar" style="display:none">
+      <span>👋 지금 보이는 건 <b>예시</b>야 — Grayson 로프트 베드 · Crate &amp; Barrel · $1,699.
+        위에 네 URL을 붙여넣으면 바로 바뀌어.</span>
+      <button class="mini" id="demoClear" type="button" data-i18n="demo.clear">예시 지우고 시작</button>
+    </div>
+    <label data-i18n="start.paste.label">같은 상품을 파는 <b>여러 사이트의 URL</b>을 한 줄에 하나씩 (한 개만 넣어도 돼)</label>
     <textarea id="paste" rows="3" placeholder="https://www.amazon.com/dp/...
 https://www.walmart.com/ip/...
 https://www.target.com/p/...
 — 또는 상품 제목과 $가격을 통째로 붙여넣기"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
-      <button id="fillBtn" type="button">비교 시작</button>
+      <button id="fillBtn" type="button" data-i18n="start.compare">비교 시작</button>
       <span class="muted" id="pasteMsg"></span>
     </div>
     <p class="cpp-note">URL마다 <b>판매처 칸이 자동으로 만들어지고, 캐시백 요율과 가격까지 채워져</b>. 가격은 일부 사이트가 막아서 실패할 수 있는데, 그럴 땐 그 칸만 직접 넣으면 돼. <b>카드는 없어도 계산돼</b> — 어디서·어느 캐시백으로 사면 싼지는 그대로 나와.<br>
       🔒 가격을 대신 읽어오려면 <b>붙여넣은 상품 URL만</b> 조회 서버로 나가(다른 입력은 이 브라우저 밖으로 안 나감). 싫으면 URL 대신 가격을 직접 넣으면 돼 — <a href="#disclosures" onclick="openDisclosures(event)">자세히</a>.</p>
   </div>
 
-  <!-- 1. 상품 (공통) -->
-  <div class="card product-only">
-    <h2><span class="num">1</span> 무엇을 사려고?</h2>
+  <!-- 상품 정보 — 구 1번 카드. 붙여넣기가 자동으로 채우므로 접어둔다.
+       단 카테고리는 카드 적립률을 바꾸므로 언제든 펼쳐 고칠 수 있어야 한다. -->
+  <div class="card foldcard product-only" id="productCard">
+   <details id="productPanel">
+    <summary><span data-i18n="product.title">🛍️ 상품 정보</span> <span class="wsum" id="productSummary"></span></summary>
+    <div class="foldbody">
     <!-- 판매세 입력은 뺐다(v0.26) — 어느 판매처든 비슷하게 붙어 순위를 거의 안 바꾸는데
          입력 부담만 컸다. 계산은 taxPct=0으로 돌고, 한계는 "안 들어간 것"에 적어둔다. -->
     <input type="hidden" id="taxPct" value="0">
@@ -261,20 +375,30 @@ https://www.target.com/p/...
         </select>
       </div>
     </div>
-    <p class="cpp-note">💡 배송비·쿠폰은 판매처마다 다르니 아래 <b>3번의 각 판매처 칸</b>에서 넣어줘 — 이 둘은 순위를 자주 뒤집어.</p>
+    <p class="cpp-note">💡 배송비·쿠폰은 판매처마다 다르니 아래 <b>어디서 살까</b>의 각 판매처 칸에서 넣어줘 — 이 둘은 순위를 자주 뒤집어.</p>
+    </div><!-- /.foldbody -->
+   </details>
   </div>
 
-  <!-- 2. 포인트 가치 (공통, 동적) -->
-  <div class="card">
-    <h2><span class="num">2</span> 포인트 가치 (1포인트 = ? 센트)</h2>
-    <div class="grid g4" id="cppInputs"></div>
-    <p class="cpp-note">✏️ <b>숫자는 직접 조정 가능</b> — 바꾸면 즉시 재계산·자동 저장. 현금은 1.0 고정, 포인트는 쓰기에 따라 달라지는 변동성.</p>
-    <details id="cppSrc" style="margin-top:6px"></details>
+  <!-- ★ 결론 — 원래 5번째 카드(스크롤 4,500px 아래)에 있던 걸 입력 바로 뒤로 올렸다(진단 §1).
+       recompute()는 전부 id로 쓰기 때문에 위치만 옮기면 되고 계산 로직은 손대지 않는다. -->
+  <div class="card answer product-only" id="answerCard">
+    <h2><span class="num">✓</span> <span data-i18n="answer.title">결론 — 이렇게 사면 제일 싸다</span></h2>
+    <div id="finalConclusion" style="font-size:var(--t-body)">—</div>
+    <details class="why" id="whyPanel">
+      <summary data-i18n="answer.why">📊 판매처별 비교표 — 왜 여기가 1등인지</summary>
+      <div style="overflow-x:auto;margin-top:10px">
+        <table class="stackable">
+          <thead><tr><th>순위 · 판매처</th><th>가격</th><th>최적 카드</th><th class="r">현금 환급</th><th class="r">포인트(추정)</th><th class="r">실제 부담</th></tr></thead>
+          <tbody id="compareBody"></tbody>
+        </table>
+      </div>
+    </details>
   </div>
 
   <!-- 사이트 모드: 가격 없이 카드 + 링크만 -->
   <div class="card site-only" id="siteMode" style="display:none">
-    <h2><span class="num">◆</span> 사이트 단위 추천 <span class="tag">가격 없이 — 어느 카드 · 어느 링크로 들어갈지</span></h2>
+    <h2><span class="num">◆</span> <span data-i18n="site.title">사이트 단위 추천</span> <span class="tag" data-i18n="site.sub">가격 없이 — 어느 카드 · 어느 링크로 들어갈지</span></h2>
     <div class="grid g2">
       <div>
         <label>판매처 (사이트)</label>
@@ -329,9 +453,9 @@ https://www.target.com/p/...
     </details>
   </div>
 
-  <!-- 3. 판매처 시나리오 비교 (핵심) -->
+  <!-- 2. 판매처 시나리오 비교 (핵심) -->
   <div class="card product-only">
-    <h2><span class="num">3</span> 어디서 살까? <span class="tag">같은 상품을 파는 곳들을 모아서 순비용으로 비교</span></h2>
+    <h2><span class="num">2</span> <span data-i18n="sellers.title">어디서 살까?</span> <span class="tag" data-i18n="sellers.sub">같은 상품을 파는 곳들을 모아서 순비용으로 비교</span></h2>
     <p class="muted" id="sellerSearch" style="margin:0 0 12px"></p>
     <div id="scenarios"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
@@ -342,21 +466,11 @@ https://www.target.com/p/...
     <div class="refslot"></div>
   </div>
 
-  <!-- 4. 최종 결론 -->
-  <div class="card final product-only">
-    <h2><span class="num">4</span> 결론 — 이렇게 사면 제일 싸다</h2>
-    <div id="finalConclusion" style="font-size:14px">—</div>
-    <div style="overflow-x:auto;margin-top:14px">
-      <table>
-        <thead><tr><th>순위 · 판매처</th><th>가격</th><th>최적 카드</th><th class="r">현금 환급</th><th class="r">포인트(추정)</th><th class="r">실제 부담</th></tr></thead>
-        <tbody id="compareBody"></tbody>
-      </table>
-    </div>
-  </div>
+  <!-- (구 4번 결론 카드는 입력 바로 뒤(#answerCard)로 옮겼다 — 진단 §1) -->
 
-  <!-- 5. 최적 판매처의 카드 순위 상세 (지갑이 비어 있으면 recompute가 숨긴다) -->
+  <!-- 3. 최적 판매처의 카드 순위 상세 (지갑이 비어 있으면 recompute가 숨긴다) -->
   <div class="card product-only" id="cardDetailCard">
-    <h2><span class="num">5</span> 다른 카드로 사면? <span class="tag" id="detailStore"></span></h2>
+    <h2><span class="num">3</span> <span data-i18n="carddetail.title">다른 카드로 사면?</span> <span class="tag" id="detailStore"></span></h2>
     <div style="overflow-x:auto">
       <table>
         <thead><tr><th>카드</th><th class="r">적립</th><th class="r">오퍼(현금)</th><th class="r">현금 합계</th><th class="r">포인트(추정)</th></tr></thead>
@@ -365,6 +479,19 @@ https://www.target.com/p/...
     </div>
     <p class="muted" style="margin-top:10px"><span class="pill cash">현금</span> = 확정 가치, <span class="pill pts">포인트</span> = 잘 써야 나오는 변동 가치. 현금이 급하면 현금 카드 중 1위로.</p>
     <div class="storebox" id="storeBox"></div>
+  </div>
+
+  <!-- 4. 포인트 가치 — 기본값으로도 계산이 되므로 아래로 내리고 접었다(진단 §1·§2).
+       고급 설정이지 첫 화면에서 결정해야 할 것이 아니다. -->
+  <div class="card foldcard" id="cppCard">
+   <details id="cppPanel">
+    <summary><span data-i18n="cpp.title">⚙️ 포인트 가치</span> <span class="wsum" id="cppSummary">1포인트를 몇 센트로 볼지 — 기본값으로 계산 중</span></summary>
+    <div class="foldbody">
+      <div class="grid g4" id="cppInputs"></div>
+      <p class="cpp-note">✏️ <b>숫자는 직접 조정 가능</b> — 바꾸면 즉시 재계산·자동 저장. 현금은 1.0 고정, 포인트는 쓰기에 따라 달라지는 변동성.</p>
+      <details id="cppSrc" style="margin-top:6px"></details>
+    </div>
+   </details>
   </div>
 
   <p class="muted" style="text-align:center">
@@ -397,7 +524,7 @@ https://www.target.com/p/...
       </p>
     </details>
     <details style="margin-top:8px">
-      <summary><b>⚖️ 이 계산기의 한계와 면책</b></summary>
+      <summary data-i18n="disc.limits.title"><b>⚖️ 이 계산기의 한계와 면책</b></summary>
       <p class="cashnote">
         이건 <b>금융 자문이 아니야</b>. 카드 발급·소비 결정을 대신해주는 도구가 아니라, 네가 입력한 숫자로 <b>산수를 대신 해주는 계산기</b>야.
         캐시백 요율·카드 적립 조건·오퍼는 수시로 바뀌고 여기 값은 스냅샷이라, <b>결제 직전에 실제 화면에서 다시 확인</b>해야 해.
@@ -406,7 +533,7 @@ https://www.target.com/p/...
       </p>
     </details>
     <details style="margin-top:8px">
-      <summary><b>🤝 리퍼럴 고지</b></summary>
+      <summary data-i18n="disc.referral.title"><b>🤝 리퍼럴 고지</b></summary>
       <p class="cashnote">
         Rakuten·Capital One Shopping 가입 링크는 <b>내 초대 링크</b>라 가입하면 보통 둘 다 보너스를 받아. TopCashback에 링크가 없는 건 <b>초대 제도가 없어서</b>지 나쁜 포털이라서가 아니야.
         <b>어느 포털이 이기는지는 네가 넣은 % 만으로 계산</b>돼서 초대 링크와 아무 상관이 없고, 초대 없이 직접 가입해도 조건은 같아.
@@ -417,6 +544,77 @@ https://www.target.com/p/...
 </div>
 
 <script>
+// ===== 브랜드 (단일 출처) =====
+// priceafter.com이 아직 미등록이라 이름이 바뀔 수 있다. 바뀌면 **이 객체만** 고치면
+// 워드마크·<title>·PWA 타이틀·아이콘 aria-label이 한꺼번에 따라온다.
+// (manifest.json은 별도 파일이라 거기 name/short_name도 같이 고칠 것 — 유일한 예외)
+// 마크업에도 같은 문자열이 하드코딩돼 있는데 그건 **JS 없이 열었을 때의 폴백**이다.
+// applyBrand()가 로드 시 덮어쓰므로 진실은 언제나 이 객체다.
+const BRAND = {
+  head: 'Price',                          // 워드마크 앞조각
+  tail: 'After',                          // 워드마크 뒷조각(강조색)
+  line: 'The price after everything.',    // 고정 영문 브랜드 라인 — 번역하지 않는다
+  get full(){ return this.head + this.tail; }
+};
+
+function applyBrand(){
+  const wm = document.querySelector('.wordmark');
+  if(wm) wm.innerHTML = BRAND.head + '<span class="a">' + BRAND.tail + '</span>';
+  const bl = document.querySelector('.brandline');
+  if(bl) bl.textContent = BRAND.line;
+  const mark = document.querySelector('.brandbar svg');
+  if(mark) mark.setAttribute('aria-label', BRAND.full);
+  const appTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+  if(appTitle) appTitle.setAttribute('content', BRAND.full);
+  // <title>은 "이름 — 한국어 설명" 구조. 설명만 번역 대상이라 t()를 거친다.
+  document.title = BRAND.full + ' — ' + t('brand.titleSuffix', '다 빼고 나면, 실제로 얼마');
+}
+
+// ===== i18n 스캐폴딩 (트랙 C, 2026-08-11) =====
+// D1: 지금 표시 언어는 한국어. M4(영어 공개 런치) 전에 STRINGS.en을 채우면 그때 켜진다.
+//
+// 설계 의도 — "한국어 문구를 두 곳에 두지 않는다":
+//   한국어 원문은 계속 마크업/코드에 그대로 있고, 로드 시 STRINGS.ko로 **수집**된다.
+//   따라서 번역 작업자는 STRINGS.en만 채우면 되고, 한국어를 고칠 때 사전을 함께 고칠 필요가 없다.
+//
+// 쓰는 법
+//   · 정적 마크업 : <p data-i18n="key">한국어</p>   (placeholder는 data-i18n-ph, title은 data-i18n-title)
+//   · 동적 문자열 : t('key', '한국어 {n}장', {n:3})
+// 남은 이관 대상은 UI/i18n-남은작업.md 참고.
+const STRINGS = {
+  ko: {},          // 마크업·코드에서 자동 수집 (직접 채우지 말 것)
+  en: {},          // ← M4 전에 여기만 채우면 영어판이 된다
+};
+let LANG = 'ko';
+
+function t(key, ko, vars){
+  if(ko!=null && STRINGS.ko[key]==null) STRINGS.ko[key]=ko;   // 한국어 원문 = 코드에 있는 그것
+  let s = (STRINGS[LANG] && STRINGS[LANG][key]) || STRINGS.ko[key] || ko || key;
+  if(vars) s = s.replace(/\{(\w+)\}/g, (m,k)=> vars[k]!=null ? vars[k] : m);
+  return s;
+}
+// 정적 마크업: 한국어를 수집하고, 활성 언어에 번역이 있으면 갈아끼운다
+function applyI18n(root){
+  const scope = root || document;
+  const swap = (attr, get, set) => {
+    scope.querySelectorAll('['+attr+']').forEach(el=>{
+      const key = el.getAttribute(attr);
+      if(STRINGS.ko[key]==null) STRINGS.ko[key] = get(el);
+      const tr = STRINGS[LANG] && STRINGS[LANG][key];
+      if(tr!=null) set(el, tr);
+    });
+  };
+  swap('data-i18n',       el=>el.innerHTML.trim(),      (el,s)=>{ el.innerHTML=s; });
+  swap('data-i18n-ph',    el=>el.placeholder||'',       (el,s)=>{ el.placeholder=s; });
+  swap('data-i18n-title', el=>el.title||'',             (el,s)=>{ el.title=s; });
+  document.documentElement.lang = LANG;
+}
+// ?lang=en 으로 미리 볼 수 있게 (번역이 비어 있으면 한국어로 조용히 폴백)
+(function pickLang(){
+  try{ const q=new URLSearchParams(location.search).get('lang');
+    if(q && STRINGS[q]) LANG=q; }catch(e){}
+})();
+
 // ===== 포인트 통화 =====
 // label = 짧은 pill용, full = 포인트가치 입력 라벨, cpp = 기본가치(센트)
 const CURRENCIES = {
@@ -705,58 +903,69 @@ function normStore(s){ return (s||"").toLowerCase().replace(/&/g,"and").replace(
 const STORE_LIST=[
   // 가구·홈·하드웨어
   ["Crate & Barrel","general",{cbm:"crate-barrel",rk:"crateandbarrel"}],
-  ["CB2","general"], ["West Elm","general"], ["Pottery Barn","general",{rk:"potterybarn"}],
+  ["CB2","general",{tcb:null}], ["West Elm","general",{tcb:null}], ["Pottery Barn","general",{rk:"potterybarn",tcb:null}],
   ["Wayfair","general"], ["IKEA","general"], ["Overstock","general"],
-  ["Bed Bath & Beyond","general",{key:"bedbath"}], ["Ashley Furniture","general"],
-  ["Home Depot","general",{rk:"homedepot"}], ["Lowe's","general"], ["Ace Hardware","general"],
-  ["Michaels","general"], ["Joann","general"],
+  ["Bed Bath & Beyond","general",{key:"bedbath",rk:"bedbathandbeyond",cap:"bedbathandbeyond.com"}], ["Ashley Furniture","general",{rk:"ashleyfurniture"}],
+  ["Home Depot","general",{rk:"homedepot"}], ["Lowe's","general"], ["Ace Hardware","general",{rk:"acehardware"}],
+  ["Michaels","general",{rk:null,tcb:"michaels-stores"}], ["Joann","general",{rk:null,tcb:null,cbm:null}],
   // 대형마트·클럽·백화점
   ["Target","general"], ["Walmart","general"], ["Costco","general"],
-  ["Sam's Club","general",{rk:"samsclub"}], ["BJ's Wholesale","general",{key:"bjs"}],
+  ["Sam's Club","general",{rk:"samsclub"}], ["BJ's Wholesale","general",{key:"bjs",rk:null,tcb:null,cbm:"bjs-wholesale-club"}],
   ["Macy's","general"], ["Kohl's","general"], ["JCPenney","general"],
-  ["Nordstrom Rack","general"], ["Nordstrom","general"],
-  ["Bloomingdale's","general"], ["Saks Fifth Avenue","general",{key:"saks",rk:"saksfifthavenue"}], ["Neiman Marcus","general"],
+  ["Nordstrom Rack","general",{rk:"nordstromrack"}], ["Nordstrom","general"],
+  ["Bloomingdale's","general"], ["Saks Fifth Avenue","general",{key:"saks",rk:"saksfifthavenue",cap:"saksfifthavenue.com"}], ["Neiman Marcus","general",{rk:"neimanmarcus"}],
   // 패션·의류·잡화
-  ["Gap","general"], ["Old Navy","general",{rk:"oldnavy"}], ["Banana Republic","general"], ["J.Crew","general"],
-  ["Abercrombie & Fitch","general",{key:"abercrombie"}], ["American Eagle","general"],
-  ["Urban Outfitters","general"], ["Anthropologie","general"], ["Free People","general"],
-  ["H&M","general",{key:"hm"}], ["Zara","general"], ["Uniqlo","general"],
-  ["ASOS","online"], ["Shein","online"], ["Levi's","general"],
-  ["Ralph Lauren","general"], ["Tommy Hilfiger","general"], ["Calvin Klein","general"],
-  ["Coach","general"], ["Kate Spade","general"], ["Michael Kors","general"], ["Tory Burch","general"],
-  ["Victoria's Secret","general"],
+  ["Gap","general"], ["Old Navy","general",{rk:"oldnavy"}], ["Banana Republic","general",{rk:"bananarepublic",cap:"bananarepublic.gap.com"}], ["J.Crew","general",{rk:"jcrew",tcb:"jcrew"}],
+  ["Abercrombie & Fitch","general",{key:"abercrombie",rk:"abercrombie",tcb:null}], ["American Eagle","general",{rk:"americaneagle"}],
+  ["Urban Outfitters","general",{rk:"urbanoutfitters"}], ["Anthropologie","general",{rk:null}], ["Free People","general",{rk:"freepeople"}],
+  // ⚠️ key 는 normStore(이름)에 **포함되는 문자열**이어야 matchStore 가 찾는다.
+  //    "H&M" 은 normStore 에서 "handm" 이 되는데 key 를 "hm" 으로 둬서 자기 항목에
+  //    영영 매칭되지 않았다(미등록 취급 → 추정 링크·카테고리 없음). B&H Photo 도 같은 이유.
+  ["H&M","general",{key:"handm",cap:"hm.com",rk:null,tcb:"h-and-m",cbm:"hm"}], ["Zara","general",{tcb:null,cbm:null}], ["Uniqlo","general",{tcb:null}],
+  ["ASOS","online",{tcb:"asos-us"}], ["Shein","online",{rk:"sheinside",tcb:"shein-us"}], ["Levi's","general"],
+  ["Ralph Lauren","general",{rk:"ralphlauren",tcb:null,cbm:null}], ["Tommy Hilfiger","general",{rk:"tommyhilfiger"}], ["Calvin Klein","general",{rk:"calvinklein"}],
+  ["Coach","general"], ["Kate Spade","general",{rk:"katespade"}], ["Michael Kors","general",{rk:"michaelkors"}], ["Tory Burch","general",{rk:"toryburch"}],
+  ["Victoria's Secret","general",{rk:"victoriassecret",tcb:null}],
   // 신발·스포츠·아웃도어
   ["Nike","online"], ["adidas","online"], ["New Balance","general",{rk:"newbalance"}], ["Under Armour","general",{rk:"underarmour"}],
-  ["Puma","general"], ["Reebok","general"], ["Foot Locker","general",{rk:"footlocker"}], ["Finish Line","general"],
-  ["DSW","general"], ["Zappos","online"], ["Steve Madden","general"], ["Crocs","online"],
+  ["Puma","general"], ["Reebok","general"], ["Foot Locker","general",{rk:"footlocker"}], ["Finish Line","general",{rk:"finishline"}],
+  ["DSW","general",{tcb:"dsw-us"}], ["Zappos","online"], ["Steve Madden","general",{rk:"stevemadden"}], ["Crocs","online"],
   ["Athleta","general"], ["lululemon","general"], ["Columbia","general",{rk:"columbiasportswear",tcb:"columbia-sportswear"}],
-  ["The North Face","general",{key:"northface",rk:"thenorthface"}], ["Patagonia","general"],
-  ["Dick's Sporting Goods","general",{rk:"dickssportinggoods"}], ["REI","general"], ["Fanatics","general"],
+  ["The North Face","general",{key:"northface",rk:"thenorthface",cap:"thenorthface.com"}], ["Patagonia","general",{tcb:null}],
+  ["Dick's Sporting Goods","general",{rk:"dickssportinggoods"}], ["REI","general",{tcb:null}], ["Fanatics","general",{tcb:null}],
   // 전자·테크
   ["Amazon","online",{rk:"amazon.com"}], ["Best Buy","online",{rk:"bestbuy"}], ["Apple","online"],
-  ["Samsung","online"], ["Dell","online"], ["HP","online",{key:"hp"}], ["Lenovo","online"],
-  ["Microsoft","online"], ["Newegg","online"], ["GameStop","online"], ["Adorama","online"],
-  ["B&H Photo","online",{key:"bhphoto"}], ["Bose","online"], ["Logitech","online"],
-  ["Garmin","online"], ["Dyson","online"],
+  ["Samsung","online"], ["Dell","online",{rk:"delltechnologies",tcb:null}], ["HP","online",{key:"hp"}], ["Lenovo","online",{tcb:"lenovo-us"}],
+  ["Microsoft","online",{rk:null,tcb:null}], ["Newegg","online"], ["GameStop","online",{tcb:null}], ["Adorama","online"],
+  ["B&H Photo","online",{key:"bandhphoto",rk:null,tcb:null,cbm:"bh-photo-video",cap:"bhphotovideo.com"}], ["Bose","online",{tcb:"bose-us"}], ["Logitech","online"],
+  ["Garmin","online",{tcb:null}], ["Dyson","online"],
   // 뷰티·약국·헬스
   ["Sephora","general"], ["Ulta Beauty","general",{key:"ulta",cbm:"ulta",tcb:"ulta-beauty",rk:"ultabeauty"}],
-  ["Bath & Body Works","general",{key:"bathandbody",rk:"bathandbodyworks"}], ["Victoria's Secret","general"],
-  ["GNC","general"], ["Vitamin Shoppe","general"], ["iHerb","online"],
-  ["Walgreens","drugstore"], ["CVS","drugstore",{tcb:"cvs-pharmacy"}], ["Rite Aid","drugstore"],
+  ["Bath & Body Works","general",{key:"bathandbody",rk:"bathandbodyworks",cap:"bathandbodyworks.com"}],
+  ["GNC","general"], ["Vitamin Shoppe","general",{rk:"vitaminshoppe"}], ["iHerb","online"],
+  ["Walgreens","drugstore"], ["CVS","drugstore",{tcb:"cvs-pharmacy"}], ["Rite Aid","drugstore",{rk:"riteaid",tcb:null}],
   // 키즈·완구·펫
   ["Carter's","general"], ["LEGO","online"],
   ["Chewy","online"], ["Petco","general"], ["PetSmart","general"],
   // 오피스·책·마켓플레이스
-  ["Staples","general"], ["Office Depot","general"], ["Barnes & Noble","general"],
-  ["eBay","online"], ["Etsy","online"], ["AliExpress","online"], ["Temu","online"],
+  ["Staples","general"], ["Office Depot","general",{rk:"officedepot"}], ["Barnes & Noble","general",{rk:"barnesandnoble",tcb:null}],
+  ["eBay","online"], ["Etsy","online",{tcb:null}], ["AliExpress","online",{cap:"aliexpress.us"}], ["Temu","online"],
   // 식료품·여행·가방
   ["Instacart","grocery"],
-  ["Expedia","travel"], ["Hotels.com","travel",{key:"hotels"}], ["Booking.com","travel",{key:"booking"}], ["Priceline","travel"],
-  ["Samsonite","general"], ["Tumi","general"],
+  ["Expedia","travel"], ["Hotels.com","travel",{key:"hotels",rk:"hotels",cbm:"hotels"}], ["Booking.com","travel",{key:"booking",rk:"booking",cbm:"booking"}], ["Priceline","travel"],
+  ["Samsonite","general"], ["Tumi","general",{rk:"tumiluggage"}],
 ];
 const STORES={};
+// 슬러그 규칙 (2026-08-12 전수 검증으로 배운 것):
+//   이름에서 자동 생성한 슬러그는 **추정**이지 사실이 아니다. 실측해보니 456개 링크 중 80개가
+//   깨져 있었다 — Rakuten은 대체로 대시를 안 쓰고(banana-republic ✗ / bananarepublic ✓),
+//   TopCashback은 모르는 슬러그에 404가 아니라 **카테고리 페이지**를 준다(/etsy/ → "Marketplace
+//   Cash Back", /barnes-and-noble/ → 경쟁사 Books-A-Million). 그래서 오버라이드는 전부
+//   scripts/check-links.mjs 로 실제로 열어보고 착지 제목까지 확인한 값이다.
+//   `rk:null` 처럼 **명시적 null = 그 포털에 미등재** — 링크를 아예 안 만든다(추정 링크가 더 나쁘다).
 STORE_LIST.forEach(e=>{ const name=e[0],cat=e[1],o=e[2]||{}; const k=o.key||normStore(name); if(STORES[k]) return;
-  const s=slug(name); STORES[k]={name,cat,cbm:o.cbm||s,rk:o.rk||s,tcb:o.tcb||s}; });
+  const s=slug(name); const pick=(f)=>(f in o)?o[f]:s;   // null 이면 null 그대로 (||s 로 되살리면 안 됨)
+  STORES[k]={name,cat,cbm:pick('cbm'),rk:pick('rk'),tcb:pick('tcb'),cap:o.cap||(k+".com")}; });
 // 키가 4자 미만이면 시작 일치만(오탐 방지: rei가 oreilly에 걸리는 것 등), 4자 이상이면 포함 일치
 function storeKeyHit(h,k){ return k.length<4 ? h.startsWith(k) : h.includes(k); }
 function matchStore(hint){ const h=normStore(hint); for(const k in STORES){ if(storeKeyHit(h,k)) return {key:k,...STORES[k]}; } return null; }
@@ -783,15 +992,19 @@ function prettyDomain(d){ return (d||"").replace(/\.(com|net|org|co|us|shop).*$/
 function portalTargets(store, domain){
   const hit = matchStore(domain) || matchStore(store);
   if(hit){ return {known:true, cbm:hit.cbm, rk:hit.rk, tcb:hit.tcb,
-    cap:(domain&&domain.includes(hit.key))?domain:hit.key+".com"}; }
+    cap:(domain&&domain.includes(hit.key))?domain:(hit.cap||hit.key+".com")}; }
   const s=slug(store)||"store"; return {known:false, cbm:s, rk:s, tcb:s, cap:domain||(s+".com")};
 }
 function portalLinksHTML(store, domain){
   const t=portalTargets(store,domain); const {cbm,rk,tcb,cap,known}=t;
-  return `<a href="https://www.cashbackmonitor.com/cashback-store/${cbm}/" target="_blank">CashbackMonitor</a>`+
-    ` · <a href="https://www.rakuten.com/shop/${rk}" target="_blank">Rakuten</a>`+
-    ` · <a href="https://www.topcashback.com/${tcb}/" target="_blank">TopCashback</a>`+
-    ` · <a href="https://capitaloneshopping.com/s/${cap}/coupon" target="_blank">Capital One Shopping</a>`+
+  // 슬러그가 null = 그 포털에 상점이 없다고 실측된 곳 → 링크 대신 '미등재'로 알린다.
+  // 없는 줄 모르고 눌렀다가 홈이나 엉뚱한 상점에 떨어지는 게 제일 나쁘다.
+  const lk=(url,label,s)=> s ? `<a href="${url}" target="_blank">${label}</a>`
+                             : `<span class="tag" title="이 포털엔 이 판매처가 없어(확인함)">${label} 미등재</span>`;
+  return lk(`https://www.cashbackmonitor.com/cashback-store/${cbm}/`,'CashbackMonitor',cbm)+
+    ` · `+lk(`https://www.rakuten.com/shop/${rk}`,'Rakuten',rk)+
+    ` · `+lk(`https://www.topcashback.com/${tcb}/`,'TopCashback',tcb)+
+    ` · `+lk(`https://capitaloneshopping.com/s/${cap}/coupon`,'Capital One Shopping',cap)+
     (known?"":` <span style="color:var(--warn)">— 추정 링크(안 열리면 "${store}" 검색)</span>`);
 }
 
@@ -944,8 +1157,25 @@ function renderWallet(){
   box.querySelectorAll('.ccdel').forEach(b=>b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); ccDelete(e.target.dataset.cc); }));
   updateWalletCount();
 }
-function updateWalletCount(){ const el=document.getElementById('walletCount'); if(el) el.textContent=myWallet.length+'장'; updateWalletWelcome(); }
+function updateWalletCount(){ const el=document.getElementById('walletCount'); if(el) el.textContent=myWallet.length+'장';
+  // 지갑이 접혀 있어도 상태가 보이게 — summary 줄이 곧 요약(진단 §1)
+  const s=document.getElementById('walletSummary');
+  if(s) s.innerHTML = myWallet.length
+    ? `<b>${myWallet.length}장</b> 선택됨 — ${activeCards().slice(0,3).map(c=>c.short).join(' · ')}${myWallet.length>3?' 외':''}`
+    : `안 골라도 계산은 돼 — 고르면 더 정확해져`;
+  updateWalletWelcome(); }
 function updateWalletWelcome(){ const el=document.getElementById('walletWelcome'); if(el) el.style.display = myWallet.length ? 'none' : ''; }
+// 접힌 카드의 summary 줄이 곧 요약 — 펼치지 않아도 현재 값이 보이게 (진단 §1)
+function renderFoldSummaries(){
+  const ps=document.getElementById('productSummary');
+  if(ps){ const n=(v('pname')||'').trim();
+    ps.textContent = (n||'상품명 없음')+' · '+(CATNAME[v('cat')]||''); }
+  const cs=document.getElementById('cppSummary');
+  if(cs){ const used=usedCurrencies().filter(c=>c!=='cash');
+    cs.textContent = used.length
+      ? used.map(c=>CURRENCIES[c].label+' '+cppFor(c)+'¢').join(' · ')
+      : '지금 지갑은 현금 적립뿐이라 포인트 가치는 결과에 영향 없어'; }
+}
 function applyWallet(){
   CARDS = activeCards();
   renderCppInputs();
@@ -1031,7 +1261,8 @@ function usedCurrencies(){ const set=new Set(); CARDS.forEach(c=>Object.values(c
 function renderCppInputs(){
   const box=document.getElementById('cppInputs'); const codes=usedCurrencies();
   const srcBox=document.getElementById('cppSrc');
-  if(!codes.length){ box.innerHTML='<p class="muted" style="grid-column:1/-1">위에서 카드를 고르면, 그 카드가 쌓는 포인트의 가치를 여기서 조정할 수 있어.</p>'; if(srcBox) srcBox.innerHTML=''; return; }
+  renderFoldSummaries();
+  if(!codes.length){ box.innerHTML='<p class="muted" style="grid-column:1/-1">👛 <b>내 카드</b>에서 카드를 고르면, 그 카드가 쌓는 포인트의 가치를 여기서 조정할 수 있어.</p>'; if(srcBox) srcBox.innerHTML=''; return; }
   box.innerHTML=codes.map(code=>{ const c=CURRENCIES[code]; const val=(cppValues[code]!=null?cppValues[code]:c.cpp);
     return `<div><label>${c.full}</label><input type="number" step="0.1" data-cpp="${code}" value="${val}"></div>`;
   }).join('');
@@ -1218,6 +1449,13 @@ function scenarioResult(sc, cat){
   const sub=Math.max(0,list-coupon);
   const tax=sub*(+taxPct||0)/100;
   const price=sub+tax+ship;
+  // 쿠폰이 정가 이상이면 청구액이 $0 이 된다. 그렇다고 "가격을 안 넣은" 것은 아니다.
+  // 예전엔 순위를 청구액>0 으로 걸러서 **$0 에 살 수 있는 판매처가 비교에서 통째로 빠지고
+  // 유료 판매처가 1위로 추천됐다** — 순비용 최소화라는 이 도구의 목적과 정반대다.
+  // 그래서 기준을 "가격을 입력했는가"로 바꿨다.
+  const hasInput = list>0 || ship>0;
+  // 넘치는 쿠폰은 돌려주지 않는다($60 쿠폰을 $50 상품에 쓰면 $10은 버려짐) — 사실대로 알린다.
+  const couponLeft = Math.max(0, coupon-list);
   const hit=matchStore(sc.domain)||matchStore(sc.store);
   const ctx={storeKey:hit?hit.key:null, price};
   const rows=CARDS.map(c=>{
@@ -1252,7 +1490,7 @@ function scenarioResult(sc, cat){
   const basePts =(baseBest.type==='cash')?0:baseBest.val;
   const baselineNet=price-baseCash-basePts;
   const flipped=best.offer>0 && best.c.id!==baseBestId;
-  return {sc,list,coupon,ship,sub,tax,price,rows,best,baseBest,portalVal,rewardVal,cashBack,ptsVal,netCash,net,baselineNet,flipped,overRefund};
+  return {sc,list,coupon,ship,sub,tax,price,rows,best,baseBest,portalVal,rewardVal,cashBack,ptsVal,netCash,net,baselineNet,flipped,overRefund,hasInput,couponLeft};
 }
 
 function renderSellerSearch(){
@@ -1279,14 +1517,16 @@ function recompute(){
   const cat=v('cat');
   taxPct=+v('taxPct')||0;
   renderSellerSearch();
+  renderFoldSummaries();
   const results=scenarios.map(sc=>scenarioResult(sc,cat));
 
   results.forEach(r=>{
     const sc=r.sc;
-    document.getElementById('sbest-'+sc.id).innerHTML = r.price>0
-      ? bestCardLabel(r)+(r.flipped?` <span class="pill flip">오퍼로 역전</span>`:``)
-      : '가격 입력';
-    document.getElementById('snet-'+sc.id).innerHTML = r.price>0
+    // 청구액이 $0 이어도(쿠폰 ≥ 정가) 가격을 넣은 판매처는 결과를 보여준다 — 카드는 무의미해진다
+    document.getElementById('sbest-'+sc.id).innerHTML = !r.hasInput ? '가격 입력'
+      : r.price>0 ? bestCardLabel(r)+(r.flipped?` <span class="pill flip">오퍼로 역전</span>`:``)
+      : '<span class="tag">결제액 $0 — 카드 무관</span>';
+    document.getElementById('snet-'+sc.id).innerHTML = r.hasInput
       ? money(r.netCash)+(r.ptsVal>0?` <span class="tag">+ 포인트 ${money(r.ptsVal)}(추정)</span>`:'')
       : "—";
     const st=document.getElementById('stamp-'+sc.id);
@@ -1296,7 +1536,9 @@ function recompute(){
     else st.innerHTML=`<span class="fresh">${d===0?'오늘':d+'일 전'} 확인</span>`;
   });
 
-  const ranked=results.filter(r=>r.price>0).sort((a,b)=>a.net-b.net);
+  // ⚠️ 청구액(r.price)이 아니라 "가격을 입력했는가"로 거른다 — 쿠폰 ≥ 정가로 청구액이 $0이 된
+  //    판매처가 여기서 탈락하면, 공짜로 살 수 있는데 유료 판매처를 1위로 추천하게 된다.
+  const ranked=results.filter(r=>r.hasInput).sort((a,b)=>a.net-b.net);
   scenarios.forEach(sc=>{ const c=document.getElementById('scard-'+sc.id); if(c) c.classList.remove('win'); const b=document.getElementById('badge-'+sc.id); if(b) b.style.display='none'; });
 
   const cbody=document.getElementById('compareBody'); cbody.innerHTML="";
@@ -1304,12 +1546,13 @@ function recompute(){
     if(i===0){ const c=document.getElementById('scard-'+r.sc.id); if(c) c.classList.add('win'); const b=document.getElementById('badge-'+r.sc.id); if(b) b.style.display='inline-block'; }
     const tr=document.createElement('tr'); if(i===0) tr.className='best';
     const route=r.sc.portalPct>0 ? `<div class="tag">${(r.sc.portalName||'포털')} ${r.sc.portalPct}% 포함(예정)</div>` : '';
+    // data-l = 모바일에서 thead를 숨기고 각 칸 앞에 붙이는 라벨 (table.stackable, 진단 §3)
     tr.innerHTML=`<td><b>${i+1}. ${r.sc.store||'(판매처?)'}</b>${r.flipped?' <span class="pill flip">역전</span>':''}</td>
-      <td>${money(r.price)}${(r.tax>0||r.ship>0||r.coupon>0)?`<div class="tag">정가 ${money(r.list)}${r.coupon>0?` −쿠폰 ${money(r.coupon)}`:''}${r.tax>0?` +세금 ${money(r.tax)}`:''}${r.ship>0?` +배송 ${money(r.ship)}`:''}</div>`:''}</td>
-      <td>${bestCardLabel(r)}</td>
-      <td class="r">${money(r.cashBack)}${route}</td>
-      <td class="r">${r.ptsVal>0?('<span class="muted">'+money(r.ptsVal)+'</span>'):'<span class="tag">—</span>'}</td>
-      <td class="r"><b>${money(r.netCash)}</b></td>`;
+      <td data-l="가격">${money(r.price)}${(r.tax>0||r.ship>0||r.coupon>0)?`<div class="tag">정가 ${money(r.list)}${r.coupon>0?` −쿠폰 ${money(r.coupon)}`:''}${r.tax>0?` +세금 ${money(r.tax)}`:''}${r.ship>0?` +배송 ${money(r.ship)}`:''}</div>`:''}</td>
+      <td data-l="최적 카드">${bestCardLabel(r)}</td>
+      <td class="r" data-l="현금 환급">${money(r.cashBack)}${route}</td>
+      <td class="r" data-l="포인트(추정)">${r.ptsVal>0?('<span class="muted">'+money(r.ptsVal)+'</span>'):'<span class="tag">—</span>'}</td>
+      <td class="r" data-l="실제 부담"><b>${money(r.netCash)}</b></td>`;
     cbody.appendChild(tr);
   });
 
@@ -1339,11 +1582,11 @@ function recompute(){
       `<div style="font-size:15px"><span class="big">${w.sc.store||'?'}</span> 에서 이렇게 사면:</div>`+
       `<div class="receipt">`+
       `<div class="line"><span class="lab">상품 가격</span><span>${money(w.list)}</span></div>`+
-      (w.coupon>0?`<div class="line"><span class="lab">🏷️ 쿠폰·프로모 할인</span><span class="minus">−${money(w.coupon)}</span></div>`:``)+
+      (w.coupon>0?`<div class="line"><span class="lab">🏷️ 쿠폰·프로모 할인${w.couponLeft>0?` <span class="tag">쿠폰 ${money(w.couponLeft)}는 남아서 못 씀 — 대개 소멸</span>`:''}</span><span class="minus">−${money(Math.min(w.coupon,w.list))}</span></div>`:``)+
       (w.ship>0?`<div class="line"><span class="lab">＋ 배송비</span><span>+${money(w.ship)}</span></div>`:``)+
       ((w.ship>0||w.coupon>0)?`<div class="line"><span class="lab"><b>실제 결제 금액</b></span><span><b>${money(w.price)}</b></span></div>`:``)+
       (w.best.offer>0?`<div class="line"><span class="lab">🎁 이 카드의 ${w.sc.store||''} 오퍼 <span class="tag">statement credit — 청구서에서 차감</span></span><span class="minus">−${money(w.best.offer)}</span></div>`:``)+
-      (!noCard&&w.best.type==='cash'?`<div class="line"><span class="lab">💳 <b>${w.best.c.name}</b> 로 결제 <span class="tag">${cardDetail}</span></span><span class="minus">−${money(w.best.val)}</span></div>`:``)+
+      (!noCard&&w.best.type==='cash'&&w.best.val>0?`<div class="line"><span class="lab">💳 <b>${w.best.c.name}</b> 로 결제 <span class="tag">${cardDetail}</span></span><span class="minus">−${money(w.best.val)}</span></div>`:``)+
       (w.portalVal>0?`<div class="line"><span class="lab">🔗 <b>${w.sc.portalName||'포털'}</b> 링크로 들어가서 <span class="tag">캐시백 ${w.sc.portalPct}%</span></span><span class="minus">−${money(w.portalVal)}<span class="pending">&nbsp;*</span></span></div>`:``)+
       // 현금 확정분과 포인트 반영분을 같은 급으로 — 포인트가 있으면 그쪽이 최종
       `<div class="line ${w.ptsVal>0?'subtotal':'total'}"><span>실제 부담 <span class="tag">현금 기준</span></span><span>${money(w.netCash)}</span></div>`+
@@ -1633,6 +1876,8 @@ function fillMultiUrls(urls, msg){
 }
 function parsePaste(){
   const raw=(v('paste')||"").trim(); const msg=document.getElementById('pasteMsg');
+  // 사용자가 자기 데이터를 넣는 순간 '예시' 안내는 역할이 끝난다
+  const d=document.getElementById('demoBar'); if(d && raw) d.style.display='none';
   if(!raw){ msg.textContent="붙여넣은 내용이 없어."; return; }
   const allUrls=[...new Set(raw.match(/https?:\/\/[^\s]+/gi)||[])];
   if(allUrls.length>1){ fillMultiUrls(allUrls, msg); return; }
@@ -1758,12 +2003,17 @@ function shareWallet(){
 
 // ===== 초기화 =====
 function init(){
+  applyI18n();   // 정적 마크업의 한국어를 STRINGS.ko로 수집 + 활성 언어로 교체
+  applyBrand();  // 워드마크·타이틀·aria-label을 BRAND 한 곳에서 주입 (i18n 뒤에 와야 title이 맞다)
   const seededDefault=()=>{ scenarios=[ blankScenario({store:"Crate & Barrel", domain:"crateandbarrel.com", price:1699}) ]; };
-  loadState();
+  const hadSaved=loadState();
+  const hadQuery=location.search.length>1;
   prefillFromQuery();
   // 첫 방문(저장·공유링크 둘 다 없음)이면 빈 지갑 → '여기서 시작' 안내를 보여줌
   CARDS=activeCards();
   if(!scenarios.length) seededDefault();
+  // 첫 방문엔 예시 데이터가 채워져 있다. 그게 내 입력인 줄 알면 혼란스러우니 명시한다(진단 §5).
+  const isDemo = !hadSaved && !hadQuery;
 
   renderWallet();
   renderCppInputs();
@@ -1782,6 +2032,17 @@ function init(){
   document.getElementById('walletClear').addEventListener('click',()=>{ if(confirm("지갑을 비울까? (카드 선택이 모두 해제돼)")){ myWallet=[]; renderWallet(); applyWallet(); } });
   document.getElementById('walletExample').addEventListener('click',()=>{ myWallet=EXAMPLE_WALLET.filter(id=>CARD_CATALOG.some(c=>c.id===id)); renderWallet(); applyWallet(); });
   document.getElementById('walletShare').addEventListener('click',shareWallet);
+
+  // 예시 안내 — 첫 방문일 때만 뜨고, 지우면 빈 판매처 한 칸으로 시작한다
+  const demo=document.getElementById('demoBar');
+  if(demo && isDemo) demo.style.display='';
+  document.getElementById('demoClear').addEventListener('click',()=>{
+    document.getElementById('pname').value='';
+    scenarios=[ blankScenario({}) ];
+    buildAll(); recompute();
+    if(demo) demo.style.display='none';
+    document.getElementById('paste').focus();
+  });
   renderCcForm();
   document.getElementById('ccSave').addEventListener('click',ccSubmit);
   document.getElementById('ccCancel').addEventListener('click',ccReset);
