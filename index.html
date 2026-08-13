@@ -1125,7 +1125,7 @@ const STALE_DAYS = 7;
 // ===== 상태 =====
 let scenarios = [];
 let nextId = 1;
-function blankScenario(seed){ seed=seed||{}; return { id:nextId++, store:seed.store||"", domain:seed.domain||"", price:seed.price||0, ship:seed.ship||0, coupon:seed.coupon||0, portalPct:seed.portalPct||0, portalName:seed.portalName||"", offers:seed.offers||{}, lastChecked:seed.lastChecked||null }; }
+function blankScenario(seed){ seed=seed||{}; return { id:nextId++, store:seed.store||"", domain:seed.domain||"", price:seed.price||0, ship:seed.ship||0, coupon:seed.coupon||0, portalPct:seed.portalPct||0, portalName:seed.portalName||"", portalUnknown:!!seed.portalUnknown, offers:seed.offers||{}, lastChecked:seed.lastChecked||null }; }
 // 판매세(%) — 주(州)별로 다르고 판매처가 달라도 같으므로 전역 1회 입력
 let taxPct = 0;
 
@@ -1346,7 +1346,9 @@ function wireScenarioCard(el){
   el.querySelector('.s-price').addEventListener('input',e=>{ findScenario(e.target.dataset.sid).price=+e.target.value||0; recompute(); });
   el.querySelector('.s-ship').addEventListener('input',e=>{ findScenario(e.target.dataset.sid).ship=+e.target.value||0; recompute(); });
   el.querySelector('.s-coupon').addEventListener('input',e=>{ findScenario(e.target.dataset.sid).coupon=+e.target.value||0; recompute(); });
-  el.querySelector('.s-portal').addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid); sc.portalPct=+e.target.value||0; sc.lastChecked=todayStr(); recompute(); });
+  el.querySelector('.s-portal').addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid); sc.portalPct=+e.target.value||0;
+    sc.portalUnknown=false;   // 직접 넣었으면 더는 '모름'이 아니다
+    sc.lastChecked=todayStr(); updatePortalLinks(sc); recompute(); });
   el.querySelector('.s-portalname').addEventListener('input',e=>{ findScenario(e.target.dataset.sid).portalName=e.target.value; recompute(); });
   el.querySelectorAll('input[data-off]').forEach(inp=>{
     inp.addEventListener('input',e=>{ const sc=findScenario(e.target.dataset.sid); sc.offers[e.target.dataset.off]=+e.target.value||0; sc.lastChecked=todayStr(); updateOfferSummary(sc); recompute(); });
@@ -1360,7 +1362,18 @@ function wireScenarioCard(el){
     const sc=findScenario(e.target.dataset.sid);
     CARDS.forEach(c=>{ sc.offers[c.id]=0; const i=el.querySelector(`input[data-off="${c.id}"]`); if(i) i.value=0; });
     updateOfferSummary(sc);
-    sc.portalPct=0; el.querySelector('.s-portal').value=0; sc.lastChecked=todayStr();
+    // 이 버튼은 포털·카드사 페이지를 새 탭으로 연다 = "네가 직접 가서 보라"는 뜻이다.
+    // 그러니 지운 요율을 0%로 두면 거짓말이 된다(v0.20: "0%가 아니라 모름").
+    // 예전엔 portalPct만 지우고 portalName은 남겨서 화면이 자기모순이었다 —
+    // 기본율 줄은 "TopCashback 2% 자동 반영", 입력칸은 0, 경유처는 "TopCashback (기본율)".
+    // 기본율을 자동으로 되채우지도 않는다: 사용자가 로그인해서 본 타겟 요율이 진실이고,
+    // 도구가 스냅샷으로 그걸 덮으면 안 된다. 대신 '기본율 넣기' 버튼을 준다.
+    sc.portalPct=0; sc.portalName=''; sc.portalUnknown=true;
+    el.querySelector('.s-portal').value='';
+    const pn0=el.querySelector('.s-portalname'); if(pn0) pn0.value='';
+    Object.keys(autoApplied).forEach(k=>{ if(k.indexOf('sc'+sc.id+':')===0) delete autoApplied[k]; });
+    sc.lastChecked=todayStr();
+    updatePortalLinks(sc);
     window.open("https://www.cashbackmonitor.com/cashback-store/"+(matchStore(sc.domain)||matchStore(sc.store)||{cbm:slug(sc.store)}).cbm+"/","_blank");
     window.open("https://global.americanexpress.com/offers/eligible","_blank");
     window.open("https://secure.chase.com/web/auth/dashboard#/dashboard/offers/hub","_blank");
@@ -1408,7 +1421,7 @@ function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id)
   const base=hit?baselineFor(hit.key):null;
   if(base && PORTAL_RATES.asOf){
     // 기본율 자동 입력 — 이 시나리오+판매처 조합당 1회, 비어 있을 때만
-    if(!autoApplied['sc'+sc.id+':'+hit.key] && (+sc.portalPct||0)===0){
+    if(!sc.portalUnknown && !autoApplied['sc'+sc.id+':'+hit.key] && (+sc.portalPct||0)===0){
       autoApplied['sc'+sc.id+':'+hit.key]=true;
       const rkp=(base.rk&&base.rk.listed!==false&&base.rk.pct)||0;
       const cpp2=(base.cap&&base.cap.listed!==false&&base.cap.pct)||0;
@@ -1420,7 +1433,13 @@ function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id)
         if(card){ card.querySelector('.s-portal').value=bestP; card.querySelector('.s-portalname').value=sc.portalName; }
       }
     }
-    extra=`<br>📊 기본율 <span class="tag">${ratesStamp()}${rateAgeWarn()}</span>: Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b> · Capital One <b>${fmtBase(base.cap)}</b> <span class="tag">— 높은 쪽 자동 반영</span>`+loginCtaHTML();
+    const bestBase=Math.max((base.rk&&base.rk.listed!==false&&base.rk.pct)||0,(base.cap&&base.cap.listed!==false&&base.cap.pct)||0,(base.tcb&&base.tcb.listed!==false&&base.tcb.pct)||0);
+    extra=`<br>📊 기본율 <span class="tag">${ratesStamp()}${rateAgeWarn()}</span>: Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b> · Capital One <b>${fmtBase(base.cap)}</b> <span class="tag">${sc.portalUnknown?'':'— 높은 쪽 자동 반영'}</span>`+loginCtaHTML();
+    if(sc.portalUnknown){
+      extra+=`<br><span class="nodata">⚠️ <b>이 판매처 요율 확인 필요</b> — 지금 빈 칸은 <b>"0%"가 아니라 "모름"이야.</b></span>`+
+        ` <span class="tag">위 링크에서 오늘 요율을 보고 직접 넣어줘.</span>`+
+        (bestBase>0?` <button type="button" class="usebase" data-sid="${sc.id}" data-pct="${bestBase}">↳ 기본율 ${bestBase}% 넣기</button>`:``);
+    }
   } else if((sc.store||'').trim()){
     // ⚠️ 여기가 중요: 데이터가 없는 것과 캐시백이 0%인 것은 다르다.
     // 아래 포털 % 칸이 0으로 보이는 건 "캐시백 없음"이 아니라 "아직 모름"이다.
@@ -1429,6 +1448,23 @@ function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id)
   }
   p.innerHTML="비교: "+portalLinksHTML(sc.store, sc.domain)+extra;
 }
+
+// '기본율 넣기' 버튼 — updatePortalLinks가 내용을 갈아끼우므로 문서 단위로 위임한다.
+// 자동으로 채우지 않고 버튼을 두는 이유: 로그인해서 본 타겟 요율이 스냅샷보다 정확하고,
+// 재확인은 "직접 가서 보라"는 뜻이라 도구가 멋대로 값을 만들어두면 그 의미가 사라진다.
+document.addEventListener('click',e=>{
+  const b=e.target.closest && e.target.closest('.usebase'); if(!b) return;
+  const sc=findScenario(b.dataset.sid); if(!sc) return;
+  const pct=+b.dataset.pct||0; const base=(matchStore(sc.domain)||matchStore(sc.store));
+  const r=base?baselineFor(base.key):null;
+  sc.portalPct=pct; sc.portalUnknown=false;
+  if(r){ const rk=(r.rk&&r.rk.listed!==false&&r.rk.pct)||0, cp=(r.cap&&r.cap.listed!==false&&r.cap.pct)||0, tc=(r.tcb&&r.tcb.listed!==false&&r.tcb.pct)||0;
+    sc.portalName=(tc===pct?'TopCashback':(rk===pct?'Rakuten':'Capital One Shopping'))+' (기본율)'; }
+  const card=document.getElementById('scard-'+sc.id);
+  if(card){ const p=card.querySelector('.s-portal'); if(p) p.value=pct;
+            const pn=card.querySelector('.s-portalname'); if(pn) pn.value=sc.portalName||''; }
+  updatePortalLinks(sc); recompute();
+});
 
 function buildAll(){
   const box=document.getElementById('scenarios'); box.innerHTML="";
@@ -1490,7 +1526,7 @@ function scenarioResult(sc, cat){
   const basePts =(baseBest.type==='cash')?0:baseBest.val;
   const baselineNet=price-baseCash-basePts;
   const flipped=best.offer>0 && best.c.id!==baseBestId;
-  return {sc,list,coupon,ship,sub,tax,price,rows,best,baseBest,portalVal,rewardVal,cashBack,ptsVal,netCash,net,baselineNet,flipped,overRefund,hasInput,couponLeft};
+  return {sc,list,coupon,ship,sub,tax,price,rows,best,baseBest,portalVal,rewardVal,cashBack,ptsVal,netCash,net,baselineNet,flipped,overRefund,hasInput,couponLeft,portalUnknown:!!sc.portalUnknown};
 }
 
 function renderSellerSearch(){
@@ -1604,6 +1640,7 @@ function recompute(){
         `<span class="basebadge">💳 카드 기본 적립 ${money(b0?b0.price-b0.baselineNet:0)}<small>어차피 받는 돈 — 절약 아님</small></span>`+
         `</div>`)+
       (w.flipped?`<div class="tag" style="margin-top:4px">※ 오퍼 덕분에 ${w.best.c.short}가 평소 1위를 제침</div>`:``)+
+      (w.portalUnknown?`<p class="cashnote" style="color:var(--warn)">⚠️ <b>이 판매처는 포털 요율이 미확정이야</b>(재확인 누른 뒤 아직 안 넣음). 지금 계산은 포털 캐시백을 <b>0으로 두고</b> 난 거라 실제보다 <b>비싸게 나오고, 판매처 순위가 바뀔 수 있어.</b> 위 3번에서 요율을 넣어줘.</p>`:``)+
       (w.overRefund?`<p class="cashnote" style="color:var(--warn)">⚠️ <b>돌려받는 금액이 결제액보다 커 — 입력을 확인해줘.</b> 오퍼 금액이나 캐시백 %가 실제보다 크게 들어갔을 가능성이 높아(오퍼엔 최소 사용액이 붙어). 실제 부담은 $0 밑으로 안 내려가니 위 숫자는 그대로 믿지 마.</p>`:``)+
       tieNote+
       bestNote+
@@ -1645,7 +1682,7 @@ let autoApplied = {}; // 기본율 자동입력 1회 추적 (site:key / sc<id>:k
 let lastSiteKey;      // 사이트 모드 마지막 판매처 키 — 판매처 변경 감지용
 // 시나리오 판매처가 바뀌면 이전 판매처의 포털 %·자동입력 기록을 리셋
 function resetScPortal(sc, el){
-  sc.portalPct=0; sc.portalName='';
+  sc.portalPct=0; sc.portalName=''; sc.portalUnknown=false;
   const p=el.querySelector('.s-portal'); if(p) p.value=0;
   const pn=el.querySelector('.s-portalname'); if(pn) pn.value='';
   Object.keys(autoApplied).forEach(k=>{ if(k.indexOf('sc'+sc.id+':')===0) delete autoApplied[k]; });
@@ -1923,7 +1960,7 @@ function saveState(){ try{ localStorage.setItem(LSKEY, JSON.stringify({
   mode, myWallet, cppValues, pname:v('pname'), cat:v('cat'), taxPct:v('taxPct'),
   customCards: customCards.map(c=>({id:c.id,name:c.name,cur:c.cur,mults:c.mults})),
   siteStore:v('siteStore'), siteCat:v('siteCat'), siteAmt:v('siteAmt'), capPct:v('capPct'), rkPct:v('rkPct'), tcbPct:v('tcbPct'), siteOffers,
-  scenarios: scenarios.map(s=>({store:s.store,domain:s.domain,price:s.price,ship:s.ship,coupon:s.coupon,portalPct:s.portalPct,portalName:s.portalName,offers:s.offers,lastChecked:s.lastChecked}))
+  scenarios: scenarios.map(s=>({store:s.store,domain:s.domain,price:s.price,ship:s.ship,coupon:s.coupon,portalPct:s.portalPct,portalName:s.portalName,portalUnknown:s.portalUnknown,offers:s.offers,lastChecked:s.lastChecked}))
 })); }catch(e){} }
 function loadState(){ try{ const s=JSON.parse(localStorage.getItem(LSKEY)); if(!s) return false;
   if(Array.isArray(s.customCards)) s.customCards.forEach(x=>{ if(x&&x.id) registerCustomCard(makeCustomCard(x.id,x.name,x.cur,x.mults)); });

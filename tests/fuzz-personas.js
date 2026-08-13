@@ -507,19 +507,76 @@ window.__fuzz = (function () {
     return { mode: 'golden', 통과: g.pass, 실패: g.fail.length, 건너뜀: g.skipped, 상세: g.fail };
   }
 
+  // ===== 5) '재확인' 상태 기계 — 요율을 지웠으면 0%가 아니라 '모름'이어야 한다 =====
+  // 이 검사가 왜 필요한가: 재확인 버튼은 portalPct 만 지우고 portalName 은 남겨서
+  // 화면이 자기모순이었다 — 기본율 줄은 "TopCashback 2% 자동 반영", 입력칸은 0,
+  // 경유처는 "TopCashback (기본율)", 배지는 "오늘 확인". 사용자가 이 상태를 보고
+  // "잘 작동한다"고 판단했다. **틀린 걸 눈치채지 못하는 종류**라 검사로 못박는다.
+  function runRecheck() {
+    const keep = { wallet: myWallet.slice(), cpp: Object.assign({}, cppValues), scen: scenarios.slice(), tax: taxPct, auto: autoApplied };
+    const bad = [];
+    const seen = (re) => re.test(document.getElementById('plinks-' + sc.id).textContent);
+    const concl = () => document.getElementById('finalConclusion').textContent;
+    let sc;
+    try {
+      myWallet = ['wfactivecash']; CARDS = activeCards(); taxPct = 0; autoApplied = {};
+      scenarios = [blankScenario({ store: 'Target', price: 100 })];
+      sc = scenarios[0];
+      buildAll(); recompute();
+      const card = document.getElementById('scard-' + sc.id);
+
+      // ① 기본율이 자동으로 들어온 상태 — 이게 성립해야 아래 검사가 의미를 가진다
+      if (!(+sc.portalPct > 0)) { bad.push('사전조건 실패: Target 기본율이 자동 입력되지 않음(요율 스냅샷 문제?)'); throw new Error('skip');
+      }
+      const basePct = +sc.portalPct;
+
+      // ② 재확인 클릭 (새 탭 열기는 막는다)
+      const ow = window.open; window.open = () => null;
+      card.querySelector('.recheck').click();
+      window.open = ow;
+
+      if (+sc.portalPct !== 0) bad.push('재확인 후 portalPct 가 안 지워짐: ' + sc.portalPct);
+      if (sc.portalName) bad.push('재확인 후 portalName 이 남음: "' + sc.portalName + '" — 입력칸은 비었는데 경유처만 남으면 화면이 자기모순');
+      if (!sc.portalUnknown) bad.push('재확인 후 portalUnknown 이 안 세워짐 — 0%와 모름이 구분되지 않는다');
+      if (!seen(/요율 확인 필요/)) bad.push('화면에 "요율 확인 필요" 표시가 없음 — 빈 칸이 0%로 읽힌다');
+      if (seen(/높은 쪽 자동 반영/)) bad.push('"높은 쪽 자동 반영" 문구가 남음 — 실제로는 아무것도 안 반영된 상태');
+      if (!/포털 요율이 미확정/.test(concl())) bad.push('결론에 미확정 경고가 없음 — 순비용이 실제보다 비싸게 나오는 걸 안 알린다');
+      const el = card.querySelector('.s-portal');
+      if (el && el.value !== '') bad.push('입력칸이 "' + el.value + '" — 0 이 아니라 빈 칸이어야 "모름"으로 읽힌다');
+
+      // ③ '기본율 넣기' 로 복구되는가
+      const btn = document.getElementById('plinks-' + sc.id).querySelector('.usebase');
+      if (!btn) bad.push('기본율이 있는 판매처인데 "기본율 넣기" 버튼이 없음 — 되돌릴 방법이 없다');
+      else {
+        btn.click();
+        if (+sc.portalPct !== basePct) bad.push('기본율 넣기 후 요율 미복구: ' + sc.portalPct + ' ≠ ' + basePct);
+        if (sc.portalUnknown) bad.push('기본율 넣기 후에도 portalUnknown 이 남음');
+        if (!sc.portalName) bad.push('기본율 넣기 후 경유처 라벨이 비어 있음');
+        if (/포털 요율이 미확정/.test(concl())) bad.push('요율을 넣었는데 결론에 미확정 경고가 그대로 남음');
+      }
+    } catch (e) {
+      if (e.message !== 'skip') bad.push('throw: ' + e.message);
+    }
+    myWallet = keep.wallet; cppValues = keep.cpp; scenarios = keep.scen; taxPct = keep.tax; autoApplied = keep.auto;
+    CARDS = activeCards(); buildAll(); recompute();
+    __fuzz.lastRecheck = bad;
+    return { mode: 'recheck', 검사: 10, 실패: bad.length, 상세: bad };
+  }
+
   // 전부 한 번에
   function all(opt) {
     opt = opt || {};
     const seed = opt.seed == null ? 42 : opt.seed;
     return {
       golden: runGolden(),
+      recheck: runRecheck(),
       math: run({ n: opt.n || 1000, seed }),
       dom: runDom({ n: opt.dom || 40, seed }),
       compare: runCompare({ n: opt.cmp || 150, seed }),
     };
   }
 
-  return { run, runDom, runCompare, runGolden, all,
-           last: null, lastDom: null, lastCompare: null, lastGolden: null };
+  return { run, runDom, runCompare, runGolden, runRecheck, all,
+           last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null };
 })();
 'fuzz harness loaded';
