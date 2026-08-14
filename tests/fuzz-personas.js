@@ -563,6 +563,232 @@ window.__fuzz = (function () {
     return { mode: 'recheck', 검사: 10, 실패: bad.length, 상세: bad };
   }
 
+  // ===== 6) 오퍼 붙여넣기 파서 (v0.28) =====
+  //
+  // 왜 골든(정답 고정) 방식인가: 이 파서는 "몇 개 읽었나"만 보면 **조용히 틀린다**.
+  // 가맹점명 한 줄을 잘못 집어도 개수는 그대로고, 그 결과는 "엉뚱한 가게의 오퍼가
+  // 이 가게에 붙는 것" — 순위를 조용히 뒤집는, 이 도구에서 제일 나쁜 실패 모드다.
+  // 그래서 개수가 아니라 **가맹점명·금액·만료·신뢰도를 하나하나 못 박는다.**
+  //
+  // ⚠️ 픽스처는 **익명 샘플**이다. 실제 사용자 덤프(evidence/)는 개인 오퍼라
+  //    이 repo에 절대 들어오지 않는다. 대신 실제 덤프에서 관찰된 **구조**만 그대로 옮겼다:
+  //      · Amex — 가맹점명 2줄 반복 / 광고 블록(Explore Now) / 만료 없는 오퍼 / 마일 오퍼
+  //               / 첫 줄에만 공백이 두 칸인 케이스
+  //      · Chase — 캐러셀↔목록 중복 / 가맹점명 아래 설명문(YouTube TV) / 브랜드+홍보문구가
+  //                한 줄(Google Play·YouTube Premium) / "Up to N%" / "Nd left" / 값 줄만 남은 블록
+  const PARSE_FIXTURE_AMEX = [
+    'Skip to main', 'Menu', 'American Express', '',
+    'Aurora Rewards® Card', '••••44021', 'card_art', 'Added to Card', 'View All', '',
+    'Recommended Offers', 'Sort ByRecommended', '', '',
+    'Bonus Points Offer',
+    'Bonus Points Offer',
+    'Spend $1,500 or more, earn 1,500 additional Aurora Points, up to 2 times',
+    'Terms apply', 'View Details', '',
+    'Loans That Fit Your Lifestyle',
+    'Apply for a personal loan and explore repayment options. Terms apply.',
+    'Explore Now',
+    'Northwind Apparel',
+    'Northwind Apparel',
+    'Spend $80 or more, earn $16 back',
+    'Expires 9/30/26', '', 'Terms apply', 'View Details', '',
+    'Fabrikam - Salads, Wraps, and Bowls',
+    'Fabrikam - Salads, Wraps, and Bowls',
+    'Spend $20 or more, earn $4 back, up to 2 times (total of $8).',
+    'Expires 8/31/26', '', 'Terms apply', 'View Details', '',
+    'Contoso Cloud',
+    'Contoso Cloud',
+    'Earn 30% back on purchases, up to a total of $45',
+    'Expires 11/25/26', '', 'Terms apply', 'View Details', '',
+    'Litware  - Live Event Ticketing Platform',          // 첫 줄만 공백 두 칸 — 정규화 후 같아야 한다
+    'Litware - Live Event Ticketing Platform',
+    'Spend $250 or more, earn $40 back',
+    'Expires 9/28/26', '', 'Terms apply', 'View Details', '',
+    'Adventure Works',
+    'Adventure Works',
+    'Earn +4 miles per eligible dollar spent, up to 4,000 miles',
+    'Expires 8/14/26', '', 'Terms apply', 'View Details', '',
+    'Proseware',
+    'Proseware',
+    'Spend $60 or more, earn $12 back',
+    'Expires 7/1/26', '', 'Terms apply', 'View Details', '',
+    'Last Login: 12 Aug 2026 @ 12:31', '© 2026 American Express. All rights reserved'
+  ].join('\n');
+
+  const PARSE_FIXTURE_CHASE = [
+    'Skip to main content', '', 'Chase logo', '', 'Sign out', '', 'Accounts', '',
+    'Chase Offers', 'Home', 'Offers wallet', 'More', 'Choose account', '',
+    'Voyager (...3310)',
+    "Add deals to your card, shop and get cash back. It's that easy.", '',
+    'Voyager (...3310)', '$12.00', 'Total amount saved', '1', 'Added offers', '0', 'Expiring offers',
+    'All offers', 'Shopping', 'Groceries', 'Other', '',
+    'New', 'New offers loaded', 'See all offers', '', '',
+    'New', '', '',
+    'Northwind Apparel', '15% cash back', 'Expiring soon',
+    'New', '', '',
+    'Fabrikam Bowls', '10% cash back',
+    'All offers',
+    'Tailspin TV', 'Watch live sports from 80+ networks', '$20 cash back', 'Add offer', '', '', '',
+    'Northwind Apparel', '15% cash back', 'Expiring soon',
+    'New', '', '',
+    'Fabrikam Bowls', '10% cash back', '', '',
+    'Contoso Cloud is your workspace unbound.', '10% cash back', '', '',
+    'Tailspin Premium: 40% off your first three payments', '40% cash back', '', '',
+    'Fourth Coffee', 'Up to 5% back', '', '',
+    '[lowercase brand]', '15% cash back', '', '',
+    'Wide World Travel', '$100 back', '45d left', '',
+    'Back to top', '', '',
+    '12% cash back',                 // 가맹점명 줄이 없다 → 조용히 버리지 말고 '못 읽음'으로
+    '18% cash back'                  // 앞 줄이 값 줄이다 → 역시 '못 읽음'
+  ].join('\n');
+
+  // 정답 — 순서·값 전부 고정. 하나라도 어긋나면 실패.
+  const PARSE_GOLDEN = {
+    amex: {
+      issuer: 'amex', card: { name: 'Aurora Rewards® Card', digits: '44021' },
+      stats: { found: 7, duplicates: 0, skipped: 0, withExpiry: 6, miles: 2, lowConf: 0 },
+      offers: [
+        ['Bonus Points Offer', 'miles', 0, 0, null, 1500, null],
+        ['Northwind Apparel', 'fixed', 16, 0, null, 80, '2026-09-30'],
+        ['Fabrikam - Salads, Wraps, and Bowls', 'fixed', 4, 0, null, 20, '2026-08-31'],
+        ['Contoso Cloud', 'pct', 0, 30, 45, null, '2026-11-25'],
+        ['Litware - Live Event Ticketing Platform', 'fixed', 40, 0, null, 250, '2026-09-28'],
+        ['Adventure Works', 'miles', 0, 0, null, null, '2026-08-14'],
+        ['Proseware', 'fixed', 12, 0, null, 60, '2026-07-01'],
+      ],
+    },
+    chase: {
+      issuer: 'chase', card: { name: 'Voyager', digits: '3310' },
+      stats: { found: 8, duplicates: 2, skipped: 2, withExpiry: 1, miles: 0, lowConf: 2 },
+      offers: [
+        ['Northwind Apparel', 'pct', 0, 15, null, null, null],
+        ['Fabrikam Bowls', 'pct', 0, 10, null, null, null],
+        ['Tailspin TV', 'fixed', 20, 0, null, null, null],       // 설명문을 가맹점명으로 잡으면 안 된다
+        ['Contoso Cloud', 'pct', 0, 10, null, null, null],       // "…is your workspace unbound." 에서 앞머리만
+        ['Tailspin Premium', 'pct', 0, 40, null, null, null],    // 콜론 앞만
+        ['Fourth Coffee', 'pct', 0, 5, null, null, null],        // "Up to" → approx
+        ['[lowercase brand]', 'pct', 0, 15, null, null, null],   // 소문자로 시작해도 짧으면 브랜드다
+        ['Wide World Travel', 'fixed', 100, 0, null, null, '2026-09-28'],  // 45d left → asOf+45
+      ],
+    },
+  };
+
+  function runParse() {
+    const bad = [];
+    const ASOF = '2026-08-14';                 // 고정 — "45d left" 가 절대 날짜로 바뀌는 기준
+    if (typeof parseOfferDump !== 'function') {
+      bad.push('parseOfferDump 가 없다 — 파서가 페이지에서 사라졌거나 이름이 바뀜');
+      __fuzz.lastParse = bad;
+      return { mode: 'parse', 검사: 0, 실패: bad.length, 상세: bad };
+    }
+    let checks = 0;
+    const eq = (why, got, want) => { checks++; if (got !== want) bad.push(why + ': ' + JSON.stringify(got) + ' ≠ ' + JSON.stringify(want)); };
+
+    [['amex', PARSE_FIXTURE_AMEX], ['chase', PARSE_FIXTURE_CHASE]].forEach(([who, text]) => {
+      const g = PARSE_GOLDEN[who];
+      let r;
+      try { r = parseOfferDump(text, { asOf: ASOF }); }
+      catch (e) { bad.push(who + ' throw: ' + e.message); return; }
+
+      eq(who + '.ok', r.ok, true);
+      eq(who + '.issuer', r.issuer, g.issuer);
+      eq(who + '.card.name', r.card && r.card.name, g.card.name);
+      eq(who + '.card.digits', r.card && r.card.digits, g.card.digits);
+      Object.keys(g.stats).forEach(k => eq(who + '.stats.' + k, r.stats[k], g.stats[k]));
+
+      // 개수만 맞고 내용이 틀리는 게 이 파서의 실패 방식이다 → 행 단위로 못 박는다
+      g.offers.forEach((want, i) => {
+        const o = r.offers[i];
+        if (!o) { checks++; bad.push(who + '.offers[' + i + '] 없음 (기대: ' + want[0] + ')'); return; }
+        eq(who + '.offers[' + i + '].merchant', o.merchant, want[0]);
+        eq(who + '.offers[' + i + '].kind', o.kind, want[1]);
+        eq(who + '.offers[' + i + '].amount', o.amount, want[2]);
+        eq(who + '.offers[' + i + '].pct', o.pct, want[3]);
+        eq(who + '.offers[' + i + '].cap', o.cap, want[4]);
+        eq(who + '.offers[' + i + '].minSpend', o.minSpend, want[5]);
+        eq(who + '.offers[' + i + '].expiry', o.expiry.known ? o.expiry.iso : null, want[6]);
+      });
+      checks++; if (r.offers.length !== g.offers.length) bad.push(who + ' 오퍼 수 ' + r.offers.length + ' ≠ ' + g.offers.length);
+    });
+
+    // 못 읽은 건 조용히 사라지면 안 된다 — 이유와 원문 조각이 같이 남아야 사용자가 손으로 메꾼다
+    try {
+      const rc = parseOfferDump(PARSE_FIXTURE_CHASE, { asOf: ASOF });
+      checks++; if (!rc.skipped.length) bad.push('못 읽은 블록이 skipped 로 안 돌아옴 — 조용한 누락');
+      rc.skipped.forEach((s, i) => { checks++; if (!s.why || !s.text) bad.push('skipped[' + i + '] 에 이유나 원문이 비었다'); });
+    } catch (e) { bad.push('skipped 검사 throw: ' + e.message); }
+
+    // 개별 규칙 — 하나씩 따로 걸어둬야 어디가 깨졌는지 바로 보인다
+    const V = s => { const x = ofpValue(s); return x ? [x.kind, x.amount, x.pct, x.cap, x.minSpend, !!x.approx] : null; };
+    [
+      ['Spend $75 or more, earn $15 back', ['fixed', 15, 0, null, 75, false]],
+      ['Spend $99 or more, earn $25', ['fixed', 25, 0, null, 99, false]],
+      ['Earn 10% back on purchases, up to a total of $100', ['pct', 0, 10, 100, null, false]],
+      ['Spend $15 or more, earn $3 back, up to 2 times (total of $6).', ['fixed', 3, 0, null, 15, false]],
+      ['Earn +5 miles per eligible dollar spent, up to 5,000 miles', ['miles', 0, 0, null, null, false]],
+      ['15% cash back', ['pct', 0, 15, null, null, false]],
+      ['$30 cash back', ['fixed', 30, 0, null, null, false]],
+      ['Up to 5% back', ['pct', 0, 5, null, null, true]],
+    ].forEach(([s, want]) => { checks++; const got = V(s);
+      if (JSON.stringify(got) !== JSON.stringify(want)) bad.push('ofpValue("' + s + '") = ' + JSON.stringify(got) + ' ≠ ' + JSON.stringify(want)); });
+
+    // 설명문 판정 — 이게 뒤집히면 가맹점명 자리에 홍보문구가 저장된다
+    [
+      ['Watch live sports from 80+ networks', true],
+      ['Contoso Cloud is your workspace unbound.', true],
+      ['Hydro Flask - Water Bottles & Drinkware', false],
+      ['[lowercase brand]', false],
+      ["Sam's Club", false],
+      ['Avocado Green Mattress - Mattresses, Pillows, and Bedding', false],
+    ].forEach(([s, want]) => { checks++; if (ofpIsDescription(s) !== want) bad.push('ofpIsDescription("' + s + '") = ' + !want + ' (기대 ' + want + ')'); });
+
+    // 가맹점 ↔ 판매처 대조는 보수적이어야 한다. 틀린 오퍼는 없는 것보다 나쁘다.
+    [
+      ['Northwind Apparel', 'Northwind Apparel', true],
+      ['Fabrikam - Salads, Wraps, and Bowls', 'Fabrikam', true],
+      ['Lids', 'Lids.com', true],
+      ['Contoso Cloud', 'Contoso', true],
+      ['Dropbox', 'Box', false],
+      ['La Colombe', 'La-Z-Boy', false],
+      ['Adventure Works', 'Adventure Time Toys', false],
+    ].forEach(([m, s, want]) => { checks++; if (ofpStoreHit(m, s, '') !== want) bad.push('ofpStoreHit("' + m + '","' + s + '") = ' + !want + ' (기대 ' + want + ')'); });
+
+    // 금액 환산 — 최소 사용액 미달·상한·마일은 "넣을 수 없음"으로 정직하게 돌아와야 한다
+    const A = (o, chg) => { const x = ofpAmountFor(Object.assign({ kind: 'fixed', amount: 0, pct: 0, cap: null, minSpend: null, approx: false }, o), chg); return [x.ok, x.amount]; };
+    [
+      [{ kind: 'fixed', amount: 15, minSpend: 75 }, 200, [true, 15]],
+      [{ kind: 'fixed', amount: 15, minSpend: 500 }, 200, [false, 0]],
+      [{ kind: 'pct', pct: 10, cap: 100 }, 200, [true, 20]],
+      [{ kind: 'pct', pct: 10, cap: 5 }, 200, [true, 5]],
+      [{ kind: 'pct', pct: 10 }, 0, [false, 0]],
+      [{ kind: 'miles' }, 200, [false, 0]],
+    ].forEach(([o, chg, want]) => { checks++; const got = A(o, chg);
+      if (JSON.stringify(got) !== JSON.stringify(want)) bad.push('ofpAmountFor(' + JSON.stringify(o) + ',' + chg + ') = ' + JSON.stringify(got) + ' ≠ ' + JSON.stringify(want)); });
+
+    // 이 기능은 옵션이다 — 아무것도 안 붙여넣은 상태에서 계산에 손대면 안 된다(프라이버시 원칙 P1)
+    checks++;
+    try {
+      const keepW = offerWallet; offerWallet = {};
+      if (ofpSuggestions('Northwind Apparel', '', 100).length) bad.push('오퍼를 하나도 안 넣었는데 제안이 나온다 — 옵션이 아니게 된다');
+      offerWallet = keepW;
+    } catch (e) { bad.push('빈 지갑 검사 throw: ' + e.message); }
+
+    // 만료된 오퍼는 제안에서 빠져야 한다
+    checks++;
+    try {
+      const keepW = offerWallet, keepC = CARDS;
+      CARDS = [CARD_CATALOG[0]];
+      offerWallet = {}; offerWallet[CARDS[0].id] = { issuer: 'amex', asOf: todayStr(), offers: [
+        { merchant: 'Proseware', offerText: 'x', kind: 'fixed', amount: 12, pct: 0, cap: null, minSpend: null, approx: false, expiry: { known: true, iso: '2020-01-01' }, badges: [] },
+        { merchant: 'Northwind Apparel', offerText: 'y', kind: 'fixed', amount: 16, pct: 0, cap: null, minSpend: null, approx: false, expiry: { known: false, iso: null }, badges: [] } ] };
+      if (ofpSuggestions('Proseware', '', 100).length) bad.push('만료된 오퍼가 제안에 남아 있다');
+      if (ofpSuggestions('Northwind Apparel', '', 100).length !== 1) bad.push('만료일 모름인 오퍼가 제안에서 빠졌다 — 모름을 만료로 취급하면 안 된다');
+      offerWallet = keepW; CARDS = keepC;
+    } catch (e) { bad.push('만료 검사 throw: ' + e.message); }
+
+    __fuzz.lastParse = bad;
+    return { mode: 'parse', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
+  }
+
   // 전부 한 번에
   function all(opt) {
     opt = opt || {};
@@ -570,13 +796,14 @@ window.__fuzz = (function () {
     return {
       golden: runGolden(),
       recheck: runRecheck(),
+      parse: runParse(),
       math: run({ n: opt.n || 1000, seed }),
       dom: runDom({ n: opt.dom || 40, seed }),
       compare: runCompare({ n: opt.cmp || 150, seed }),
     };
   }
 
-  return { run, runDom, runCompare, runGolden, runRecheck, all,
-           last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null };
+  return { run, runDom, runCompare, runGolden, runRecheck, runParse, all,
+           last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null };
 })();
 'fuzz harness loaded';
