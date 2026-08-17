@@ -1,5 +1,5 @@
 {
- "asOf": "2026-08-16",
+ "asOf": "2026-08-17",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -250,7 +250,7 @@
   },
   "samsclub": {
    "rk": {
-    "pct": 8,
+    "pct": 10,
     "listed": true,
     "upTo": true
    },
@@ -464,7 +464,7 @@
   },
   "americaneagle": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -500,7 +500,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 12,
+    "pct": 8,
     "listed": true
    }
   },
@@ -586,14 +586,14 @@
     "listed": true
    },
    "tcb": {
-    "pct": 19,
+    "pct": 15,
     "listed": true,
     "upTo": true
    }
   },
   "levis": {
    "rk": {
-    "pct": 5,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -699,7 +699,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 6,
     "listed": true
    }
   },
@@ -719,7 +719,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 8,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -733,7 +733,7 @@
   },
   "adidas": {
    "rk": {
-    "pct": 4,
+    "pct": 10,
     "listed": true,
     "upTo": true
    },
@@ -763,7 +763,7 @@
   },
   "underarmour": {
    "rk": {
-    "pct": 8,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -792,7 +792,7 @@
   },
   "reebok": {
    "rk": {
-    "pct": 10,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -892,7 +892,7 @@
   },
   "athleta": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -920,7 +920,7 @@
   },
   "columbia": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -934,7 +934,7 @@
   },
   "northface": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1092,7 +1092,7 @@
   },
   "lenovo": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1191,7 +1191,7 @@
   },
   "logitech": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1219,7 +1219,7 @@
   },
   "dyson": {
    "rk": {
-    "pct": 1,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1227,21 +1227,22 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    }
   },
   "sephora": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 12,
+    "listed": true,
+    "upTo": true
    },
    "cap": {
     "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 4,
+    "pct": 7,
     "listed": true
    }
   },
@@ -1275,7 +1276,7 @@
   },
   "gnc": {
    "rk": {
-    "pct": 4,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1361,7 +1362,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 4,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1375,7 +1376,7 @@
   },
   "lego": {
    "rk": {
-    "pct": 2.5,
+    "pct": 10,
     "listed": true,
     "upTo": true
    },
@@ -1404,7 +1405,7 @@
   },
   "petco": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1446,8 +1447,9 @@
   },
   "officedepot": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 10,
+    "listed": true,
+    "upTo": true
    },
    "cap": {
     "pct": null,
@@ -1484,8 +1486,9 @@
     "listed": true
    },
    "tcb": {
-    "pct": 5,
-    "listed": true
+    "pct": 1.5,
+    "listed": true,
+    "upTo": true
    }
   },
   "etsy": {
@@ -1504,7 +1507,7 @@
   },
   "aliexpress": {
    "rk": {
-    "pct": 2,
+    "pct": 26,
     "listed": true
    },
    "cap": {
@@ -1512,8 +1515,9 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 15,
+    "listed": true,
+    "upTo": true
    }
   },
   "temu": {
@@ -1547,7 +1551,7 @@
   },
   "expedia": {
    "rk": {
-    "pct": 3,
+    "pct": 10,
     "listed": true,
     "upTo": true
    },
@@ -1563,7 +1567,7 @@
   },
   "hotels": {
    "rk": {
-    "pct": 3,
+    "pct": 10,
     "listed": true,
     "upTo": true
    },
@@ -1572,14 +1576,14 @@
     "listed": true
    },
    "tcb": {
-    "pct": 7,
+    "pct": 15,
     "listed": true,
     "upTo": true
    }
   },
   "booking": {
    "rk": {
-    "pct": 5,
+    "pct": 6,
     "listed": true,
     "upTo": true
    },
@@ -1588,14 +1592,14 @@
     "listed": true
    },
    "tcb": {
-    "pct": 7,
+    "pct": 6,
     "listed": true,
     "upTo": true
    }
   },
   "priceline": {
    "rk": {
-    "pct": 4,
+    "pct": 8,
     "listed": true,
     "upTo": true
    },
