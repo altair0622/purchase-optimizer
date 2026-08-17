@@ -325,6 +325,279 @@ for (const [label, body, expect] of PARSE_CASES) {
   parseResults.push({ 케이스: label, 기대: expect, 실제: j.price, 신뢰도: j.confidence, ok });
 }
 
+// ===== 5) /rate — 온디맨드 요율 조회 =====
+//
+// `/?url=` 은 "임의의 호스트를 받아서 나쁜 곳을 거른다"지만 `/rate` 는 반대다 —
+// 목적지가 두 도메인으로 고정이므로, 합격선은 "사설망을 막았나"가 아니라
+// **나간 요청이 전부 못 박힌 두 형태 중 하나인가**이다. 이게 이 절의 1번 불변식이다.
+// 1a) 워커가 **처음 만드는 URL**은 이 두 형태여야 한다 (슬러그로 경로를 못 벗어난다)
+const PINNED = [
+  /^https:\/\/www\.rakuten\.com\/shop\/[a-z0-9-]{1,60}$/,
+  /^https:\/\/www\.topcashback\.com\/[a-z0-9-]{1,60}\/$/,
+];
+// 1b) 리다이렉트를 따라간 뒤에도 **호스트는 이 집합을 벗어나면 안 된다** (경로는 포털이 정한다)
+const PINNED_HOSTS = new Set(['www.rakuten.com', 'rakuten.com', 'www.topcashback.com', 'topcashback.com']);
+const offPortalHost = u => { try { return !PINNED_HOSTS.has(new URL(u).hostname.toLowerCase()) || new URL(u).protocol !== 'https:'; } catch { return true; } };
+const rstats = { n: 0, accepted: 0, rejected: 0, egress: 0 };
+
+// P-1 근거 검사: /rate 처리 중 console.* 이 한 번이라도 불리면 실패.
+// (로그를 남기지 않는다는 약속을 문서가 아니라 실행으로 확인한다)
+const consoleCalls = [];
+function withConsoleSpy(fn) {
+  const real = {};
+  for (const k of ['log', 'info', 'warn', 'error', 'debug', 'trace']) {
+    real[k] = console[k];
+    console[k] = (...a) => consoleCalls.push(k + ': ' + a.map(String).join(' ').slice(0, 120));
+  }
+  return fn().finally(() => { for (const k of Object.keys(real)) console[k] = real[k]; });
+}
+
+// 포털별 응답을 골라주는 responder
+function portalResponder(rkBody, tcbBody, opt = {}) {
+  return (u) => {
+    const isRk = /rakuten\.com/.test(u);
+    const body = isRk ? rkBody : tcbBody;
+    const st = (isRk ? opt.rkStatus : opt.tcbStatus) || 200;
+    const loc = isRk ? opt.rkLocation : opt.tcbLocation;
+    if (loc) return new Response('', { status: st === 200 ? 302 : st, headers: { Location: loc } });
+    return new Response(body, { status: st, headers: { 'content-type': 'text/html' } });
+  };
+}
+async function callRate(store, opts = {}) {
+  fetchLog = [];
+  responder = opts.responder || portalResponder('<html><title>x</title></html>', '<html>x</html>');
+  const q = store === null ? '' : '?store=' + encodeURIComponent(store);
+  const req = new Request('https://w.dev/rate' + q,
+    { method: opts.method || 'GET', headers: opts.origin ? { Origin: opts.origin } : {} });
+  const res = await withConsoleSpy(() => worker.fetch(req, {}, ctx));
+  return { res, sent: fetchLog.slice() };
+}
+
+// --- 5a) 적대적 슬러그: 경로를 벗어날 수 있는가 ---
+const EVIL_SLUGS = [
+  '', ' ', '.', '..', '../..', '../../etc/passwd', 'a/../../b', 'nike/../../admin',
+  'shop/nike', 'shop%2fnike', '%2e%2e%2f%2e%2e%2f', '..%2f..%2fadmin',
+  'nike?x=1', 'nike#frag', 'nike&y=2', 'nike=1',
+  '@evil.com', 'evil.com', 'nike.evil.com', 'x.evil.com', 'nike@evil.com',
+  '//evil.com', '\\\\evil.com', '\\evil.com', 'http://evil.com', 'https://evil.com/',
+  'https://169.254.169.254/', '169.254.169.254', '127.0.0.1', 'localhost', '[::1]',
+  'metadata.google.internal', '2130706433', '0x7f000001',
+  'nike:8080', 'nike\n', 'nike\r\nHost: evil', 'nike ', 'nike%00',
+  'ni ke', 'nike_us', 'nike.us', 'nike+us', "nike'", 'nike"', 'nike<script>',
+  '한글', 'nıke', 'NIKE', ' nike ', '-nike', 'nike-', '-', '--', '_',
+  'a'.repeat(61), 'a'.repeat(200), 'a'.repeat(5000),
+  // 정상 통과해야 하는 것들
+  'nike', 'dsw-us', 'best-buy', 'cb2', 'x', '1800flowers',
+];
+const rateSlugTable = [];
+for (const s of EVIL_SLUGS) {
+  let out;
+  try { out = await callRate(s); }
+  catch (e) { add('/rate 예외 발생', { store: s.slice(0, 40), msg: e.message }); continue; }
+  rstats.n++;
+  const { res, sent } = out;
+  const text = await res.text();
+  let j = null;
+  try { j = JSON.parse(text); }
+  catch { add('/rate 응답이 JSON 이 아님', { store: s.slice(0, 40), head: text.slice(0, 80) }); continue; }
+
+  // 불변식 1 — 나간 요청은 전부 못 박힌 두 형태 중 하나
+  for (const u of sent) {
+    if (!PINNED.some(re => re.test(u))) {
+      add('/rate 가 못 박힌 포털 URL 밖으로 요청을 보냈다', { store: s.slice(0, 60), 나간요청: u });
+    }
+    // 불변식 1-b — 경로에 박힌 슬러그는 입력에서 온 것이어야 한다(변환으로 새로 생기면 안 됨)
+    const seg = u.replace(/^https:\/\/[^/]+\/(?:shop\/)?/, '').replace(/\/$/, '');
+    if (!s.toLowerCase().includes(seg)) {
+      add('/rate 가 입력에 없는 슬러그로 요청했다', { store: s.slice(0, 60), 슬러그: seg });
+    }
+  }
+  // 불변식 2 — 거부(400)했으면 외부 요청이 0건이어야 한다
+  if (res.status === 400 && sent.length) {
+    add('/rate 가 거부하고도 외부 요청을 보냈다', { store: s.slice(0, 60), 나간요청: sent[0] });
+  }
+  // 불변식 3 — 받아들였으면 정확히 포털 2곳. 단 캐시 히트면 0곳이 맞다
+  //   (EVIL_SLUGS 에는 'nike' / 'NIKE' / ' nike ' 처럼 같은 슬러그로 정규화되는 입력이 일부러 들어 있다.
+  //    두 번째부터 0곳이 되는 것 자체가 정규화가 일관됐다는 증거이므로 실패로 세지 않는다.)
+  if (res.status === 200 && !(sent.length === 2 || (sent.length === 0 && j.cached === true))) {
+    add('/rate 가 포털 2곳이 아닌 횟수로 요청했다', { store: s.slice(0, 60), 횟수: sent.length, cached: !!j.cached });
+  }
+  // 불변식 4 — CORS 반사 금지
+  const ao = res.headers.get('Access-Control-Allow-Origin');
+  if (!ORIGINS.slice(0, 3).includes(ao)) add('/rate CORS Allow-Origin 이 허용 목록 밖', { allowOrigin: ao });
+
+  if (res.status === 200) rstats.accepted++; else rstats.rejected++;
+  rstats.egress += sent.length;
+  rateSlugTable.push({ 입력: s.length > 24 ? s.slice(0, 21) + '…' : (s || '(빈값)'), 상태: res.status, 나간요청: sent.length });
+}
+// 불변식 5 — /rate 처리 중 로그를 남기지 않는다 (프라이버시 조건 1)
+if (consoleCalls.length) add('/rate 처리 중 console 로그가 남았다 (프라이버시 조건 1 위반)', { 건수: consoleCalls.length, 예: consoleCalls[0] });
+
+// --- 5b) 리다이렉트: 포털 도메인 밖으로 나가는가 ---
+const rateRedirTable = [];
+for (const [label, loc, shouldFollow] of [
+  ['rakuten → 자기 도메인', 'https://www.rakuten.com/shop/x2', true],
+  ['rakuten → www 없는 자기 도메인', 'https://rakuten.com/shop/x2', true],
+  ['rakuten → 외부 도메인', 'https://evil.example.com/x', false],
+  ['rakuten → 메타데이터', 'http://169.254.169.254/latest/', false],
+  ['rakuten → 루프백', 'http://127.0.0.1/x', false],
+  ['rakuten → http 강등', 'http://www.rakuten.com/shop/x2', false],
+  ['rakuten → 상대경로', '/shop/x3', true],
+  ['rakuten → 유사 도메인', 'https://www.rakuten.com.evil.com/x', false],
+]) {
+  let hops = 0;
+  const { res, sent } = await callRate('redir' + (rateRedirTable.length + 1), {
+    responder: (u) => {
+      if (!/rakuten\.com/.test(u)) return new Response('<html>x</html>', { headers: { 'content-type': 'text/html' } });
+      hops++;
+      return hops === 1
+        ? new Response('', { status: 302, headers: { Location: loc } })
+        : new Response('<html><title>Foo & 5% Cash Back | Rakuten</title></html>', { headers: { 'content-type': 'text/html' } });
+    },
+  });
+  const j = await res.json();
+  const followed = sent.filter(u => /rakuten/.test(u)).length >= 2;
+  // 리다이렉트를 따라간 뒤 경로는 포털이 정하므로 PINNED(형태)가 아니라 호스트 집합으로 본다.
+  const off = sent.filter(offPortalHost);
+  rateRedirTable.push({ 케이스: label, 홉수: sent.length, rk상태: j.rk && j.rk.status, 밖으로: off.length > 0 });
+  if (off.length) add('/rate 리다이렉트가 포털 밖으로 나갔다', { 케이스: label, 나간요청: off[0] });
+  // 첫 요청은 언제나 못 박힌 형태여야 한다
+  if (sent.length && !PINNED.some(re => re.test(sent[0]))) {
+    add('/rate 첫 요청이 못 박힌 형태가 아니다', { 케이스: label, 나간요청: sent[0] });
+  }
+  if (followed !== shouldFollow) {
+    add(shouldFollow ? '/rate 가 따라가야 할 리다이렉트를 안 따라갔다' : '/rate 가 차단해야 할 리다이렉트를 따라갔다',
+        { 케이스: label, 홉: sent.slice(0, 3) });
+  }
+  // 리다이렉트를 막았으면 결과는 '모름'이어야 한다 — 0% 로 뭉개면 안 된다
+  if (!shouldFollow && j.rk && j.rk.pct === 0) add('/rate 가 차단된 리다이렉트를 0% 로 뭉갰다', { 케이스: label });
+}
+
+// --- 5c) 파싱 골든 — 행 단위로 못 박는다 ---
+// 개수만 세는 검사로는 "못 찾음"과 "0%"의 혼동을 못 잡는다. 그게 이 엔드포인트 최악의
+// 실패 모드(조용히 0% 를 돌려주면 계산기가 그 판매처를 잘못 깎는다)라서 값을 직접 고정한다.
+const RK_TITLE = t => `<html><head><title>${t}</title></head><body></body></html>`;
+const RATE_CASES = [
+  // [라벨, rk 본문, tcb 본문, 기대 rk, 기대 tcb]
+  ['Rakuten 기본 %', RK_TITLE('Nike Coupons, Promo Codes &amp; 8% Cash Back - August 2026 | Rakuten'), '',
+    { pct: 8, listed: true, status: 'found' }, null],
+  ['Rakuten Up to', RK_TITLE('Best Buy Coupons &amp; Up to 7% Cash Back | Rakuten'), '',
+    { pct: 7, listed: true, status: 'found', upTo: true }, null],
+  ['Rakuten 소수점', RK_TITLE('Foo &amp; 2.5% Cash Back | Rakuten'), '',
+    { pct: 2.5, listed: true, status: 'found' }, null],
+  ['Rakuten $ 고정', RK_TITLE('Amazon &amp; $5 Cash Back | Rakuten'), '',
+    { pct: null, flat: 5, listed: true, status: 'found' }, null],
+  ['Rakuten No Cash Back = 진짜 0%', RK_TITLE('Foo Coupons &amp; No Cash Back | Rakuten'), '',
+    { pct: 0, listed: true, status: 'listed-zero' }, null],
+  ['Rakuten Coupons Only = 진짜 0%', RK_TITLE('Foo Coupons &amp; Coupons Only | Rakuten'), '',
+    { pct: 0, listed: true, status: 'listed-zero' }, null],
+  ['Rakuten 홈 리다이렉트 = 페이지 없음', RK_TITLE('Rakuten: Shop. Get Cash Back. Save Money.'), '',
+    { pct: null, listed: false, status: 'no-page' }, null],
+  ['Rakuten 요율 없는 타이틀 = 모름(0% 아님)', RK_TITLE('Some Store | Rakuten'), '',
+    { pct: null, listed: null, status: 'lookup-failed' }, null],
+  ['Rakuten 타이틀 없음 = 모름', '<html><body>nothing</body></html>', '',
+    { pct: null, listed: null, status: 'lookup-failed' }, null],
+  ['TCB 기본 %', '', '<html><span class="merch-offer__rate">10% Cash Back</span></html>',
+    null, { pct: 10, listed: true, status: 'found' }],
+  ['TCB Up to', '', '<html><div class="merch-offer__rate x">Up to 8% Cash Back</div></html>',
+    null, { pct: 8, listed: true, status: 'found', upTo: true }],
+  ['TCB 쿠폰만 = 진짜 0%', '', '<html><h1>Nike Cash Back Offers</h1></html>',
+    null, { pct: 0, listed: true, status: 'listed-zero' }],
+  ['TCB 페이지 없음', '', '<html><h1>Page not found</h1></html>',
+    null, { pct: null, listed: false, status: 'no-page' }],
+  ['TCB 빈 페이지 = 모름(0% 아님)', '', '<html><body></body></html>',
+    null, { pct: null, listed: null, status: 'lookup-failed' }],
+  // 봇 차단은 "못 읽음"과 구분해서 말해야 한다 — 상태가 같으므로 사유 문구까지 못 박는다
+  ['TCB 봇차단 = 모름 + 차단이라고 말함', '', '<html><h1>Robot or human?</h1></html>',
+    null, { pct: null, listed: null, status: 'lookup-failed', errorHas: '봇 차단' }],
+  ['Rakuten 봇차단 = 모름 + 차단이라고 말함', '<html>Please verify you are a human</html>', '',
+    { pct: null, listed: null, status: 'lookup-failed', errorHas: '봇 차단' }, null],
+  ['Rakuten 404 = 페이지 없음', '', '',
+    { pct: null, listed: false, status: 'no-page' }, null, { rkStatus: 404 }],
+  ['TCB 404 = 페이지 없음', '', '',
+    null, { pct: null, listed: false, status: 'no-page' }, { tcbStatus: 404 }],
+  ['포털 500 = 모름(0% 아님)', '', '',
+    { pct: null, listed: null, status: 'lookup-failed' }, { pct: null, listed: null, status: 'lookup-failed' },
+    { rkStatus: 500, tcbStatus: 503 }],
+];
+const rateParseTable = [];
+let gi = 0;
+for (const [label, rkBody, tcbBody, wantRk, wantTcb, opt] of RATE_CASES) {
+  const { res, sent } = await callRate('golden' + (++gi), {
+    responder: portalResponder(rkBody || '<html><title>x</title></html>', tcbBody || '<html>x</html>', opt || {}),
+  });
+  const j = await res.json();
+  const rows = [];
+  for (const [key, want] of [['rk', wantRk], ['tcb', wantTcb]]) {
+    if (!want) continue;
+    const got = j[key] || {};
+    for (const f of ['pct', 'listed', 'status', 'upTo', 'flat']) {
+      const w = f in want ? want[f] : undefined;
+      const g = f in got ? got[f] : undefined;
+      if (JSON.stringify(w) !== JSON.stringify(g)) {
+        add('/rate 파싱 골든 불일치', { 케이스: label, 포털: key, 필드: f, 기대: w, 실제: g });
+        rows.push(`${f}: ${JSON.stringify(g)}≠${JSON.stringify(w)}`);
+      }
+    }
+    if (want.errorHas && !String(got.error || '').includes(want.errorHas)) {
+      add('/rate 실패 사유가 틀리다 (차단과 못 읽음을 구분 못 함)', { 케이스: label, 포털: key, 기대포함: want.errorHas, 실제: got.error });
+      rows.push(`error: "${got.error}" ⊅ "${want.errorHas}"`);
+    }
+  }
+  // 불변식 6 — 원본 HTML 유출 금지
+  const raw = (rkBody || tcbBody);
+  const text = JSON.stringify(j);
+  if (raw.length > 20 && text.includes(raw.slice(0, 20))) add('/rate 응답에 원본 HTML 이 들어갔다', { 케이스: label });
+  rateParseTable.push({ 케이스: label, rk: j.rk && j.rk.status, tcb: j.tcb && j.tcb.status,
+                        rk값: j.rk && (j.rk.flat != null ? '$' + j.rk.flat : j.rk.pct), tcb값: j.tcb && j.tcb.pct,
+                        ok: rows.length === 0 ? 'ok' : rows.join(' / ') });
+  rstats.n++;
+}
+
+// --- 5d) 캐시가 사용자 단위가 아니라 매장 단위인가 (프라이버시 조건 3) ---
+// 오리진이 달라도 같은 매장이면 같은 캐시 항목을 써야 한다. 오리진·IP가 키에 섞이면
+// 그건 사용자 단위 캐시고, 조건 3 위반이다.
+const cacheTable = [];
+{
+  const body = portalResponder(RK_TITLE('Foo &amp; 9% Cash Back | Rakuten'), '<html><span class="merch-offer__rate">3% Cash Back</span></html>');
+  const a = await callRate('cachetest', { responder: body, origin: 'https://altair0622.github.io' });
+  const ja = await a.res.json();
+  const b = await callRate('cachetest', { responder: body, origin: 'http://localhost:8080' });
+  const jb = await b.res.json();
+  const c = await callRate('cachetest2', { responder: body, origin: 'https://altair0622.github.io' });
+  const jc = await c.res.json();
+  cacheTable.push({ 케이스: '1차(오리진 A)', cached: !!ja.cached, 외부요청: a.sent.length });
+  cacheTable.push({ 케이스: '2차(오리진 B·같은 매장)', cached: !!jb.cached, 외부요청: b.sent.length });
+  // 대소문자만 다른 입력이 같은 캐시 항목을 써야 한다. 안 그러면 키가 쪼개져서
+  // 매장 단위 공용 캐시라는 전제(조건 3)가 흐려지고, 포털로 나가는 요청도 그만큼 늘어난다.
+  const d = await callRate('CACHETEST', { responder: body, origin: 'https://altair0622.github.io' });
+  const jd = await d.res.json();
+  cacheTable.push({ 케이스: '3차(오리진 A·다른 매장)', cached: !!jc.cached, 외부요청: c.sent.length });
+  cacheTable.push({ 케이스: '4차(대문자 같은 매장)', cached: !!jd.cached, 외부요청: d.sent.length, status: d.res.status });
+  if (d.res.status !== 200 || !jd.cached || d.sent.length !== 0) {
+    add('/rate 가 대소문자만 다른 같은 매장을 다른 항목으로 취급했다', { status: d.res.status, cached: !!jd.cached, 외부요청: d.sent.length });
+  }
+  if (ja.cached) add('/rate 1차 조회가 캐시 히트로 나왔다 (하니스 상태 오염)', {});
+  if (!jb.cached || b.sent.length !== 0) {
+    add('/rate 캐시가 매장 단위 공용이 아니다 — 오리진이 다르면 새로 조회한다 (프라이버시 조건 3 위반)',
+        { cached: !!jb.cached, 외부요청: b.sent.length });
+  }
+  if (jc.cached) add('/rate 가 다른 매장인데 캐시를 재사용했다', {});
+  if (jb.rk && ja.rk && jb.rk.pct !== ja.rk.pct) add('/rate 캐시가 다른 값을 돌려줬다', { 1: ja.rk.pct, 2: jb.rk.pct });
+  rstats.n += 4;
+}
+
+// --- 5e) 메서드·경로 ---
+{
+  const p = await callRate('nike', { method: 'POST' });
+  if (p.res.status !== 405) add('/rate 가 POST 를 405 로 막지 않았다', { status: p.res.status });
+  if (p.sent.length) add('/rate 가 POST 인데 외부 요청을 보냈다', {});
+  const noParam = await callRate(null);
+  if (noParam.res.status !== 400) add('/rate 가 store 없이도 400 이 아니다', { status: noParam.res.status });
+  if (noParam.sent.length) add('/rate 가 store 없이 외부 요청을 보냈다', {});
+  rstats.n += 2;
+}
+
 console.log(JSON.stringify({
   검사수: stats.n,
   실패: fails.length,
@@ -333,5 +606,13 @@ console.log(JSON.stringify({
   통계: { 외부요청나감: stats.fetched, 가격찾음: stats.priceFound, 에러응답: stats.errors, 캐시히트: stats.cached,
           최장처리ms: +stats.slowest.toFixed(1), 최장케이스: stats.slowCase },
   파싱: parseResults,
+  rate검사수: rstats.n,
+  rate: {
+    슬러그: { 시도: EVIL_SLUGS.length, 수락: rstats.accepted, 거부: rstats.rejected, 나간요청: rstats.egress, 표: rateSlugTable },
+    리다이렉트: rateRedirTable,
+    파싱골든: rateParseTable,
+    캐시: cacheTable,
+    로그남김: consoleCalls.length,
+  },
   실패목록: fails,
 }, null, 1));

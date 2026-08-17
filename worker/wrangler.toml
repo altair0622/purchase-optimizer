@@ -6,5 +6,10 @@ compatibility_date = "2025-09-01"
 # 배포 후 나오는 URL(https://purchase-optimizer-price.<계정>.workers.dev)을
 # index.html 의 PRICE_API 상수에 넣으면 계산기가 1순위로 쓴다.
 
+# ⚠️ 일부러 꺼 둔다. Workers Logs를 켜면 Cloudflare가 **요청 URL을 며칠 보관**하는데,
+# /rate?store=<슬러그> 의 요청 URL은 곧 "이 사람이 어느 매장을 궁금해했는가" = 쇼핑 이력이다.
+# /?url= 쪽은 상품 URL이 통째로 남으니 더 나쁘다. 워커 코드에 console.* 가 0개인 것과
+# 이 한 줄이 "로그를 남기지 않는다"의 근거다 (worker/index.js 머리말 P-1).
+# 디버깅이 필요하면 `wrangler tail` 로 그때만 실시간으로 보고, 켜 두지 않는다.
 [observability]
-enabled = true
+enabled = false
