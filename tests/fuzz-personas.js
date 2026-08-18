@@ -789,6 +789,200 @@ window.__fuzz = (function () {
     return { mode: 'parse', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
   }
 
+  // ===== v0.29 매장 바코드 스캔 (site/scanner.js) =====
+  // 이 파일의 최악 실패 모드는 "못 읽음"이 아니라 **그럴듯한 12자리를 만들어내는 것**이다.
+  // 그러면 개수는 똑같이 1이고 형식도 멀쩡한데 사용자는 엉뚱한 상품 페이지를 본다.
+  // 개수·형식을 세는 검사로는 안 잡힌다 → 아래는 전부 값을 행 단위로 못 박는다.
+  //
+  // 골든의 출처: 아래 UPC는 우리가 만든 숫자가 아니라 **조사 문서가 실제로 조회에 쓴 것**이다
+  // (리서치/바코드-매장스캔-조사.md 3-B·3-E·9-A·9-B). 체크디지트 구현이 틀리면 여기서 걸린다.
+  const SCAN_REAL_UPC = [
+    ['194252721247', 'AirPods Pro 1세대 — 조사 3-E'],
+    ['041604414855', 'Stanley Quencher 40oz Rose Quartz — 조사 3-E'],
+    ['037000509493', 'Tide Pods 14ct — 조사 3-E'],
+    ['041604361814', 'Stanley 40oz CREAM — 조사 9-A'],
+    ['041604372124', 'Stanley 30oz — 조사 9-A'],
+    ['041604372155', 'Stanley 30oz 별개 UPC — 조사 9-A'],
+    ['041604394263', 'Stanley 또 다른 변형 — 조사 9-A'],
+    ['195174028087', 'LG OLED65C2PUA 본체 — 조사 9-B'],
+    ['196641012844', 'LG 번들 — 조사 9-B'],
+    ['049000028911', 'Diet Coke — 조사 3-B'],
+  ];
+
+  // UPC-E → UPC-A. 압축 분기 4가지를 하나씩 덮는다.
+  // ⚠️ 기대값은 expandUpcE 로 만든 것이 아니라 **명세에서 손으로 편 것**이다:
+  //    X6∈{0,1,2}: N X1 X2 X6 0000 X3X4X5 / X6=3: N X1X2X3 00000 X4X5
+  //    X6=4:       N X1X2X3X4 00000 X5     / X6∈{5..9}: N X1X2X3X4X5 0000 X6
+  //    첫 줄은 널리 쓰이는 표준 예시(0 425261 4 ↔ 042100005264)다.
+  const SCAN_UPCE = [
+    ['04252614', '042100005264', 'X6=1 — 표준 예시'],
+    ['01234531', '012300000451', 'X6=3'],
+    ['01234543', '012340000053', 'X6=4'],
+    ['01234572', '012345000072', 'X6=7'],
+  ];
+
+  async function runScan(mod) {
+    const bad = []; let checks = 0;
+    let S = mod;
+    if (!S) {
+      try { S = await import(new URL('scanner.js', location.href).href); }
+      catch (e) { return { mode: 'scan', 검사: 0, 실패: 1, 상세: ['scanner.js 를 못 불러왔다: ' + e.message] }; }
+    }
+
+    // --- 1. 체크디지트 ---------------------------------------------------
+    // 통과해야 할 것: 조사에서 실제로 쓴 UPC 전부
+    for (const row of SCAN_REAL_UPC) {
+      checks++;
+      if (S.hasValidCheckDigit(row[0]) !== true)
+        bad.push('실제 UPC가 체크디지트를 통과 못 했다: ' + row[0] + ' (' + row[1] + ')');
+    }
+    // 막아야 할 것: 한 자리만 틀린 번호. 이게 통과하면 오타를 그대로 검색하게 된다
+    for (const row of SCAN_REAL_UPC) {
+      checks++;
+      const c = row[0], broken = c.slice(0, -1) + String((+c.slice(-1) + 1) % 10);
+      if (S.hasValidCheckDigit(broken) !== false)
+        bad.push('체크디지트가 틀린 번호를 통과시켰다: ' + broken + ' (원본 ' + c + ')');
+    }
+
+    // --- 2. 정규화 -------------------------------------------------------
+    const CANON = [
+      ['0049000028911', 'ean_13', '049000028911',  '0으로 시작하는 EAN-13은 UPC-A와 같은 번호 → 12자리로'],
+      ['4006381333931', 'ean_13', '4006381333931', '진짜 EAN-13은 13자리 그대로 둔다'],
+      ['194252721247',  'upc_a',  '194252721247',  'UPC-A는 그대로'],
+      ['194252721248',  'upc_a',  null,            '체크디지트가 틀리면 값을 만들지 않는다'],
+      ['04252614',      'upc_e',  '042100005264',  'UPC-E는 펴서 돌려준다'],
+    ];
+    for (const row of CANON) {
+      checks++;
+      const got = S.toCanonical(row[0], row[1]);
+      if (got !== row[2])
+        bad.push('정규화가 다르다: ' + row[0] + '(' + row[1] + ') → ' + got + ' ≠ ' + row[2] + ' — ' + row[3]);
+    }
+
+    // --- 3. UPC-E 복원 ---------------------------------------------------
+    for (const row of SCAN_UPCE) {
+      checks++;
+      const got = S.expandUpcE(row[0]);
+      if (got !== row[1])
+        bad.push('UPC-E 복원이 다르다: ' + row[0] + ' → ' + got + ' ≠ ' + row[1] + ' (' + row[2] + ')');
+    }
+    checks++;
+    if (S.expandUpcE('04252615') !== null) bad.push('체크디지트가 틀린 UPC-E인데 값을 만들어냈다');
+    checks++;
+    if (S.expandUpcE('24252614') !== null) bad.push('UPC-E에 없는 넘버시스템(2)인데 값을 만들어냈다');
+
+    // --- 4. 손입력 폴백 --------------------------------------------------
+    // ⚠️ 이건 폴백이지 진입 경로가 아니다. 8자리를 안 받는 것도 검사한다 —
+    //    EAN-8과 UPC-E는 길이로 구분이 안 되고, 넘겨짚으면 엉뚱한 상품이 나온다.
+    const MANUAL = [
+      ['041604414855',      true,  '041604414855', '평범한 12자리'],
+      [' 0416-0441-4855 ',  true,  '041604414855', '공백·하이픈은 지운다'],
+      ['0049000028911',     true,  '049000028911', '13자리도 받아 12자리로'],
+      ['04160441485',       false, 'bad-length',   '11자리'],
+      ['04160441485555',    false, 'bad-length',   '14자리'],
+      ['04252614',          false, 'bad-length',   '8자리는 안 받는다'],
+      ['041604414856',      false, 'bad-check',    '한 자리 틀림'],
+      ['04160441485a',      false, 'not-digits',   '글자가 섞임'],
+      ['',                  false, 'empty',        '빈 칸'],
+    ];
+    for (const row of MANUAL) {
+      checks++;
+      const r = S.normalizeManualEntry(row[0]);
+      if (row[1]) {
+        if (!(r.ok && r.code === row[2]))
+          bad.push('손입력을 받아야 하는데 못 받았다: "' + row[0] + '" → ' + JSON.stringify(r) + ' (' + row[3] + ')');
+      } else {
+        if (r.ok) bad.push('손입력을 막아야 하는데 통과시켰다: "' + row[0] + '" → ' + JSON.stringify(r) + ' (' + row[3] + ')');
+        else if (r.reason !== row[2])
+          bad.push('손입력 거절 사유가 다르다: "' + row[0] + '" → ' + r.reason + ' ≠ ' + row[2]);
+      }
+    }
+
+    // --- 5. 딥링크 -------------------------------------------------------
+    // 실측으로 확인된 두 곳만. Walmart 는 UPC 검색을 아예 안 받고(3/3 무결과, 대조군 통과)
+    // Target 은 매칭 상품을 안 그린다 — 넣으면 사용자에게 "없는 상품"으로 보인다.
+    const links = S.buildDeepLinks('041604414855');
+    checks++;
+    if (links.length !== 2)
+      bad.push('딥링크가 2개가 아니다 (지금 ' + links.length + '개) — 실측 확인된 곳은 Amazon·Best Buy 둘뿐이다');
+    checks++;
+    const hosts = links.map(l => { try { return new URL(l.url).host; } catch (e) { return '?'; } }).sort().join(',');
+    if (hosts !== 'www.amazon.com,www.bestbuy.com')
+      bad.push('딥링크 호스트가 다르다: ' + hosts);
+    for (const l of links) {
+      checks++;
+      for (const b of (S.DEEP_LINK_BLOCKED || []))
+        if (l.url.toLowerCase().indexOf(b) >= 0)
+          bad.push('UPC 검색이 안 되는 판매처가 딥링크에 들어왔다: ' + b + ' → ' + l.url);
+      if (l.url.indexOf('041604414855') < 0)
+        bad.push('딥링크에 UPC가 안 실렸다: ' + l.url);
+      // 어필리에이트·추적 파라미터 금지 (프라이버시 원칙 H4·H5)
+      let ks = [];
+      try { new URL(l.url).searchParams.forEach((v, k) => ks.push(k)); } catch (e) { ks = ['?']; }
+      for (const k of ks)
+        if (k !== 'k' && k !== 'st')
+          bad.push('딥링크에 모르는 파라미터가 붙었다 — 어필리에이트 태그인가? ' + k + ' → ' + l.url);
+    }
+    checks++;
+    if (S.buildDeepLinks('').length !== 0 || S.buildDeepLinks('12345').length !== 0)
+      bad.push('UPC가 아닌 값으로도 딥링크를 만들었다');
+
+    // --- 6. 해독 재시도 — 여기가 "흐릿한 추정 금지"의 핵심 ----------------
+    // 해독기를 스텁으로 갈아끼워 카메라 없이 판정 로직만 본다.
+    const stub = seq => { let i = 0; return () => Promise.resolve(seq[i++] || null); };
+    const G = '041604414855', H = '194252721247';
+    let r;
+
+    checks++;
+    r = await S.decodeWithRetries('x', stub([null, null, null]));
+    if (!(r.ok === false && r.reason === 'no-barcode'))
+      bad.push('아무것도 못 읽었는데 값을 만들어냈다: ' + JSON.stringify(r));
+
+    checks++;
+    r = await S.decodeWithRetries('x', stub([null, { code: G, format: 'upc_a' }, { code: G, format: 'upc_a' }]));
+    if (!(r.ok && r.code === G))
+      bad.push('같은 값이 두 번 나왔는데 확정하지 못했다: ' + JSON.stringify(r));
+
+    checks++;
+    r = await S.decodeWithRetries('x', stub([{ code: G, format: 'upc_a' }, { code: H, format: 'upc_a' }, null]));
+    if (!(r.ok === false && r.reason === 'ambiguous'))
+      bad.push('시도마다 다른 값이 나왔는데 하나를 골라버렸다 — 이게 넘겨짚기다: ' + JSON.stringify(r));
+
+    checks++;
+    r = await S.decodeWithRetries('x', stub([{ code: '041604414856', format: 'upc_a' },
+                                             { code: '041604414856', format: 'upc_a' }, null]));
+    if (r.ok !== false)
+      bad.push('체크디지트가 틀린 해독 결과를 값으로 받아들였다: ' + JSON.stringify(r));
+
+    checks++;
+    r = await S.decodeWithRetries('x', stub([{ code: '04252614', format: 'upc_e' },
+                                             { code: '04252614', format: 'upc_e' }]));
+    if (!(r.ok && r.code === '042100005264'))
+      bad.push('UPC-E 를 UPC-A 로 펴지 못했다: ' + JSON.stringify(r));
+
+    checks++;
+    r = await S.decodeWithRetries('x', stub([{ code: '0049000028911', format: 'ean_13' },
+                                             { code: '0049000028911', format: 'ean_13' }]));
+    if (!(r.ok && r.code === '049000028911'))
+      bad.push('0으로 시작하는 EAN-13 을 12자리로 정규화하지 못했다: ' + JSON.stringify(r));
+
+    // --- 7. 한계 표시가 살아 있는가 (조사 9-D · 원칙 C2·C3) ---------------
+    // 문구는 카피 세션이 다듬어도 되지만, **판정이 사라지면 안 된다.**
+    // "찍으면 최저가를 찾아드립니다"로 조용히 바뀌는 것을 막는 자리다.
+    checks++;
+    const marks = (S.SCAN_LIMITS || []).map(l => l.mark).join('');
+    if (!(marks.indexOf('🟢') >= 0 && marks.indexOf('🟡') >= 0 && marks.indexOf('🔴') >= 0))
+      bad.push('실효 범위 표시(🟢🟡🔴)가 빠졌다 — 한계를 먼저 말하기로 한 자리다');
+    checks++;
+    const red = (S.SCAN_LIMITS || []).filter(l => l.mark === '🔴').map(l => l.ko).join(' ');
+    for (const must of ['TV', '코스트코', '자체 브랜드'])
+      if (red.indexOf(must) < 0)
+        bad.push('안 통하는 것 목록에서 "' + must + '"가 빠졌다 (조사 9-C 실측 판정)');
+
+    __fuzz.lastScan = bad;
+    return { mode: 'scan', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
+  }
+
   // 전부 한 번에
   function all(opt) {
     opt = opt || {};
@@ -803,7 +997,7 @@ window.__fuzz = (function () {
     };
   }
 
-  return { run, runDom, runCompare, runGolden, runRecheck, runParse, all,
-           last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null };
+  return { run, runDom, runCompare, runGolden, runRecheck, runParse, runScan, all,
+           last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null, lastScan: null };
 })();
 'fuzz harness loaded';
