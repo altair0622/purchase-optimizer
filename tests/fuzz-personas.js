@@ -322,7 +322,60 @@ window.__fuzz = (function () {
   // ===== 2) UI 퍼즈 — 실제 화면을 그려본다 =====
   // `[object Object]` 와 템플릿 리터럴 누출(`${...}`)이 빠져 있었다 — 둘 다 흔한 렌더 사고인데
   // 자기감사에서 일부러 만들어 넣었을 때 0건 통과했다.
-  const DIRT = /NaN|undefined|Infinity|\$-0\.00|null|\[object |\$\{|실제 부담[^\n]*-\$|실제 부담-\$/;
+  const DIRT = /NaN|undefined|Infinity|\$-0\.00|null|\[object |\$\{/;
+
+  // ===== 언어 =====
+  // v0.30 부터 화면은 한국어와 영어 두 가지로 그려진다. 하니스가 찾는 문구도 그만큼 갈린다.
+  // ⚠️ 기대 문구를 앱의 STRINGS 에서 읽어오지 않는다 — 읽어오면 앱이 틀려도 하니스가 같이
+  //    틀려서 동어반복이 된다(README 다섯째 사례). 여기 **손으로 적어 둔 값**이 계약이다.
+  //    앱에서 이 문구를 바꾸면 이 표도 같이 고쳐야 하고, 안 고치면 시끄럽게 실패한다.
+  const LIT = {
+    ko: {
+      net: '실제 부담', siteAmt: '결제 예상액', noStore: '(판매처?)',
+      needCheck: /캐시백 % 확인 필요/, autoBest: /높은 쪽 자동 반영/, unconfirmed: /포털 캐시백 %가 미확정/,
+      dirt: /실제 부담[^\n]*-\$|실제 부담-\$/,
+    },
+    en: {
+      net: 'Net cost', siteAmt: 'Estimated charge', noStore: '(which seller?)',
+      needCheck: /cashback % needs a check/, autoBest: /higher one applied automatically/,
+      unconfirmed: /portal cashback % is unconfirmed/,
+      dirt: /Net cost[^\n]*-\$|Net cost-\$/,
+    },
+  };
+  // 언어를 바꾼 뒤 **전 렌더 경로를 다시 부른다.** 이게 없으면 '로드 때 만들어 두고 다시
+  // 안 그리는' 자리(i18n 이관에서 실제로 물린 함정 ①)가 검사 사각지대로 남는다 — 실제로
+  // 처음엔 renderCcForm() 을 빼먹어서 적립 종류 드롭다운이 '현금 캐시백 (%)' 로 남아 있었다.
+  function redrawAll() {
+    applyI18n(); applyBrand();
+    renderWallet(); renderCcForm(); renderCppInputs(); renderCppSrc();
+    renderFoldSummaries(); renderSellerSearch(); renderRefBox(); renderOfferWallet();
+    buildSiteOffers(); buildAll(); recompute();
+  }
+  function setLangForTest(lang) { LANG = lang; redrawAll(); }
+  const dirtHit = (txt, L) => (txt.match(DIRT) || txt.match(L.dirt) || [null])[0];
+
+  // 영어 화면에 한국어가 남아 있으면 그건 **미번역 지점**이다 — i18n 이관 때 미이관 4곳을
+  // 잡아낸 그 대조군을, 이번엔 하니스 안에 상시로 넣는다.
+  // ⚠️ 사용자가 넣은 값은 빼고 본다. 페르소나가 '동네 가게' 같은 판매처명을 쓰는데, 그건
+  //    번역 대상이 아니라 사용자 데이터라 영어 화면에도 그대로 나오는 게 맞다.
+  function koLeak(txt, userStrings) {
+    let t = String(txt == null ? '' : txt);
+    (userStrings || []).forEach(u => { if (u && String(u).trim()) t = t.split(u).join(' '); });
+    const m = t.match(/[가-힣][가-힣0-9\s·%().,'"—~$]{0,40}/);
+    return m ? m[0].trim() : '';
+  }
+  // textContent 는 input 의 value·placeholder 를 안 본다 — 마크업에 굳어 있는 기본값
+  // (예시 상품명이 실제로 그랬다)이 그 사각지대에 숨는다. 따로 훑는다.
+  function koLeakFields(scope, userStrings) {
+    const out = [];
+    scope.querySelectorAll('input,textarea').forEach(el => {
+      ['value', 'placeholder'].forEach(k => {
+        const leak = koLeak(el[k], userStrings);
+        if (leak) out.push(`<${el.tagName.toLowerCase()}#${el.id || '?'}> ${k}: "${leak}"`);
+      });
+    });
+    return out;
+  }
 
   // ⚠️ DIRT 만으로는 "아무것도 안 그려진 경우"를 못 잡는다(빈 문자열엔 오염이 없다).
   //    결론이 통째로 비어도 통과했으므로, 최소한 이만큼은 나와야 한다고 못 박는다.
@@ -332,12 +385,20 @@ window.__fuzz = (function () {
     if (!/\$[\d,]/.test(txt)) bad.push(`${where}: 금액이 하나도 없음`);
   }
 
+  // opt.lang: 'ko'(기본) | 'en'. 영어일 때는 화면에 한국어가 남는지까지 함께 본다.
+  // ⚠️ 한 함수로 두 언어를 돌린다 — 영어용을 따로 복사해 두면 둘이 어긋나는 게 시간문제다
+  //    (README 다섯째 사례가 정확히 그 실패다).
   function runDom(opt) {
     opt = opt || {};
     const n = opt.n || 40, seed = opt.seed == null ? 99 : opt.seed;
+    const lang = opt.lang || 'ko';
     const rnd = mulberry32(seed), G = mk(rnd);
     const fails = [];
     const keep = { wallet: myWallet.slice(), cpp: Object.assign({}, cppValues), scen: scenarios.slice() };
+    const L = LIT[lang];
+    if (!L) throw new Error('모르는 언어: ' + lang);
+    const langKeep = LANG;
+    setLangForTest(lang);
 
     for (let i = 0; i < n; i++) {
       const p = G.persona();
@@ -371,7 +432,8 @@ window.__fuzz = (function () {
         const txt = concl + '\n' +
                     document.getElementById('compareBody').textContent + '\n' +
                     document.getElementById('cardbody').textContent;
-        if (DIRT.test(txt)) fails.push({ seed, i, mode: 'product', why: '화면에 깨진 값', hit: (txt.match(DIRT) || [])[0], excerpt: txt.slice(0, 400), p });
+        const hit = dirtHit(txt, L);
+        if (hit) fails.push({ seed, i, mode: 'product', lang, why: '화면에 깨진 값', hit, excerpt: txt.slice(0, 400), p });
         // 실제로 결론이 그려졌는가 + 비교표 행 수가 가격 있는 시나리오 수와 맞는가
         const bad = [];
         // ⚠️ 기준이 두 번 바뀐 자리다. 처음엔 정가로 셌다가 오탐이 났고, 청구액(소계+세금+배송)
@@ -383,7 +445,7 @@ window.__fuzz = (function () {
         //       (실제로 처음엔 그렇게 짰다가, 앱을 망가뜨려도 실패하지 않는 걸 보고 고쳤다).
         const priced = scenarios.filter(s => (+s.price || 0) > 0 || (+s.ship || 0) > 0).length;
         if (priced > 0) {
-          checkRendered('상품 결론', concl, ['실제 부담'], bad);
+          checkRendered('상품 결론', concl, [L.net], bad);
           const rowN = document.querySelectorAll('#compareBody tr').length;
           if (rowN !== priced) bad.push(`비교표 행 수 ${rowN} ≠ 가격 있는 판매처 ${priced}`);
           // 카드 상세표(섹션 «다른 카드로 사면?»)도 검사한다. 음성 대조군에서 이 표를 통째로
@@ -412,10 +474,31 @@ window.__fuzz = (function () {
         computeSite();
         const siteTxt = document.getElementById('siteRec').innerText;
         const st = siteTxt + '\n' + document.getElementById('portalWinner').innerText;
-        if (DIRT.test(st)) fails.push({ seed, i, mode: 'site', why: '화면에 깨진 값', hit: (st.match(DIRT) || [])[0], excerpt: st.slice(0, 400), p });
+        const shit = dirtHit(st, L);
+        if (shit) fails.push({ seed, i, mode: 'site', lang, why: '화면에 깨진 값', hit: shit, excerpt: st.slice(0, 400), p });
         const sbad = [];
-        if (p.wallet.length && (+p.sc.price || 0) > 0) checkRendered('사이트 결론', siteTxt, ['결제 예상액', '실제 부담'], sbad);
-        if (sbad.length) fails.push({ seed, i, mode: 'site', why: sbad.join(' | '), excerpt: siteTxt.slice(0, 200), p });
+        if (p.wallet.length && (+p.sc.price || 0) > 0) checkRendered('사이트 결론', siteTxt, [L.siteAmt, L.net], sbad);
+        if (sbad.length) fails.push({ seed, i, mode: 'site', lang, why: sbad.join(' | '), excerpt: siteTxt.slice(0, 200), p });
+
+        // --- 영어 렌더: 화면에 한국어가 남아 있으면 미번역이다 ---
+        if (lang === 'en') {
+          // 사용자가 넣은 값(판매처명·상품명)은 한국어여도 정상이다 — 빼고 본다.
+          const mine = scenarios.map(sc2 => sc2.store)
+            .concat([p.sc.store, document.getElementById('siteStore').value,
+                     document.getElementById('pname').value]);
+          const kbad = [];
+          [['결론', concl], ['비교표', document.getElementById('compareBody').textContent],
+           ['카드 상세표', document.getElementById('cardbody').textContent],
+           ['사이트 결론', siteTxt], ['포털 비교', document.getElementById('portalWinner').textContent],
+           ['페이지 전체', document.querySelector('.wrap').textContent],
+          ].forEach(([where, tx]) => {
+            const leak = koLeak(tx, mine);
+            if (leak) kbad.push(`${where}에 한국어가 남음: "${leak}"`);
+          });
+          koLeakFields(document.querySelector('.wrap'), mine)
+            .forEach(m => kbad.push('입력칸에 한국어가 남음: ' + m));
+          if (kbad.length) fails.push({ seed, i, mode: 'en', lang, why: kbad.join(' | '), p });
+        }
         setMode('product');
       } catch (e) {
         fails.push({ seed, i, why: 'throw: ' + e.message, stack: (e.stack || '').split('\n').slice(0, 3).join(' / '), p });
@@ -424,10 +507,13 @@ window.__fuzz = (function () {
 
     myWallet = keep.wallet; cppValues = keep.cpp; scenarios = keep.scen;
     CARDS = activeCards();
-    const out = { mode: 'dom', seed, n, failed: fails.length, sample: fails.slice(0, 10) };
+    setLangForTest(langKeep);
+    const out = { mode: 'dom', lang, seed, n, failed: fails.length, sample: fails.slice(0, 10) };
     __fuzz.lastDom = fails;
     return out;
   }
+  // 영어 렌더 퍼즈 — runDom 과 같은 코드, 언어만 다르다.
+  function runDomEn(opt) { return runDom(Object.assign({}, opt, { lang: 'en' })); }
 
   // ===== 3) 결론 정합성 — "화면이 말하는 1위"가 정말 실부담 최저인가 =====
   function runCompare(opt) {
@@ -436,6 +522,8 @@ window.__fuzz = (function () {
     const rnd = mulberry32(seed), G = mk(rnd);
     const fails = [];
     const keep = { wallet: myWallet.slice(), cpp: Object.assign({}, cppValues), scen: scenarios.slice() };
+    // 이 검사는 화면 문구를 한국어로 대조한다(LIT.ko) — 언어를 고정해 둔다.
+    const langKeep = LANG; setLangForTest('ko');
 
     for (let i = 0; i < n; i++) {
       const p = G.persona();
@@ -470,7 +558,7 @@ window.__fuzz = (function () {
       // 예전엔 동점이면 두 검사를 통째로 건너뛰어서, 모든 net 을 같게 만들면
       // 60건이 전부 조용히 통과했다(아무것도 검증하지 않은 채로).
       const tied = res.filter(r => Math.abs(r.net - truth.net) < 0.005);
-      const tiedNames = tied.map(r => r.sc.store || '(판매처?)');
+      const tiedNames = tied.map(r => r.sc.store || LIT.ko.noStore);
       if (shown === null) {
         fails.push({ seed, i, why: '가격 있는 판매처가 있는데 비교표가 비었다', nets: res.map(r => [r.sc.store, +r.net.toFixed(2)]) });
       } else if (tiedNames.indexOf(shown) < 0) {
@@ -481,7 +569,7 @@ window.__fuzz = (function () {
       // "Nordstrom"이면 통과). 등장하는 판매처명 중 **가장 긴 것**을 골라 정확히 대조한다.
       if (badge) {
         const bt = badge.innerText;
-        const allNames = res.map(r => r.sc.store || '(판매처?)')
+        const allNames = res.map(r => r.sc.store || LIT.ko.noStore)
                             .filter(s => bt.indexOf(s) >= 0)
                             .sort((a, b) => b.length - a.length);
         const named = allNames[0] || null;
@@ -494,6 +582,7 @@ window.__fuzz = (function () {
       }
     }
     myWallet = keep.wallet; cppValues = keep.cpp; scenarios = keep.scen; CARDS = activeCards();
+    setLangForTest(langKeep);
     __fuzz.lastCompare = fails;
     return { mode: 'compare', seed, n, failed: fails.length, sample: fails.slice(0, 8) };
   }
@@ -512,12 +601,20 @@ window.__fuzz = (function () {
   // 화면이 자기모순이었다 — 기본율 줄은 "TopCashback 2% 자동 반영", 입력칸은 0,
   // 경유처는 "TopCashback (기본율)", 배지는 "오늘 확인". 사용자가 이 상태를 보고
   // "잘 작동한다"고 판단했다. **틀린 걸 눈치채지 못하는 종류**라 검사로 못박는다.
-  function runRecheck() {
+  // opt.lang: 'ko'(기본) | 'en'. **영어에서도 돌린다** — "0%가 아니라 모름"은 이 도구에서
+  // 가장 비싼 보호 문구인데(빈 칸을 0%로 읽으면 계산기가 조용히 틀린 답을 낸다), 영어판에서만
+  // 그 문구가 빠져도 한국어 검사는 계속 초록불이다. 그래서 두 언어 모두에 못 박는다.
+  function runRecheck(opt) {
+    opt = opt || {};
+    const lang = opt.lang || 'ko';
+    const L = LIT[lang];
+    if (!L) throw new Error('모르는 언어: ' + lang);
     const keep = { wallet: myWallet.slice(), cpp: Object.assign({}, cppValues), scen: scenarios.slice(), tax: taxPct, auto: autoApplied };
     const bad = [];
     const seen = (re) => re.test(document.getElementById('plinks-' + sc.id).textContent);
     const concl = () => document.getElementById('finalConclusion').textContent;
     let sc;
+    const langKeep = LANG; setLangForTest(lang);
     try {
       myWallet = ['wfactivecash']; CARDS = activeCards(); taxPct = 0; autoApplied = {};
       scenarios = [blankScenario({ store: 'Target', price: 100 })];
@@ -538,9 +635,9 @@ window.__fuzz = (function () {
       if (+sc.portalPct !== 0) bad.push('재확인 후 portalPct 가 안 지워짐: ' + sc.portalPct);
       if (sc.portalName) bad.push('재확인 후 portalName 이 남음: "' + sc.portalName + '" — 입력칸은 비었는데 경유처만 남으면 화면이 자기모순');
       if (!sc.portalUnknown) bad.push('재확인 후 portalUnknown 이 안 세워짐 — 0%와 모름이 구분되지 않는다');
-      if (!seen(/요율 확인 필요/)) bad.push('화면에 "요율 확인 필요" 표시가 없음 — 빈 칸이 0%로 읽힌다');
-      if (seen(/높은 쪽 자동 반영/)) bad.push('"높은 쪽 자동 반영" 문구가 남음 — 실제로는 아무것도 안 반영된 상태');
-      if (!/포털 요율이 미확정/.test(concl())) bad.push('결론에 미확정 경고가 없음 — 순비용이 실제보다 비싸게 나오는 걸 안 알린다');
+      if (!seen(L.needCheck)) bad.push('[' + lang + '] 화면에 "캐시백 % 확인 필요" 표시가 없음 — 빈 칸이 0%로 읽힌다');
+      if (seen(L.autoBest)) bad.push('[' + lang + '] "높은 쪽 자동 반영" 문구가 남음 — 실제로는 아무것도 안 반영된 상태');
+      if (!L.unconfirmed.test(concl())) bad.push('[' + lang + '] 결론에 미확정 경고가 없음 — 순비용이 실제보다 비싸게 나오는 걸 안 알린다');
       const el = card.querySelector('.s-portal');
       if (el && el.value !== '') bad.push('입력칸이 "' + el.value + '" — 0 이 아니라 빈 칸이어야 "모름"으로 읽힌다');
 
@@ -552,15 +649,20 @@ window.__fuzz = (function () {
         if (+sc.portalPct !== basePct) bad.push('기본율 넣기 후 요율 미복구: ' + sc.portalPct + ' ≠ ' + basePct);
         if (sc.portalUnknown) bad.push('기본율 넣기 후에도 portalUnknown 이 남음');
         if (!sc.portalName) bad.push('기본율 넣기 후 경유처 라벨이 비어 있음');
-        if (/포털 요율이 미확정/.test(concl())) bad.push('요율을 넣었는데 결론에 미확정 경고가 그대로 남음');
+        if (L.unconfirmed.test(concl())) bad.push('[' + lang + '] 요율을 넣었는데 결론에 미확정 경고가 그대로 남음');
       }
     } catch (e) {
       if (e.message !== 'skip') bad.push('throw: ' + e.message);
     }
     myWallet = keep.wallet; cppValues = keep.cpp; scenarios = keep.scen; taxPct = keep.tax; autoApplied = keep.auto;
-    CARDS = activeCards(); buildAll(); recompute();
+    setLangForTest(langKeep);
     __fuzz.lastRecheck = bad;
-    return { mode: 'recheck', 검사: 10, 실패: bad.length, 상세: bad };
+    return { mode: 'recheck', lang: lang, 검사: 10, 실패: bad.length, 상세: bad };
+  }
+  // 한국어·영어 둘 다 — 합쳐서 하나로 보고한다(어느 쪽이 깨졌는지는 상세의 [lang] 꼬리표로).
+  function runRecheckBoth() {
+    const a = runRecheck({ lang: 'ko' }), b = runRecheck({ lang: 'en' });
+    return { mode: 'recheck', 검사: a.검사 + b.검사, 실패: a.실패 + b.실패, 상세: a.상세.concat(b.상세) };
   }
 
   // ===== 6) 오퍼 붙여넣기 파서 (v0.28) =====
@@ -989,15 +1091,19 @@ window.__fuzz = (function () {
     const seed = opt.seed == null ? 42 : opt.seed;
     return {
       golden: runGolden(),
-      recheck: runRecheck(),
+      recheck: runRecheckBoth(),
       parse: runParse(),
       math: run({ n: opt.n || 1000, seed }),
       dom: runDom({ n: opt.dom || 40, seed }),
+      // 영어 렌더 — 같은 페르소나를 영어로 그려보고 화면에 한국어가 남는지까지 본다.
+      domEn: runDomEn({ n: opt.domEn || 25, seed }),
       compare: runCompare({ n: opt.cmp || 150, seed }),
     };
   }
 
-  return { run, runDom, runCompare, runGolden, runRecheck, runParse, runScan, all,
+  // koLeak 은 대조군(negcontrol-i18n.js)이 단위로 검사한다 — '사용자 데이터는 미번역이 아니다'가
+  // 이 함수 한 곳에 걸려 있어서, 여기가 조용히 느슨해지면 영어 검사 전체가 같이 무의미해진다.
+  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, all, koLeak,
            last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null, lastScan: null };
 })();
 'fuzz harness loaded';

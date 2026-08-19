@@ -168,11 +168,11 @@ export async function decodeWithRetries(src, decodeOnce, attempts) {
 //    문구를 다듬을 때도 카테고리를 옮기지 마라.**
 export const SCAN_LIMITS = [
   { mark: '🟢', key: 'scan.lim.green',  ko: '주방용품 · 소형가전 · 완구 · 화장품 · 책',
-    why: '제조사 바코드가 그대로 유통돼' },
+    whyKey: 'scan.lim.green.why',  why: '제조사 바코드가 그대로 유통돼' },
   { mark: '🟡', key: 'scan.lim.yellow', ko: '식료품 · 의류',
-    why: '바코드는 맞는데 온라인에 같은 걸 잘 안 팔아' },
+    whyKey: 'scan.lim.yellow.why', why: '바코드는 맞는데 온라인에 같은 걸 잘 안 팔아' },
   { mark: '🔴', key: 'scan.lim.red',    ko: 'TV · 대형가전 · 코스트코/샘스클럽 · 매장 자체 브랜드',
-    why: '매장마다 모델번호를 일부러 다르게 붙여' },
+    whyKey: 'scan.lim.red.why',    why: '매장마다 모델번호를 일부러 다르게 붙여' },
 ];
 
 // ============================================================================
@@ -274,7 +274,7 @@ function panel() {
 
 function limitsHtml() {
   const rows = SCAN_LIMITS.map(l =>
-    '<div>' + l.mark + ' <b>' + esc(T(l.key, l.ko)) + '</b> <span class="muted">— ' + esc(l.why) + '</span></div>'
+    '<div>' + l.mark + ' <b>' + esc(T(l.key, l.ko)) + '</b> <span class="muted">— ' + esc(T(l.whyKey, l.why)) + '</span></div>'
   ).join('');
   return '<div class="scanlim">' + rows +
     '<div class="muted" style="margin-top:6px">' + T('scan.lim.variant',
@@ -292,12 +292,15 @@ function manualHtml() {
     '<span class="muted" id="scanManualMsg"></span></div></details>';
 }
 
+// 사유 키(empty/not-digits/…)는 normalizeManualEntry 의 반환값이라 그대로 둔다 —
+// 하니스가 그 값을 리터럴로 검사한다. 번역되는 건 문구뿐이다.
 const MANUAL_REASON = {
-  'empty':      '숫자를 넣어줘.',
-  'not-digits': '숫자만 넣어줘 (바코드 아래 인쇄된 그 숫자).',
-  'bad-length': '바코드 아래 숫자는 보통 12자리야. 지금은 {len}자리.',
-  'bad-check':  '이 번호는 바코드 번호가 아닌 것 같아 — 한 자리 잘못 본 게 아닐까?',
+  'empty':      ['scan.manual.err.empty',      '숫자를 넣어줘.'],
+  'not-digits': ['scan.manual.err.notDigits',  '숫자만 넣어줘 (바코드 아래 인쇄된 그 숫자).'],
+  'bad-length': ['scan.manual.err.badLength',  '바코드 아래 숫자는 보통 12자리야. 지금은 {len}자리.'],
+  'bad-check':  ['scan.manual.err.badCheck',   '이 번호는 바코드 번호가 아닌 것 같아 — 한 자리 잘못 본 게 아닐까?'],
 };
+const manualReason = r => { const e = MANUAL_REASON[r]; return e ? T(e[0], e[1]) : ''; };
 
 function renderBusy() {
   panel().innerHTML = '<div class="scanbox"><div class="scanhead">⏳ ' +
@@ -352,7 +355,7 @@ function wire() {
     const msg = document.getElementById('scanManualMsg');
     const r = normalizeManualEntry(inEl ? inEl.value : '');
     if (r.ok) { renderFound(r.code); return; }
-    if (msg) msg.textContent = (MANUAL_REASON[r.reason] || MANUAL_REASON['bad-check'])
+    if (msg) msg.textContent = (manualReason(r.reason) || manualReason('bad-check'))
       .replace('{len}', String(r.len == null ? '' : r.len));
   };
   if (go) go.addEventListener('click', run);

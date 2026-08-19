@@ -210,6 +210,12 @@
   .brandline{font-size:var(--t-small);color:var(--brand-700);font-weight:600;
     letter-spacing:.1px;margin:2px 0 0;line-height:1.3}
   .brandbar .ver{font-size:var(--t-micro);color:var(--muted);font-weight:600;align-self:flex-end;padding-bottom:4px;flex:none}
+  /* 언어 토글 — 선택은 localStorage에 남는다. 누르면 setLang()이 저장하고 새로고침한다. */
+  .langtog{display:inline-flex;background:#eef1f4;border-radius:999px;padding:2px;gap:2px;flex:none;align-self:flex-end;margin-bottom:3px}
+  .langtog button{background:transparent;color:var(--muted);font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;line-height:1.4}
+  .langtog button:hover{background:#e4e8ec}
+  .langtog button.on{background:#fff;color:var(--accent);box-shadow:var(--shadow)}
+  .langtog button.on:hover{background:#fff}
   .tagline{font-size:var(--t-body);color:var(--ink-2);margin:0 0 18px;max-width:56ch}
   .tagline b{color:var(--ink)}
 
@@ -287,6 +293,7 @@
       <h1 class="wordmark">Price<span class="a">After</span></h1>
       <p class="brandline">The price after everything.</p>
     </div>
+    <div class="langtog" id="langTog" data-i18n-title="lang.toggle.title" title="언어 전환"><button type="button" data-lang="ko">KO</button><button type="button" data-lang="en">EN</button></div>
     <span class="ver">v0.29</span>
   </div>
   <p class="tagline" data-i18n="brand.tagline"><b>다 빼고 나면, 실제로 얼마.</b> 같은 물건을 파는 여러 곳을 캐시백·카드 적립·오퍼까지 반영한 <b>실제 부담</b>으로 비교해요.
@@ -631,6 +638,15 @@ function applyBrand(){
   if(appTitle) appTitle.setAttribute('content', BRAND.full);
   // <title>은 "이름 — 한국어 설명" 구조. 설명만 번역 대상이라 t()를 거친다.
   document.title = BRAND.full + ' — ' + t('brand.titleSuffix', '다 빼고 나면, 실제로 얼마');
+  // 언어 토글의 현재 상태
+  document.querySelectorAll('#langTog button').forEach(b=>{
+    const on = b.getAttribute('data-lang')===LANG;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on?'true':'false');
+  });
+  // PWA manifest는 별도 파일이라 name/short_name이 자동으로 안 따라온다 → 언어별 파일로 갈아끼운다.
+  const mf = document.querySelector('link[rel="manifest"]');
+  if(mf) mf.setAttribute('href', LANG==='en' ? 'manifest.en.json' : 'manifest.json');
 }
 
 // ===== i18n 스캐폴딩 (트랙 C, 2026-08-11) =====
@@ -674,12 +690,577 @@ function applyI18n(root){
   swap('data-i18n-content', el=>el.getAttribute('content')||'',    (el,s)=>{ el.setAttribute('content',s); });
   document.documentElement.lang = LANG;
 }
-// ?lang=en 으로 미리 볼 수 있게 (번역이 비어 있으면 한국어로 조용히 폴백)
+// 표시 언어 = ?lang= > 저장된 선택 > 기본(ko). 번역이 없는 키는 조용히 한국어로 폴백한다.
+const LANGKEY="purchOpt_lang";
 (function pickLang(){
   try{ const q=new URLSearchParams(location.search).get('lang');
-    if(q && STRINGS[q]) LANG=q; }catch(e){}
+    if(q && STRINGS[q]){ LANG=q; return; }
+    const saved=localStorage.getItem(LANGKEY);
+    if(saved && STRINGS[saved]) LANG=saved; }catch(e){}
 })();
+// 언어 전환은 **저장 후 새로고침**이다. 화면을 그 자리에서 갈아끼우지 않는 이유:
+// 입력의 기본값(예시 상품명 등)처럼 그릴 때가 아니라 **만들 때 한 번 정해지는 값**이 남아 있고,
+// 그런 자리를 하나씩 찾아 고치는 것보다 다시 그리는 편이 안전하다. 입력은 localStorage에 있어
+// 새로고침해도 살아난다. (라이브 전환이 되는지는 하니스의 __fuzz.runDomEn 대조군이 계속 검사한다.)
+function setLang(code){
+  if(!STRINGS[code] || code===LANG) return;
+  try{ localStorage.setItem(LANGKEY, code); }catch(e){}
+  try{ const u=new URL(location.href); u.searchParams.set('lang', code); location.replace(u.toString()); }
+  catch(e){ location.reload(); }
+}
 
+// ===== 영어 사전 (트랙 C, 2026-08-19) =====
+// 한국어 원문은 마크업·코드에 그대로 있고 로드 시 STRINGS.ko로 수집된다(위 스캐폴딩 참조).
+// 여기 없는 키는 조용히 한국어로 폴백한다 — 즉 이 객체가 곧 "영어판이 얼마나 됐나"다.
+//
+// 목소리: r/churning · Frequent Miler · Doctor of Credit 독자 기준.
+//   업계 용어(net cost · portal · statement credit · earn rate · pending · 5/24)를 그대로 쓴다.
+//   한국어판처럼 풀어쓰지 않는다 — 이 독자에겐 설명이 아니라 숫자와 조건이 필요하다.
+//   문구는 마케팅/02-랜딩카피-EN.md와 같은 단어를 쓴다(피칭 링크를 열었을 때 이어지도록).
+//
+// ⚠️ 약해지면 안 되는 다섯 곳 — 완충어(would/might/technically/really)를 넣지 말 것:
+//   concl.base.sub   'not a saving'                     (카드 기본 적립은 우리 공로가 아니다)
+//   rcpt.pendingNote 'pending' + 30–90일·트래킹·반품     (포털 캐시백은 아직 돈이 아니다)
+//   portal.noData    '"unknown," not "0%"'              (데이터 없음 ≠ 캐시백 없음)
+//   rcpt.pts.tag     'statement balance does not move'   (포인트는 현금이 아니다)
+//   ofp.hint.noexp   'Expiry unknown'                    (Chase는 목록에 날짜가 없다 — 지어내지 않는다)
+// ⚠️ 'Net cost' · 'Estimated charge' 는 하니스가 리터럴로 찾는다(fuzz-personas.js LIT.en). 개명 금지.
+Object.assign(STRINGS.en, {
+
+  // ── 브랜드 · 메타 ────────────────────────────────────────────────
+  'brand.titleSuffix': 'what a purchase actually costs, after cashback, card rewards, and offers',
+  'brand.tagline': '<b>The price after everything.</b> Compare every seller of the same item by <b>net cost</b> — portal cashback, card earnings, and card offers included. Cards make the answer sharper, and <b>you still get an answer without them.</b>',
+  'meta.desc': 'Free calculator that compares the real net cost of a purchase across sellers — portal cashback, card earnings, offers, coupons. No account, no bank login.',
+  'lang.toggle.title': 'Switch language',
+
+  // ── 지갑 ─────────────────────────────────────────────────────────
+  'wallet.title': '👛 My cards',
+  'wallet.welcome.title': '💳 Cards are optional',
+  'wallet.welcome.body': '<b>You don’t have to pick any.</b> Which seller is cheapest, and which cashback link to go through, is computed without cards.<br>Add your cards and it also shows <b>how much further they take the number down.</b>',
+  'wallet.example': '🔎 Try it with popular cards',
+  'wallet.example.note': '— you can change this later',
+  'wallet.search.ph': 'Search cards (e.g. Sapphire, Gold, Double Cash, Venture)',
+  'wallet.count.suffix': 'selected · your wallet feeds every calculation below',
+  'wallet.share.title': 'Copy your card setup as a URL — whoever opens it starts with the same wallet',
+  'wallet.share': '🔗 Copy my wallet link',
+  'wallet.clear': 'Clear',
+  'wallet.share.note': '🔗 <b>Copy my wallet link</b> = your card setup in one link — move phone↔desktop, or send it to family who carry the same cards and they <b>start with the same wallet</b>. · Earn rates are 2026 headline values (reference only — your actual terms and caps may differ).',
+  'wallet.n': '{n}',
+  'wallet.sum': '<b>{n}</b> selected — {cards}{more}',
+  'wallet.more': ' +more',
+  'wallet.sum.empty': 'Works with no cards selected — picking some makes it sharper',
+  'wallet.confirmClear': 'Clear the wallet? (every card gets deselected)',
+
+  // ── 직접 추가 카드 ───────────────────────────────────────────────
+  'cc.title': '➕ Add a card that isn’t listed <span class="muted" style="font-weight:600">— name and earn rate is all it takes</span>',
+  'cc.name': 'Card name',
+  'cc.name.ph': 'e.g. US Bank Cash+, corporate card',
+  'cc.cur': 'Earns in',
+  'cc.base': 'Base earn rate <span class="muted" style="font-weight:600">— applies to every category (% if cash, multiplier if points)</span>',
+  'cc.percat': 'Set it per category <span class="muted" style="font-weight:600">— e.g. 3 on dining only</span>',
+  'cc.save': '＋ Add card',
+  'cc.save.plain': '＋ Add card',
+  'cc.cancel': 'Cancel edit',
+  'cc.saveEdit': '✔ Save changes',
+  'cc.note': 'Cards you add show up under <b>Added by you</b>, where you can ✎ edit or ✕ delete them. They live in this browser and ride along in the 🔗 wallet link, so whoever opens it gets them too.',
+  'cc.hint': 'Added by you · earns {cur}',
+  'cc.cur.pct': ' (%)',
+  'cc.cur.mult': ' (points multiplier)',
+  'cc.needName': 'Give the card a name.',
+  'cc.edited': '✅ Saved.',
+  'cc.added': '✅ Added, and put in your wallet.',
+  'cc.editing': 'Editing "{name}"',
+  'cc.confirmDel': 'Delete the card "{name}"?',
+  'issuer.custom': 'Added by you',
+
+  // ── 모드 ─────────────────────────────────────────────────────────
+  'mode.product': '🛒 Product mode <small style="font-weight:600;font-size:11px;opacity:.8">net cost from a price</small>',
+  'mode.site': '🏬 Store mode <small style="font-weight:600;font-size:11px;opacity:.8">card + link, no price</small>',
+
+  // ── 1. 시작 ──────────────────────────────────────────────────────
+  'start.title': 'Start here',
+  'start.sub': 'Paste a few seller URLs and they get compared automatically',
+  'demo.body': '👋 What you’re looking at is an <b>example</b> — Grayson loft bed · Crate &amp; Barrel · $1,699. Paste your own URLs above and it switches over.',
+  'demo.clear': 'Clear the example',
+  'demo.pname': 'Grayson loft bed',
+  'start.paste.label': '<b>URLs from the sellers</b> carrying the same item, one per line (one is enough)',
+  'start.paste.ph': 'https://www.amazon.com/dp/...\nhttps://www.walmart.com/ip/...\nhttps://www.target.com/p/...\n— or paste the product title and $price as-is',
+  'start.compare': 'Compare',
+  'start.note': 'Each URL <b>becomes a seller row, with the cashback % and the price filled in</b>. Some sites block price reads; when that happens, type that one price yourself. <b>Cards are not required</b> — which seller and which cashback route is cheapest comes out either way.<br>🔒 To read a price for you, <b>only the product URL you pasted</b> goes to our fetcher (nothing else leaves this browser). Don’t want that? Type the price instead of the URL — <a href="#disclosures" onclick="openDisclosures(event)">details</a>.',
+  'scan.btn': '📷 Scan a barcode in the store',
+  'scan.btn.note': 'One photo is enough · <b>the photo never leaves this device</b> — works well on kitchenware, small appliances, toys and cosmetics, and <b>does not work on TVs, large appliances, or Costco items</b>.',
+
+  // ── 상품 정보 ────────────────────────────────────────────────────
+  'product.title': '🛍️ Item',
+  'product.name': 'Item name',
+  'product.cat': 'Category (same for every seller)',
+  'product.note': '💡 Shipping and coupons differ by seller, so put those in each seller’s row under <b>Where to buy</b> below — those two flip the ranking often.',
+  'product.noName': 'Unnamed item',
+  'cat.general': 'Other / general (furniture, home, department stores…)',
+  'cat.online': 'Online shopping',
+  'cat.dining': 'Dining (restaurants, delivery)',
+  'cat.grocery': 'Grocery (U.S. supermarkets)',
+  'cat.gas': 'Gas, EV charging, transit',
+  'cat.drugstore': 'Drugstore',
+  'cat.travel': 'Travel (air, hotel)',
+  'cat.short.general': 'General',
+  'cat.short.online': 'Online',
+  'cat.short.dining': 'Dining',
+  'cat.short.grocery': 'Grocery',
+  'cat.short.gas': 'Gas · EV · transit',
+  'cat.short.drugstore': 'Drugstore',
+  'cat.short.travel': 'Travel',
+
+  // ── 결론 카드 ────────────────────────────────────────────────────
+  'answer.title': 'The answer — lowest net cost for what you entered',
+  'answer.why': '📊 Seller-by-seller table — why this one wins',
+  'th.rankStore': 'Rank · seller',
+  'th.price': 'Price',
+  'th.bestCard': 'Best card',
+  'th.cashBack': 'Cash back',
+  'th.pts': 'Points (est.)',
+  'th.net': 'Net cost',
+  'th.card': 'Card',
+  'th.earn': 'Earn',
+  'th.offer': 'Offer',
+  'th.offerCash': 'Offer (cash)',
+  'th.cashTotal': 'Cash total',
+  'th.totalBack': 'Total back',
+
+  // ── 판매처 카드 ──────────────────────────────────────────────────
+  'sellers.title': 'Where to buy?',
+  'sellers.sub': 'Put every seller of the same item side by side, ranked by net cost',
+  'sellers.add': '＋ Add another seller',
+  'sellers.refresh': '🔄 Re-check every offer (stamp today)',
+  'sellers.note': '💡 <b>Net cost = price − cash back − offers − portal cashback</b>. <b>Points do not reduce your statement balance, so they are shown separately</b> (never mixed into cash). The lowest seller is green. Offers are merchant-specific, so the best card can differ per seller.',
+  'sellers.refreshed': 'Every seller is now stamped as checked today. For the offers themselves, open each seller’s "Re-check" and confirm on the issuer’s screen.',
+  'sc.store': 'Seller',
+  'sc.price': 'Price ($)',
+  'sc.ship': 'Shipping ($) <span class="muted" style="font-weight:600">— 0 if free</span>',
+  'sc.coupon': 'Coupon / promo discount ($)',
+  'sc.cheapest': 'Lowest',
+  'sc.portalPct': 'Portal cashback (%)',
+  'sc.portalName': 'Portal you route through (optional)',
+  'sc.portalName.ph': 'e.g. Rakuten',
+  'sc.offer.title': '🎁 Card offers on this seller',
+  'sc.offer.body': 'For each card that has an offer at this seller, enter the dollar amount. Offers move the ranking. (Activating them is still on you, at purchase time.)',
+  'sc.recheck': '🔄 Re-check this seller',
+  'sc.delete': 'Delete',
+  'sc.footLabel': 'Best card · net cost (cash only)',
+  'sc.needOne': 'Keep at least one seller.',
+  'sc.recognized': '✅ <b>{name}</b> recognized',
+  'sc.typoFixed': '🔎 Read as ‘<b>{name}</b>’ (typo corrected)',
+  'sc.catSuffix': ' — category: {cat}',
+  'sc.unknownStore': 'Seller isn’t in our list — set the category in step 1 yourself (the math still runs)',
+  'sc.offerN': '🎁 {n} offers <span class="offsum">up to {max} · {card}</span>',
+  'sc.offerNone': '🎁 Card offers on this seller <span class="muted" style="font-weight:600">— if you have an Amex/Chase targeted offer</span>',
+  'sc.noCard': 'No card added',
+  'sc.enterPrice': 'Enter a price',
+  'sc.zeroCharge': '$0 charge — card doesn’t matter',
+  'sc.plusPts': '+ {v} in points (est.)',
+  'sc.offerUnchecked': 'Offers not checked',
+  'sc.stale': 'Checked {d} days ago · re-check',
+  'sc.checkedToday': 'Checked today',
+  'sc.checkedAgo': 'Checked {d} days ago',
+
+  // ── 포털 ─────────────────────────────────────────────────────────
+  'portal.notListed.title': 'This portal doesn’t carry this seller (we checked)',
+  'portal.notListed': 'not on {portal}',
+  'portal.guessed': '— guessed link (if it 404s, search "{store}")',
+  'portal.baseSuffix': ' (base rate)',
+  'portal.base': '📊 Base rate',
+  'portal.autoBest': '— higher one applied automatically',
+  'portal.autoFilled': 'auto-filled',
+  'portal.revert': '↺ Back to the base rate',
+  'portal.needCheck': '⚠️ <b>This seller’s cashback % needs a check</b> — the blank here is <b>"unknown," not "0%."</b> It does not mean there is no cashback.',
+  'portal.needCheck.sub': 'Check today’s cashback % at the link above and type it in.',
+  'portal.useBase': '↳ Use the {pct}% base rate',
+  'portal.noData': '⚠️ No cashback % on file — the <b>0% below is "unknown," not "no cashback."</b>',
+  'portal.noData.sub': 'Take 30 seconds on CashbackMonitor above and type it in.',
+  'portal.compare': 'Compare: ',
+  'portal.generic': 'portal',
+  'portal.via': 'route through here, then on to the site',
+  'login.cta.title': '🔐 The rate on your logged-in account screen is the final truth',
+  'login.cta.body': 'The % above is the <b>logged-out base rate everyone sees</b>. Log in and you see <b>your account’s rate</b>, which can be <b>higher or lower</b>.<br>Base rates are meant to be the same for everyone, but Rakuten sells advertisers segment-specific rates, so people do see different numbers. <b>Targeted promos</b> are personal for certain. And TopCashback works the other way: logged out you may see a higher tier rate, and logging in drops it to <b>your tier</b>.<br>So <b>use the number on your account screen.</b> Log in through the portal links above, and if it differs, fix the field below to match. Thirty seconds.<br><span class="tag">A browser extension or app could read your account rate for you — that’s planned, not shipped.</span>',
+  'rate.none': 'not listed',
+  'rate.flat': '${v} flat',
+  'rate.checkSelf': 'check it yourself',
+  'rate.upTo': 'up to ',
+  'rate.stamp': 'Rakuten and TopCashback auto-updated {auto} · Capital One manual {manual}',
+  'rate.old30': '· {d} days old — don’t trust it, check it',
+  'rate.old14': '· {d} days old',
+
+  // ── 가격 자동 조회 ───────────────────────────────────────────────
+  'price.loading': '· ⏳ fetching the price…',
+  'price.lowConf': '💲 Looks like {v}, but we’re not sure',
+  'price.useThis': 'Use this',
+  'price.orManual': 'or type it yourself',
+  'price.inserted': 'filled in',
+  'price.auto': '💲 {v} filled in automatically — check that it’s right',
+
+  // ── 붙여넣기 ─────────────────────────────────────────────────────
+  'paste.created': '<b style="color:var(--accent)">✅ Created {n} sellers</b> — fetching prices…',
+  'paste.done': '<b style="color:var(--accent)">✅ {n} sellers</b> · price fetched for <b>{ok}</b>',
+  'paste.partial': '— the rest are blocked by the site, so type those in',
+  'paste.empty': 'Nothing was pasted.',
+  'paste.f.store': 'seller ({name})',
+  'paste.f.cat': 'category',
+  'paste.f.storeGuess': 'seller (guessed)',
+  'paste.f.price': 'price',
+  'paste.f.nameUrl': 'name (from the URL)',
+  'paste.filled': '<b style="color:var(--accent)">✅ Filled in:</b> ',
+  'paste.notFound': 'Couldn’t find a URL or a price — paste the title and the price as-is.',
+
+  // ── 상품 찾기 ────────────────────────────────────────────────────
+  'seek.head': '🔍 Find <b>"{name}"</b> somewhere else: ',
+  'seek.google': 'Google Shopping',
+  'seek.hint': '<b>Copy the product page URL and paste it into a seller field below</b> and the seller and price fill themselves in → where to buy · which card · which cashback route, compared in one pass · 🔒 only <b>that URL</b> goes to our fetcher',
+  'disc.more': 'details',
+
+  // ── 오퍼 검증 ────────────────────────────────────────────────────
+  'offer.needCharge': 'Enter what you’ll be charged and the offer gets counted — offers come with a <b>minimum spend</b>.',
+  'offer.tooBig': 'The {offer} offer is larger than the {charge} charge — offers are usually <b>"spend $X, get $Y back"</b>, and this amount can’t clear that. <b>Left out of the math</b> (check the minimum spend in your issuer’s app).',
+  'offer.checkMin': 'The offer is {pct}% of the charge — <b>check in your issuer’s app</b> that you clear the <b>minimum spend.</b><br>If you don’t, <b>this money never arrives.</b>',
+
+  // ── 분기 5% ──────────────────────────────────────────────────────
+  'q.capOver': 'The quarterly 5% runs <b>to ${cap}</b> — this price is over the cap, so the excess is figured at {base}% (lower still if you’ve already spent in the category this quarter)',
+  'q.cap': 'The quarterly 5% has a <b>${cap} cap</b> (combined, this quarter) · <b>you must activate it in the issuer’s app</b>',
+  'quarterly.hint': ' · this quarter’s 5%: {note} ({label} · activation required)',
+  'quarterly.none': ' · ⚠ this quarter’s 5% categories aren’t loaded (not applied)',
+  'quarterly.2026Q3.label': '2026 Q3 (Jul–Sep)',
+  'quarterly.2026Q3.freedom.note': 'gas, EV charging, transit, live entertainment',
+  'quarterly.2026Q3.discoverit.note': 'gas, EV charging, transit, drugstores',
+
+  // ── 포인트 가치 ──────────────────────────────────────────────────
+  'cpp.title': '⚙️ Point valuations',
+  'cpp.summary': 'What one point is worth in cents — running on the defaults',
+  'cpp.note': '✏️ <b>These are yours to change</b> — edit and it recalculates and saves immediately. Cash is fixed at 1.0; point values move with how you redeem.',
+  'cpp.empty': '👛 Pick cards under <b>My cards</b> and you can set what the points they earn are worth to you.',
+  'cpp.default': 'default {v}¢',
+  'cpp.adjusted': ' · now set to <b style="color:var(--accent)">{v}¢</b>',
+  'cpp.cashOnly': 'Your wallet only earns cash right now, so point valuations don’t change the result',
+  'cpp.src.title': 'Where do these defaults come from?',
+  'cpp.src.body': 'They’re <b>conservative</b> reads of the point valuations published by travel blogs and card comparison sites (1 point = ? cents). What a point is actually worth depends on how you redeem, so <b>change them above to match how you travel</b>.',
+
+  // ── 통화 ─────────────────────────────────────────────────────────
+  'cur.cash.label': 'Cash',
+  'cur.cash.full': 'Cash back',
+  'cur.cash.src': 'Cash is 1 cent = 1 cent by definition — nothing to adjust.',
+  'cur.UR.label': 'UR',
+  'cur.UR.full': 'Chase UR',
+  'cur.UR.src': '1.0¢ against a cash redemption. Transfer to airline and hotel partners well and it goes higher (kept at 1.0 to stay conservative).',
+  'cur.AMEX.label': 'MR',
+  'cur.AMEX.full': 'Amex MR',
+  'cur.AMEX.src': 'Some valuations put transfer partners at 1.5–2¢; kept conservative at 1.1¢.',
+  'cur.TY.label': 'TY',
+  'cur.TY.full': 'Citi TY',
+  'cur.TY.src': 'Roughly 1.0¢ on cash and transfers.',
+  'cur.C1.label': 'C1',
+  'cur.C1.full': 'Capital One',
+  'cur.C1.src': 'Transfer partners are valued around 1.7¢ by some; kept at a cash-like 1.0¢.',
+  'cur.DL.label': 'Delta',
+  'cur.DL.full': 'Delta miles',
+  'cur.DL.src': 'Swings hard by route and seat. Roughly 1.1¢.',
+  'cur.MR.label': 'Marriott',
+  'cur.MR.full': 'Marriott',
+  'cur.MR.src': 'Higher if you redeem free nights well; roughly 0.8¢.',
+  'cur.HH.label': 'Hilton',
+  'cur.HH.full': 'Hilton',
+  'cur.HH.src': 'Award nights cost a lot of points, so roughly 0.6¢.',
+  'cur.HY.label': 'Hyatt',
+  'cur.HY.full': 'Hyatt',
+  'cur.HY.src': 'Free nights cost the fewest points of any hotel program, which makes these the most valuable hotel points. Industry estimates run 1.7–2.3¢; kept at the low end, 1.7¢.',
+
+  // ── 카드 힌트 ────────────────────────────────────────────────────
+  'card.freedom.hint': 'Rotating 5% quarterly · 3% dining and drugstores',
+  'card.freedomu.hint': '1.5% on everything · 3% dining and drugstores',
+  'card.csp.hint': '3× dining and online grocery · 2× travel',
+  'card.csr.hint': '3× dining and travel',
+  'card.amazonchase.hint': '5% Amazon and Whole Foods · 2% dining, gas, drugstores',
+  'card.marriott.hint': '3× grocery, gas and dining; 2× everything else',
+  'card.hyatt.hint': '4× Hyatt · 2× dining, transit and airfare',
+  'card.amexgold.hint': '4× dining and U.S. supermarkets · 3× airfare',
+  'card.amexplat.hint': '5× flights and hotels booked through Amex Travel',
+  'card.bcp.hint': '6% U.S. supermarkets · 3% gas and transit',
+  'card.bce.hint': '3% supermarkets, online retail and gas',
+  'card.delta.hint': '2× Delta and dining',
+  'card.hilton.hint': '5× U.S. dining, supermarkets and gas; 3× everything else',
+  'card.aspire.hint': '7× dining and flights; 3× everything else',
+  'card.doublecash.hint': '2% on everything',
+  'card.citistrata.hint': '3× dining, supermarkets, gas and travel',
+  'card.venturex.hint': '2× on everything · 5–10× Capital One Travel',
+  'card.venture.hint': '2× on everything',
+  'card.savorone.hint': '3% dining, groceries and entertainment',
+  'card.quicksilver.hint': '1.5% on everything',
+  'card.bofacash.hint': '3% on your chosen category · 2% grocery (online assumed as the choice)',
+  'card.wfactivecash.hint': '2% on everything',
+  'card.wfautograph.hint': '3× dining, travel and gas',
+  'card.discoverit.hint': 'Rotating 5% quarterly (1% otherwise)',
+  'card.applecard.hint': '3% at Apple · 2% with Apple Pay',
+
+  // ── 조건부 적립 사유 ─────────────────────────────────────────────
+  'cond.amazonchase.online': 'The 5% is <b>Amazon and Whole Foods only</b> — every other online retailer is 1%',
+  'cond.amazonchase.travel': 'The 5% is <b>Chase Travel bookings only</b> — booking direct with the airline or hotel is 1%',
+  'cond.freedom.travel': 'The 5× is <b>Chase Travel bookings only</b> — booking direct is 1×',
+  'cond.freedomu.travel': 'The 5× is <b>Chase Travel bookings only</b> — booking direct is 1.5×',
+  'cond.csp.grocery': 'The 3× is <b>online grocery delivery only</b> (no in-store, no Walmart or Target) — a regular supermarket run is 1×',
+  'cond.csp.travel': '2× is general travel · Chase Travel bookings earn 5×',
+  'cond.csr.travel': 'Chase Travel bookings earn a higher multiplier — booking direct with the airline still earns 3×',
+  'cond.hyatt.travel': 'The 4× is <b>paid stays at Hyatt only</b> — airfare is 2×, other travel is 1×',
+  'cond.hyatt.gas': 'The 2× is <b>transit and commuting</b> (subway, bus, taxi, tolls) — gas stations are 1×',
+  'cond.amexplat.travel': 'Kept at a conservative 1× here — <b>if you’re buying airfare on the airline’s own site or through Amex Travel it is actually 5×</b>, which makes this card the winner. Hotels are 5× only when booked through Amex Travel; other travel is 1×',
+  'cond.amexgold.grocery': 'The 4× is <b>U.S. supermarkets</b> only (no Walmart, Target or Costco) · $25,000 a year — above that, 1×',
+  'cond.amexgold.dining': 'The 4× on dining is capped at $50,000 a year — above that, 1×',
+  'cond.bcp.grocery': 'The 6% is <b>U.S. supermarkets</b> only · $6,000 a year — above that, 1%',
+  'cond.bce.online': 'The 3% on online retail is capped at $6,000 a year — above that, 1%',
+  'cond.bce.grocery': 'The 3% on U.S. supermarkets is capped at $6,000 a year — above that, 1%',
+  'cond.savorone.travel': 'The 5% is <b>hotels and rental cars booked through Capital One Travel only</b> — other travel is 1%',
+  'cond.venturex.travel': 'The 5–10× is <b>Capital One Travel bookings only</b> — booking direct is 2×',
+  'cond.hilton.grocery': 'The 5× is <b>U.S. supermarkets, gas stations and restaurants</b> only',
+  'cond.hilton.dining': 'U.S. merchants only',
+  'cond.applecard.online': 'The 2% is <b>Apple Pay only</b> — typing the card number or using the physical card is 1% (apple.com is 3%)',
+  'cond.applecard.dining': 'The 2% is Apple Pay only — otherwise 1%',
+  'cond.applecard.grocery': 'The 2% is Apple Pay only — otherwise 1%',
+  'cond.applecard.gas': 'The 2% is Apple Pay only — otherwise 1%',
+  'cond.applecard.drugstore': 'The 2% is Apple Pay only — otherwise 1%',
+  'cond.applecard.travel': 'The 2% is Apple Pay only — otherwise 1%',
+  'cond.bofacash.online': 'The 3% applies to <b>the one category you picked</b> (we assume online) · $2,500 per quarter',
+  'cond.wfautograph.travel': 'The 3× on travel covers airfare, hotels, rental cars and the like — by merchant category code',
+
+  // ── 비교표 · 영수증 ──────────────────────────────────────────────
+  'cmp.list': 'list {v}',
+  'cmp.minusCoupon': '−coupon {v}',
+  'cmp.plusTax': '+tax {v}',
+  'cmp.plusShip': '+shipping {v}',
+  'cmp.portalIncl': 'includes {portal} {pct}% (pending)',
+  'store.unknown': '(which seller?)',
+  'store.thisOne': 'this seller',
+  'pill.win': '#1',
+  'pill.flip': 'offer flips it',
+  'pill.flip.short': 'flip',
+  'row.cashPct': '{pct}% cash',
+  'row.ptsCalc': '{pts} pts × {cpp}¢',
+  'row.pctCash': '% cash',
+  'row.multOf': '× {cur}',
+  'rcpt.price': 'Item price',
+  'rcpt.coupon': '🏷️ Coupon / promo discount',
+  'rcpt.couponLeft': '{v} of the coupon can’t be used — usually forfeited',
+  'rcpt.ship': '＋ Shipping',
+  'rcpt.charged': 'What you get charged',
+  'rcpt.offer': '🎁 This card’s {store} offer',
+  'rcpt.offer.tag': 'statement credit — comes off your bill',
+  'rcpt.payWith': '💳 Pay with <b>{card}</b>',
+  'rcpt.portal': '🔗 Go in through <b>{portal}</b>',
+  'rcpt.portal.tag': '{pct}% cashback',
+  'rcpt.net': 'Net cost',
+  'rcpt.net.tag': 'cash only',
+  'rcpt.pts.tag': 'your statement balance doesn’t move — an estimate, and only if you redeem well',
+  'rcpt.withPts': 'counting points',
+  'rcpt.final': 'final',
+  'rcpt.pendingNote': '* Portal cashback is still <b>pending</b> — it typically posts in 30–90 days, and <b>you lose it if tracking fails or you return the item.</b>',
+
+  // ── 결론 ─────────────────────────────────────────────────────────
+  'concl.needPrice': 'Put a price on a seller and the comparison starts.',
+  'concl.head': 'Buy it at <span class="big">{store}</span> like this:',
+  'concl.route.portal': 'Go in through the <b>{portal}</b> link and buy at <b>{store}</b>',
+  'concl.route.direct': 'Buy at <b>{store}</b> directly',
+  'concl.payWith': ' with <b>{card}</b>',
+  'concl.badgeSub': '{charge} charged → {net} net cost',
+  'concl.badgePts': ' · plus about {v} in points (est.)',
+  'concl.detail.cash': '{pct}% cashback',
+  'concl.detail.pts': '{mult}× earn = {pts} points × {cpp}¢',
+  'concl.condCheck': '📌 <b>Check the condition on this card’s earn rate:</b> {note}',
+  'concl.tie': '⚖️ Dead even with {cards} on the math — points are an estimate you only get if you redeem well, so we took the <b>guaranteed cash</b>.',
+  'concl.vs2nd': '<b>{gap}</b> better than {store} in second',
+  'concl.noCard': '💳 <b>Add a card and this goes lower</b> — a 2% cash card, for instance, would add {v}. Pick one under <b>👛 My cards</b> above and it folds straight into this. (The answer above holds either way.)',
+  'concl.edge': '🎯 What this calculator got you {v}',
+  'concl.edge.zero': 'same as just buying it',
+  'concl.edge.pct': 'vs. just buying it ({pct}%)',
+  'concl.base': '💳 Card base earn {v}',
+  'concl.base.sub': 'you’d get this anyway — not a saving',
+  'concl.flipped': '※ The offer pushes {card} past the card that normally wins',
+  'concl.portalUnknown': '⚠️ <b>This seller’s portal cashback % is unconfirmed</b> (you hit re-check and haven’t entered one yet). The math below treats portal cashback as <b>zero</b>, so the net cost reads <b>higher than it is, and the seller ranking can change.</b> Enter the cashback % under <b>2 Where to buy</b> above.',
+  'concl.overRefund': '⚠️ <b>You’re getting back more than you’re charged — check your inputs.</b> An offer amount or a cashback % is almost certainly larger than it really is (offers come with a minimum spend). Net cost never goes below $0, so <b>don’t take the numbers above at face value.</b>',
+  'concl.excluded.title': 'What this calculation leaves out',
+  'concl.excluded.body': '<b>Sales tax</b> (0–10% by state), return shipping and assembly are <b>not in the math.</b> Sales tax lands on nearly every seller at a similar rate and rarely moves the ranking, though it matters when one ships to a tax-free state. <b>Whether you can actually redeem the points</b> is outside it too.<br>And don’t lose the plot — <b>the biggest saving is never this dollar gap; it’s not buying it, or buying something cheaper.</b>',
+
+  // ── 카드 상세표 ──────────────────────────────────────────────────
+  'carddetail.title': 'What about the other cards?',
+  'carddetail.sub': '· at {store} · {cat}',
+  'carddetail.note': '<span class="pill cash">Cash</span> = certain. <span class="pill pts">Points</span> = variable, and only if you redeem well. If you need cash, take the top cash card.',
+  'store.card.head': '<b>What about the store card?</b> — {store}’s own card (usually 5–10%) works out to about {v} at 10%. ',
+  'store.card.max': 'That’s the ceiling, though — what you actually keep is less.',
+  'store.card.why.title': 'Why — five things that number leaves out',
+  'store.card.why.body': '① A <b>hard inquiry</b> dings your score. ② A <b>new account</b> drops your average age — and if it puts you over a rule like Chase 5/24, it costs you far more valuable cards. ③ <b>25–30% APR</b> — carry a balance for one month and the rewards are gone. ④ The rewards aren’t cash, they’re <b>store-only certificates</b> (usually in $20 blocks, 90-day expiry, single use). ⑤ They often <b>can’t be combined</b> with 0% financing.<br>→ Unless you’ll be buying here regularly, <b>it’s usually a loss.</b>',
+  'offers.emptyWallet': 'No cards in your wallet — pick some under 👛 My cards above.',
+  'offers.emptyWallet.short': 'No cards in your wallet.',
+
+  // ── 사이트 모드 ──────────────────────────────────────────────────
+  'site.title': 'Store-level recommendation',
+  'site.sub': 'No price needed — which card, and which link to go in through',
+  'site.store': 'Seller (site)',
+  'site.store.ph': 'e.g. Nordstrom, Best Buy, Sephora…',
+  'site.storeNamePh': 'site name',
+  'site.cat': 'Category',
+  'site.amt': 'Roughly how much will you spend? ($) <span class="muted" style="font-weight:600">— for the receipt and offer comparison</span>',
+  'site.portal': 'Which link should you go in through <span class="muted" style="font-weight:600">— cashback portals (stacks on top of your card)</span>',
+  'site.rk': 'Rakuten cashback %',
+  'site.tcb': 'TopCashback cashback %',
+  'site.what.title': '💡 What is a cashback portal?',
+  'site.what.body': 'Portals like Rakuten and Capital One Shopping pay you <b>1–10% of the purchase in cash</b> when you <b>route through them</b> (click a button above) and then check out at the same store as usual. Signing up is free, and it <b>stacks with your card’s earnings</b>.<br>It does <b>not arrive right away</b> — typically 30–90 days, and <b>you lose it if tracking fails or you return the item.</b><br>What matters more: when two stores carry the same item, <b>the one with the higher cashback % can end up cheaper overall</b>. That comparison is what this calculator is for (🛒 Product mode does it precisely).',
+  'site.offer.title': '🎁 Cards with an offer at this site',
+  'site.offer.body': 'For each card that has an offer, enter the <b>discount ($)</b> — it gets applied to the ranking against the charge above. Check them at: ',
+  'site.offerNone': '🎁 Cards with an offer at this site <span class="muted" style="font-weight:600">— enter the amount if you have one</span>',
+  'site.noOffers': '🎁 No offers entered yet — check the Amex/Chase hubs below and the amounts feed straight into the ranking.',
+  'site.pickCard': 'Pick a card under 👛 My cards above.',
+  'site.route.portal': 'Go in through the <b>{portal}</b> link and pay with <b>{card}</b>',
+  'site.route.direct': 'Pay with <b>{card}</b>',
+  'site.noPortal': 'No portal carries this site (all three are 0%)',
+  'site.portalUnchecked': 'Portal cashback hasn’t been checked yet',
+  'site.rcpt.amt': 'Estimated charge',
+  'site.rcpt.offer': '🎁 <b>{card}</b> offer',
+  'site.rcpt.portal': '🔗 Go in through <b>{portal}</b>',
+  'site.rcpt.portal.tag': '{best}% cashback · RK {rk}% · TCB {tcb}% · CapOne {cap}%',
+  'site.rcpt.noPortal': '🔗 Portal cashback',
+  'site.allZero': 'all three are 0%',
+  'site.unchecked': 'not checked yet',
+  'site.rcpt.payWith': '💳 Pay with <b>{card}</b>',
+  'site.rcpt.payWith.tag': '{pct}% cashback on {cat}',
+  'site.rcpt.mult': '{mult}×',
+  'site.rcpt.pts.tag': 'your statement balance doesn’t move — an estimate at {cpp}¢',
+  'site.pendingNote': '* Portal cashback is still <b>pending</b> — it typically posts in 30–90 days, and <b>you lose it if tracking fails or you return the item.</b>',
+  'site.badgeSub': 'spend {amt} and {back} comes back in cash',
+  'site.overRefund': '⚠️ <b>You’re getting back more than you’re charged — check your inputs.</b> An offer amount or a cashback % is almost certainly larger than it really is (offers come with a minimum spend).',
+  'site.flipped': '🎁 <b>The offer changed the ranking</b> — on earn rate alone {card} wins, but the {v} offer covers the gap.',
+  'site.noData': '⚠️ No cashback % on file — the <b>0% above is "unknown," not "no cashback."</b>',
+  'site.noData.sub': 'Check it on CashbackMonitor below and type it in.',
+  'site.rateVolatile': 'Today’s real % moves constantly — compare every portal: ',
+  'site.guessLink': 'guessed link; if it 404s, search "{store}" directly',
+  'site.winner': '⚖️ Rakuten <b>{rk}%</b> vs TopCashback <b>{tcb}%</b> vs Capital One Shopping <b>{cap}%</b> → <span class="winner">take {pick}</span>',
+  'site.winner.tie': '⚖️ All three at {pct}% — take whichever one works',
+  'site.winner.empty': 'Enter the portals’ cashback % and we’ll pick one. (Check them on CashbackMonitor above.)',
+  'site.recognized': '✅ <b>{name}</b> recognized — category: {cat}',
+  'site.typoFixed': '🔎 Read as ‘<b>{name}</b>’ (typo corrected) — category: {cat} · pick it yourself if that’s wrong',
+  'site.unknownStore': 'Seller isn’t in our list — pick the category yourself (the link is a guess)',
+
+  // ── 리퍼럴 ───────────────────────────────────────────────────────
+  'ref.head': '<b>No portal account yet?</b> — sign up once and you earn cashback on online shopping from then on. It’s free.',
+  'ref.mine': '— these two are my referral links',
+  'ref.disc.title': '⚠️ Disclosure — about the referral links',
+  'ref.disc.body': 'The Rakuten and Capital One Shopping signup links are <b>my referral links.</b> If you sign up and meet their terms, I get a bonus too. <b>Saying so up front.</b><br><br>There’s no link for TopCashback because <b>they don’t run a referral program</b>, not because they’re a worse portal — their cashback % is often the highest of the three.<br><br><b>Which portal wins is computed from the % you enter, and nothing else.</b> Whether I get a bonus has zero weight in the math, and when TopCashback is highest, it says TopCashback.<br><br>Sign up directly without a referral and <b>you get exactly the same cashback.</b> Do whichever you prefer.',
+
+  // ── 오퍼 붙여넣기 (v0.28) ────────────────────────────────────────
+  'ofp.title': '🎁 Paste your card offers',
+  'ofp.sum.none': 'Optional — everything works without it',
+  'ofp.why': '<b>Why paste instead of logging in for you?</b> Handling the login is possible, but it would mean taking your issuer password. We decided not to. This way what you paste never leaves the browser and stays on this device.',
+  'ofp.how': 'Open your offers page, <b>Ctrl+A → Ctrl+C</b>, then <b>Ctrl+V</b> in the box below. With more than one card, switch cards and do it once each. ',
+  'ofp.ph': 'Paste here (Ctrl+V)',
+  'ofp.run': '📋 Read it',
+  'ofp.clear': 'Clear',
+  'ofp.note': 'Only the <b>merchant, the benefit and the expiry</b> get stored in this browser. The pasted text itself is not saved, and it never rides along in the 🔗 wallet link. <b>Chase’s list screen doesn’t show expiry dates, so those stay "unknown"</b> — we don’t invent them.',
+  'ofp.skip.name': 'no merchant name found',
+  'ofp.skip.text': 'no benefit text found',
+  'ofp.skip.value': 'couldn’t read the benefit amount',
+  'ofp.err.issuer': 'Can’t tell whether this is an Amex screen or a Chase screen. Check that you did a <b>Select All (Ctrl+A)</b> over the whole offers page.',
+  'ofp.err.empty': 'Nothing pasted — do Ctrl+A → Ctrl+C on the offers page, then Ctrl+V in the box above.',
+  'ofp.err.none': 'Couldn’t read a single offer — check that <b>the offer list was fully expanded</b> when you selected all. If it still fails, type the amounts into the offer fields as before (the math comes out the same).',
+  'ofp.why.miles': 'Miles or points offer — not cash, so it can’t go in this field',
+  'ofp.why.min': 'Below the {min} minimum spend (charge is {chg})',
+  'ofp.why.minok': '{min} minimum spend',
+  'ofp.why.needCharge': 'Enter a charge and the amount gets figured',
+  'ofp.why.cap': 'up to {cap}',
+  'ofp.why.noCap': 'No cap on the screen — check with the issuer',
+  'ofp.why.approx': '"Up to" means this is the ceiling — the real cashback % is whatever the issuer’s screen says',
+  'ofp.why.unknown': 'Offer we couldn’t read',
+  'ofp.fresh.today': 'Offers read today',
+  'ofp.fresh.days': 'Offers read {n} days ago',
+  'ofp.lbl.miles': 'miles/points',
+  'ofp.lbl.cap': 'up to {c}',
+  'ofp.lbl.min': '+ spend',
+  'ofp.exp.unknown': 'unknown',
+  'ofp.exp.gone': 'expired {d}',
+  'ofp.card.none': 'Couldn’t find the card',
+  'ofp.card.pick': '— pick one —',
+  'ofp.detected': 'read off the screen',
+  'ofp.card.which': 'Which card are these offers on? <span class="muted" style="font-weight:600">— confirm this</span>',
+  'ofp.card.needWallet': '👛 Pick a card under My cards first — the offers need a card to attach to.',
+  'ofp.card.needPick': 'Pick which card these offers belong to first — offers are per card, and attaching them to the wrong one skews the ranking.',
+  'ofp.stats': '<b>{found}</b> read · {dup} duplicates removed · <b>{skip}</b> unreadable · {exp} with an expiry date',
+  'ofp.skipped.title': '⚠️ These {n} couldn’t be read — check them on the issuer’s screen',
+  'ofp.skipped.more': '…and {n} more',
+  'ofp.lowconf': '🔎 <b>{n}</b> have a merchant name we aren’t sure about, so they’re left unchecked — fix the name, tick it, and it saves.',
+  'ofp.milesnote': '♦️ <b>{n}</b> are miles or points offers. They aren’t cash, so they stay out of the offer field (cash) — kept in the list only.',
+  'ofp.th.merchant': 'Merchant',
+  'ofp.th.offer': 'Benefit',
+  'ofp.th.exp': 'Expires',
+  'ofp.ask': 'Is this right? Original text: {raw}',
+  'ofp.save': '✅ Save the ticked ones',
+  'ofp.cancel': 'Cancel',
+  'ofp.rawdrop': 'On save, the pasted text above is wiped and only the table stays in this browser.',
+  'ofp.sum.count': '{n} offers · {c} cards',
+  'ofp.sum.stale': '🔄 Time to paste them again',
+  'ofp.saved.title': 'Saved offers',
+  'ofp.saved.n': '{n}',
+  'ofp.saved.gone': '{n} expired',
+  'ofp.saved.stale': '— over {d} days old. Copy them again from the issuer’s screen.',
+  'ofp.saved.del': 'Delete',
+  'ofp.hint.title': '🎁 Found in the offers you pasted',
+  'ofp.hint.noexp': 'expiry unknown',
+  'ofp.hint.soon': 'expiring soon — check this first',
+  'ofp.hint.apply': 'Use {v}',
+  'ofp.hint.cant': 'can’t be applied',
+  'ofp.hint.note': 'The issuer’s screen is the final truth — check once more before you buy.',
+
+  // ── 공유 ─────────────────────────────────────────────────────────
+  'share.needCard': 'Pick a card first.',
+  'share.ok': 'Wallet link copied.\n\nUse it to: ① move between phone and desktop (inputs are stored per device) ② hand your setup to family or friends who carry the same cards — opening it starts them with the same wallet.',
+  'share.fail': 'Copy failed — copy the link below by hand:\n\n',
+  'share.prompt': 'Copy this link to share it:',
+
+  // ── 푸터 · 고지 ──────────────────────────────────────────────────
+  'footer.note': 'v0.29 — your inputs save automatically in this browser. Hand your wallet to another device or another person with <b>🔗 Copy link</b>.<br>📱 On a phone, browser menu → <b>"Add to Home Screen"</b> installs it like an app (it opens offline too).',
+  'disc.data.title': '<b>🔒 Where does my data go</b> — exactly one thing leaves',
+  'disc.data.p1': '<b>No account, no login.</b> Your card wallet, point valuations, prices, coupons and results live <b>only in this browser</b> (localStorage) and are never sent to a server. The math runs on this page. There is not one ad, analytics or tracking script on it (no third-party scripts or fonts either).',
+  'disc.data.offers': '<b>🎁 Pasting your card offers sends nothing out either.</b> Paste an entire Amex or Chase screen and it is read <b>on this page only</b>, and only the <b>merchant, benefit and expiry</b> are stored in this browser. <b>The pasted text itself is not saved</b> (it has card last-4s and account state mixed into it). Not one network request goes out, and it never rides along in the 🔗 wallet link.',
+  'disc.data.p2': '<b>The one thing that leaves = the product URL, when you use the price fetcher.</b> The link you pasted travels like this:',
+  'disc.data.p3': '① <b>Our own price fetcher</b> (a Cloudflare Worker) — it takes the product URL and returns <b>the price and title only</b>. It does not hand back the page source, and there is no code in it that stores or logs anything (<a href="https://github.com/altair0622/purchase-optimizer/tree/main/worker" target="_blank" rel="noopener">source is public</a>). Results are cached for 30 minutes.<br>② If ① fails (the site blocks bots), it tries once more through <b>a third-party public proxy, <code>r.jina.ai</code></b>. That sends the product URL to <b>a server we do not control</b>, and <b>we cannot vouch for their logging policy.</b> Values from there are low-confidence, so they are <b>never auto-filled</b> — you get a confirm button instead.',
+  'disc.data.p4': '<b>Don’t want that:</b> skip the URL and <b>type the price in</b> — then nothing leaves at all. (Typing a seller name on its own triggers no fetch.)',
+  'disc.data.p5': 'Beyond that, the only thing this page requests is <b>one cashback % file from the same site</b> (<code>rates.json</code>, not a third party). Cashback portal and seller links only go anywhere <b>when you click them.</b>',
+  'disc.data.scan': '<b>📷 Scanning a barcode doesn’t send the photo anywhere.</b> The photo is read <b>inside this browser</b> and thrown away immediately — not to our server, not anywhere. Pressing the button downloads <b>the scanner code from the same site</b> (<code>scanner.js</code> + <code>vendor/quagga2.min.js</code>, about 157KB) <b>once</b> — same tier as <code>rates.json</code>, not a third party. <b>Don’t press it and it is never downloaded.</b> The Amazon and Best Buy search links built from the number <b>only open when you click them.</b>',
+  'disc.limits.title': '<b>⚖️ What this calculator can’t do, and disclaimers</b>',
+  'disc.limits.body': 'This is <b>not financial advice.</b> It doesn’t decide whether to open a card or make a purchase; it is <b>a calculator that does the arithmetic</b> on numbers you enter.<br>Cashback %, card earn conditions and offers change constantly and the values here are a snapshot, so <b>check the real screens right before you pay.</b><br>Portal cashback is <b>pending, not guaranteed</b> — failed tracking, returns and gift-card payments all void it.<br>Point values are <b>an estimate</b> of a good redemption and <b>do not reduce your statement balance.</b><br>Sales tax and return shipping are <b>not in the math.</b>',
+  'disc.referral.title': '<b>🤝 Referral disclosure</b>',
+  'disc.referral.body': 'The Rakuten and Capital One Shopping signup links are <b>my referral links.</b> If you sign up and meet their terms, I get a bonus too. <b>Saying so up front.</b><br>There’s no link for TopCashback because <b>they don’t run a referral program</b>, not because they’re a worse portal — their cashback % is often the highest of the three.<br><b>Which portal wins is computed from the % you enter, and nothing else.</b> Whether I get a bonus has zero weight in the math, and when TopCashback is highest, it says TopCashback.<br>Sign up directly without a referral and <b>you get exactly the same cashback.</b><br>There is <b>deliberately no card-issuer affiliate link</b> anywhere — a recommendation ranking must not bend to commission.',
+
+  // ── 바코드 스캔 (scanner.js) ─────────────────────────────────────
+  'scan.lim.green': 'Kitchenware · small appliances · toys · cosmetics · books',
+  'scan.lim.green.why': 'the manufacturer’s barcode travels with the product',
+  'scan.lim.yellow': 'Groceries · clothing',
+  'scan.lim.yellow.why': 'the barcode is right, but the same item is rarely sold online',
+  'scan.lim.red': 'TVs · large appliances · Costco/Sam’s Club · store brands',
+  'scan.lim.red.why': 'stores deliberately assign their own model numbers',
+  'scan.lim.variant': '<b>A different color or size is a different barcode.</b> It only finds the exact one you photographed.',
+  'scan.manual.open': 'Type the number under the barcode instead',
+  'scan.manual.ph': 'e.g. 041604414855',
+  'scan.manual.go': 'Look it up',
+  'scan.manual.err.empty': 'Enter the number.',
+  'scan.manual.err.notDigits': 'Digits only (the number printed under the barcode).',
+  'scan.manual.err.badLength': 'The number under a barcode is normally 12 digits. This one is {len}.',
+  'scan.manual.err.badCheck': 'That doesn’t look like a barcode number — is one digit off?',
+  'scan.busy': 'Looking for a barcode in the photo…',
+  'scan.busy.note': 'The photo never leaves this device. Decoding finishes inside this browser.',
+  'scan.ok': 'Barcode read',
+  'scan.link.suffix': ' search',
+  'scan.ok.note': '<b>We don’t know the price.</b> Open a link above, <b>read the price with your own eyes</b>, and paste that product page URL into the box above to start the net cost comparison. 🔒 This button sends nothing to our server — the searches open directly at Amazon and Best Buy.',
+  'scan.again': '📷 Take another photo',
+  'scan.fail.amb': 'The barcode read several different ways, so we can’t be sure',
+  'scan.fail.amb.note': 'Each attempt returned a different number. <b>We don’t know which, so we won’t guess.</b> Shoot again with the barcode large and square in the frame.',
+  'scan.fail.none': 'Couldn’t read the barcode',
+  'scan.fail.none.note': 'Shoot again with the barcode <b>large, square and in focus</b>. A curved package or a reflective wrapper reads badly.',
+  'scan.fail.load': 'Couldn’t download the scanner code. Check your connection and press it again.',
+  'scan.loadfail': 'Couldn’t download the scanner code — check your connection and press it again.',
+
+});
 // ===== 포인트 통화 =====
 // label = 짧은 pill용, full = 포인트가치 입력 라벨, cpp = 기본가치(센트)
 const CURRENCIES = {
@@ -1671,7 +2252,9 @@ function renderSellerSearch(){
 function bestCardLabel(r){
   return (r.best.c.id===NO_CARD.id)
     ? `<span class="tag">${t('sc.noCard','카드 미등록')}</span>`
-    : `${r.best.c.short} <span class="pill ${TYPE[r.best.type].cls}">${TYPE[r.best.type].label}</span>`;
+    // 표시 라벨은 테이블을 직접 읽지 말고 접근자로 — 여기만 TYPE[].label 을 직접 읽고 있어서
+    // 영어 렌더에 '현금'이 그대로 남았다(__fuzz.runDomEn 이 잡아냈다).
+    : `${r.best.c.short} <span class="pill ${TYPE[r.best.type].cls}">${curLabel(r.best.type)}</span>`;
 }
 function recompute(){
   const cat=v('cat');
@@ -2704,13 +3287,19 @@ function init(){
   applyBrand();  // 워드마크·타이틀·aria-label을 BRAND 한 곳에서 주입 (i18n 뒤에 와야 title이 맞다)
   const seededDefault=()=>{ scenarios=[ blankScenario({store:"Crate & Barrel", domain:"crateandbarrel.com", price:1699}) ]; };
   const hadSaved=loadState();
-  const hadQuery=location.search.length>1;
+  // ?lang= 만 붙은 건 "공유 링크로 들어왔다"가 아니다 — 언어 토글이 URL에 남기는 값이라,
+  // 이걸 공유 파라미터로 세면 첫 방문에도 예시 안내가 안 뜨고 예시 상품명이 한국어로 굳는다.
+  const hadQuery=(()=>{ try{ return [...new URLSearchParams(location.search).keys()].some(k=>k!=='lang'); }
+                        catch(e){ return location.search.length>1; } })();
   prefillFromQuery();
   // 첫 방문(저장·공유링크 둘 다 없음)이면 빈 지갑 → '여기서 시작' 안내를 보여줌
   CARDS=activeCards();
   if(!scenarios.length) seededDefault();
   // 첫 방문엔 예시 데이터가 채워져 있다. 그게 내 입력인 줄 알면 혼란스러우니 명시한다(진단 §5).
   const isDemo = !hadSaved && !hadQuery;
+  // 예시 상품명은 마크업의 value로 굳어 있다(JS 없이 열었을 때의 폴백). 영어판에서 한국어가
+  // 남지 않도록 여기서 t()를 태운다 — 사용자가 이미 입력한 게 있으면(hadSaved) 건드리지 않는다.
+  if(isDemo) document.getElementById('pname').value = t('demo.pname','Grayson 로프트 베드');
 
   renderWallet();
   renderCppInputs();
@@ -2729,6 +3318,11 @@ function init(){
   document.getElementById('walletClear').addEventListener('click',()=>{ if(confirm(t('wallet.confirmClear','지갑을 비울까요? (카드 선택이 모두 해제돼요)'))){ myWallet=[]; renderWallet(); applyWallet(); } });
   document.getElementById('walletExample').addEventListener('click',()=>{ myWallet=EXAMPLE_WALLET.filter(id=>CARD_CATALOG.some(c=>c.id===id)); renderWallet(); applyWallet(); });
   document.getElementById('walletShare').addEventListener('click',shareWallet);
+
+  // 언어 토글 — setLang이 저장하고 새로고침한다(위 주석 참조)
+  document.querySelectorAll('#langTog button').forEach(b=>{
+    b.addEventListener('click',()=>setLang(b.getAttribute('data-lang')));
+  });
 
   // 예시 안내 — 첫 방문일 때만 뜨고, 지우면 빈 판매처 한 칸으로 시작한다
   const demo=document.getElementById('demoBar');
