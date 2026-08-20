@@ -361,7 +361,7 @@ function visionSchema() {
       },
       read: {
         type: 'array',
-        description: 'Text you can LITERALLY SEE in the image, copied character by character. Empty array if you can read no text.',
+        description: 'Verbatim strings of characters literally visible in the image, copied character by character. Nothing else - no descriptions, no explanations. Empty array if you can read no text.',
         items: { type: 'string' },
       },
       guessed: {
@@ -391,7 +391,8 @@ function visionPrompt(lang, nImages) {
     nImages > 1 ? 'There are ' + nImages + ' photos OF THE SAME PRODUCT. Use them together - one may show the shape, another may show the label.' : '',
     '',
     'These rules outrank being helpful:',
-    '1. "read" is ONLY text you can literally see in the image, copied character by character. If you are unsure of even one character of a string, LEAVE IT OUT of "read".',
+    '1. "read" is ONLY verbatim strings of characters you can literally see printed in the image, copied character by character. If you are unsure of even one character of a string, LEAVE IT OUT of "read".',
+    '1b. "read" must contain NOTHING BUT those verbatim strings. No descriptions, no explanations, no language of your own. Write "OLED65C2", never "the box says OLED65C2". A logo with no letters is not text - if you recognise a swoosh but read no letters, that belongs in "guessed", not "read". Put your reasoning in "why" instead.',
     '2. NEVER put a model number in "read" unless you can read every character of it. A model number that is one character wrong sends the shopper to the wrong product.',
     '3. "guessed" is anything you inferred that is NOT printed in the image - a model year inferred from the shape, a product line inferred from a logo. If a candidate query contains something you did not read, it MUST appear in "guessed".',
     '4. Give up to 3 candidates that MEANINGFULLY DIFFER - e.g. one specific, one broader, one alternative reading. If you only know the brand, make the queries broader. DO NOT invent a model number to fill a slot. Two candidates, or one, is a fine answer.',

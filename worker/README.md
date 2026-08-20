@@ -65,6 +65,18 @@ npx wrangler secret put VISION_API_KEY     # 콘솔에서 붙여넣기 (repo 에
 npx wrangler deploy
 ```
 
+⭐ **키를 꽂은 직후, 배포 전에 정직성 게이트를 돌려라** — 이 기능의 설계 전체가 여기 걸려 있다:
+
+```bash
+cd ../tests/vision-honesty
+python gen.py                                   # 한 번만
+node run.mjs https://<워커>.workers.dev          # 몇 센트 든다
+```
+
+**FABRICATED 0건이어야 간다.** 1건이라도 나오면 모델이 안 읽은 글자를 `read` 에 넣는다는 뜻이고,
+화면의 *"박스에서 …를 읽었어요"* 가 거짓말이 된다 → **코드를 고치지 말고 컨트롤에 보고할 것.**
+근거·채점 규칙은 `tests/vision-honesty/README.md`.
+
 계산기는 로드할 때 `POST /vision` 에 `{"images":[]}` 를 한 번 보내 **켜져 있는지만** 확인한다
 (제공자를 부르지 않고 응답 코드만 갈린다. 사진도 사용자 데이터도 안 나간다).
 키가 꽂혀 있으면 `bad-request` 가 오고 그때만 📷 버튼을 켠다.
@@ -235,6 +247,8 @@ Cloudflare 문서가 *"may be stored by Cloudflare **if you specifically use a s
   그 추측은 틀릴 수 있다. `auditGuessed` 는 **틀리는 걸 막지 못하고, 짐작이라는 사실을 드러낼 뿐이다.**
 - **TV·대형가전·창고형 매장 물건은 잘 안 된다.** 바코드와 같은 이유(매장 전용 모델)다.
   다만 사진 경로에는 탈출구가 있다 — *"모델명 스티커를 찍어 달라"* 는 되묻기.
+- ⭐ **유료 모델이 `read` 에 지어내는지 아직 모른다.** 지금 근거는 작은 오픈 모델 하나뿐이다.
+  키를 꽂았으면 **가장 먼저** `tests/vision-honesty` 게이트를 돌릴 것. 이게 설계의 생사다.
 - **실제 매장 사진에서의 정확도는 아직 안 쟀다.** 지금까지의 실측은 합성 이미지 + Workers AI 탈락뿐이다.
   채택한 모델(Haiku)로 **실물 20장**을 찍어보는 것이 남아 있다(조사 8장 0단계).
 

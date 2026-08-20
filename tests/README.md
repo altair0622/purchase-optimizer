@@ -12,6 +12,7 @@
 | `negcontrol-worker.mjs` | 워커 **음성 대조군** (개발용) | Node |
 | `negcontrol-scan.js` | 바코드 스캐너 **음성 대조군** (개발용) | 브라우저 콘솔 |
 | `negcontrol-vision.js` | 사진 인식 **음성 대조군** (개발용) | 브라우저 콘솔 |
+| `vision-honesty/` | ⭐ 사진 인식 **정직성 게이트 — 배포 전 필수** | Node |
 | `scan-field-test.html` | 바코드 **실기 인식률 측정** (개발용·폰에서) | 폰 브라우저 |
 
 ## 계산기 하니스
@@ -410,6 +411,26 @@ __negVision().then(o=>console.table(o))
 상수 `SEARCH_STORES` · `ASK_COPY` · `DAILY_CAP` · `MIN_LONG_EDGE` · `LONG_EDGE` · `JPEG_QUALITY`
 는 이름으로 찾는다.** 개명하면 `negcontrol-vision.js` 의 변형 문자열도 같이 고칠 것 —
 안 고치면 `소스변경: false` 로 찍힌다. **그 값이 `false` 인데 실패가 0이면 헛돈 것이다.**
+
+### ⭐ 배포 전 필수 — 정직성 게이트 (`vision-honesty/`)
+
+**위 로직 검사가 전부 통과해도 이 기능은 성립하지 않을 수 있다.** 설계 전체가
+*"모델이 `read` 에 안 읽은 글자를 안 넣는다"* 하나에 걸려 있는데, **그건 로직으로 보장할 수 없고
+모델에 물어봐야 안다.** 그래서 별도 게이트를 둔다.
+
+```bash
+cd site/tests/vision-honesty
+python gen.py                       # 합성 이미지 13장 (한 번만)
+node run.mjs --self-test            # 채점기가 실제로 잡는지 (키 불필요)
+node run.mjs https://<워커>.workers.dev
+```
+
+**FABRICATED 1건이라도 나오면 이 설계는 성립하지 않는다.** 그때는 코드를 고치지 말고
+**컨트롤에 먼저 보고할 것** — 후퇴 방향(read/guessed 구분 폐기 등)은 컨트롤이 정한다.
+자세한 채점 규칙과 근거는 `vision-honesty/README.md`.
+
+⚠️ 현재까지의 근거는 **작은 오픈 모델 하나(LLaVA-1.5-7b)**에서만 나왔다.
+**유료 모델이 같은 실패를 하는지는 아직 아무도 모른다** — 키가 들어오면 **가장 먼저** 이걸 돌려라.
 
 > ⚠️ **하니스가 통과해도 이 기능이 성립하는지는 아직 모른다.** 위 검사는 전부 *로직*이고,
 > **"매장에서 찍은 사진 한 장으로 상품이 실제로 식별되는가"는 여기서 안 재진다.**
