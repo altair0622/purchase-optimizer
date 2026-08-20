@@ -610,7 +610,10 @@ const cacheTable = [];
 // 뒷받침하지 않는 모델번호"를 UNVERIFIED 로 끌어내는지를 행마다 못 박는다.
 const vstats = { n: 0 };
 const visionTable = [];
-const VKEY = { VISION_API_KEY: 'test-key' };
+// ⚠️ 실제 키처럼 **길고 인쇄 가능한** 값이어야 한다. 워커가 짧거나 제어문자가 섞인 키를
+//    bad-key 로 막기 때문이다(2026-08-20 Ctrl+V 사고 이후). 예전 'test-key'(8자)는 이제 막힌다.
+const TEST_KEY = 'sk-ant-api03-testkey-0123456789abcdef';
+const VKEY = { VISION_API_KEY: TEST_KEY };
 
 // 제공자 응답 스텁 — Anthropic 의 tool_use 블록 형태를 흉내낸다.
 function anthropicResponder(toolInput, opt = {}) {
@@ -667,6 +670,17 @@ async function callVision(body, opts = {}) {
       j => j.errorCode === 'gemini-tier-unconfirmed', true],
     ['알 수 없는 제공자 → bad-config', { images: [B64] },
       { env: { ...VKEY, VISION_PROVIDER: 'openai' } }, j => j.errorCode === 'bad-config', true],
+    // ⭐ 실제로 난 사고(2026-08-20): 윈도우 터미널에서 wrangler secret put 프롬프트에 Ctrl+V 를
+    //    누르면 붙여넣기가 아니라 제어문자 0x16 한 글자가 저장된다. 그러면 제공자가
+    //    **본문 없는 HTTP 400** 으로 끊어서 원인을 알 수 없다 — 진단에 배포를 네 번 돌렸다.
+    //    여기서 걸러 '키가 이상하다'고 정확히 말해야 한다.
+    ['★ 키가 제어문자 한 글자 (Ctrl+V 사고) → bad-key', { images: [B64] },
+      { env: { VISION_API_KEY: String.fromCharCode(22) } }, j => j.errorCode === 'bad-key', true],
+    ['★ 키가 너무 짧음 → bad-key', { images: [B64] },
+      { env: { VISION_API_KEY: 'sk-ant-123' } }, j => j.errorCode === 'bad-key', true],
+    ['키에 붙은 공백·개행은 다듬어서 통과시킨다 (제공자까지는 간다)', { images: [B64] },
+      { env: { VISION_API_KEY: '  sk-ant-api03-0123456789abcdef0123456789  ' + String.fromCharCode(10) } },
+      j => j.errorCode !== 'bad-key' && j.errorCode !== 'no-key', false],
   ];
   for (const [label, body, opts, ok, mustNotEgress] of cases) {
     const p = await callVision(body, opts);
@@ -843,7 +857,7 @@ async function callVision(body, opts = {}) {
   const h = seenHeaders || {};
   const noLog = String(h['cf-aig-collect-log'] || '') === 'false';
   if (!noLog) add('/vision 이 AI Gateway 로그 끄기 헤더 없이 나갔다 (조사 9장 #4)', { 헤더: JSON.stringify(h).slice(0, 200) });
-  const keyed = String(h['x-api-key'] || '') === 'test-key';
+  const keyed = String(h['x-api-key'] || '') === TEST_KEY;
   if (!keyed) add('/vision 이 API 키 없이 제공자를 불렀다', {});
   visionTable.push({ 케이스: 'AI Gateway 로그끄기 헤더 · API 키', 통과: noLog && keyed });
   vstats.n += 2;

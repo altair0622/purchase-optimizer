@@ -416,11 +416,25 @@ async function handleVision(request, env, cors) {
     return visionErr('bad-config', '알 수 없는 제공자 설정이야: ' + provider, cors, 503);
   }
 
-  const key = env && env.VISION_API_KEY;
+  // ⚠️ 키를 **다듬어서** 쓴다. 붙여넣을 때 붙는 개행·공백이 헤더 값에 들어가면
+  //    제공자 엣지가 **본문 없는 400** 으로 끊어버려서 원인을 알 수 없게 된다.
+  const key = String((env && env.VISION_API_KEY) || '').trim();
   if (!key) {
     // 키가 없는 것은 "장애"가 아니라 "아직 안 켰다"이다. 클라이언트는 이 코드를 보고
     // 사진 버튼을 조용히 숨긴다 — 눌러서 실패하게 두지 않는다.
     return visionErr('no-key', '사진 인식이 아직 켜져 있지 않아요', cors, 503);
+  }
+
+  // ⭐ 키가 '있긴 한데 키가 아닌' 경우를 잡는다 — 이게 실제로 났다(2026-08-20).
+  //    윈도우 터미널에서 `wrangler secret put` 프롬프트에 Ctrl+V 를 누르면 붙여넣기가 아니라
+  //    **제어문자 0x16(SYN) 한 글자**가 그대로 저장된다. 그러면 x-api-key 헤더가 1자짜리가 되고
+  //    제공자 엣지는 **본문 없는 HTTP 400** 으로 끊는다 — 어디가 틀렸는지 아무 단서가 없다.
+  //    실제 키는 어느 제공자든 20자를 훌쩍 넘고 인쇄 가능한 ASCII 다.
+  //    → 여기서 걸러 '키가 이상하다'고 **정확히** 말해준다. 붙여넣기 사고는 다시 난다.
+  if (key.length < 20 || /[^!-~]/.test(key)) {
+    return visionErr('bad-key',
+      '저장된 API 키가 키 형식이 아니에요 — 다시 넣어 주세요 (터미널에서 Ctrl+V 는 붙여넣기가 아니라 제어문자가 들어갈 수 있어요. 마우스 오른쪽 클릭이나 Ctrl+Shift+V 를 쓰세요)',
+      cors, 503);
   }
 
   // ⚠️ Gemini 함정 (조사 9장 #1): 무료 티어 약관에 "human reviewers may read, annotate,
@@ -564,6 +578,29 @@ function auditGuessed(candidates, read, guessed) {
 //    그때 이 줄이 없으면 조용히 사진이 쌓인다. 미리 박아 둔다 — 대시보드 옵트아웃과 둘 다 해야 한다.
 const AI_GATEWAY_NO_LOG = { 'cf-aig-collect-log': 'false' };
 
+// 제공자가 준 실패 사유를 **살려서** 올린다.
+// ⚠️ 처음엔 'HTTP 400 을 줬어' 만 돌려줬는데, 그러면 무엇이 잘못됐는지 알 방법이 없다 —
+//    정직성 게이트가 13장 전부 400 을 받고도 원인을 못 짚었다. 운영 중에도 똑같이 눈이 먼다.
+// 본문에는 검증 오류 메시지(필드 경로 등)만 들어오고 **API 키는 안 들어간다**(요청 헤더에만 있다).
+// 그래도 길이를 잘라 두는 건, 제공자가 요청 본문을 되비추는 경우 사진 조각이 섞이지 않게 하기 위해서다.
+// 제공자가 준 실패 사유를 **살려서** 올린다.
+// ⚠️ 처음엔 'HTTP 400 을 줬어' 만 돌려줬는데, 그러면 무엇이 잘못됐는지 알 방법이 없다 —
+//    정직성 게이트가 13장 전부 400 을 받고도 원인을 못 짚었고, 진단에 배포를 네 번 돌렸다.
+//    운영 중에도 똑같이 눈이 먼다. 본문에는 검증 오류 메시지만 오고 **API 키는 안 들어간다**
+//    (키는 요청 헤더에만 있다). 길이를 자르는 건 제공자가 요청을 되비출 때를 대비한 것이다.
+async function providerError(res) {
+  let detail = '';
+  try {
+    const body = await res.text();
+    try {
+      const j = JSON.parse(body);
+      detail = (j && j.error && (j.error.message || j.error.type)) || JSON.stringify(j).slice(0, 250);
+    } catch { detail = body.slice(0, 250); }
+  } catch { /* 본문을 못 읽으면 상태 코드만 */ }
+  detail = String(detail).replace(/\s+/g, ' ').trim().slice(0, 300);
+  return new Error('인식 서버가 HTTP ' + res.status + ' 를 줬어' + (detail ? ' — ' + detail : ' (본문 없음)'));
+}
+
 async function visionFetch(url, init) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), VISION_TIMEOUT);
@@ -598,7 +635,7 @@ async function callAnthropicVision({ key, model, images, prompt, env }) {
       messages: [{ role: 'user', content }],
     }),
   });
-  if (!res.ok) throw new Error('인식 서버가 HTTP ' + res.status + ' 를 줬어');
+  if (!res.ok) throw await providerError(res);
   const j = await res.json();
   const tu = (j && Array.isArray(j.content) ? j.content : []).find(b => b && b.type === 'tool_use');
   return tu ? tu.input : null;
@@ -621,7 +658,7 @@ async function callGeminiVision({ key, model, images, prompt, env }) {
       },
     }),
   });
-  if (!res.ok) throw new Error('인식 서버가 HTTP ' + res.status + ' 를 줬어');
+  if (!res.ok) throw await providerError(res);
   const j = await res.json();
   const txt = j && j.candidates && j.candidates[0] && j.candidates[0].content
     && j.candidates[0].content.parts && j.candidates[0].content.parts[0]

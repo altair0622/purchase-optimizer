@@ -1789,7 +1789,11 @@ function parsePriceFromHtml(html){
 // 1순위 = 내 Cloudflare Worker (site/worker/). 배포 후 URL을 여기 넣으면 켜진다.
 // 비워두면 아래 공개 프록시 체인으로만 동작한다.
 //   배포법: cd site/worker && npx wrangler login && npx wrangler deploy
-const PRICE_API = "https://fancy-voice-cabf.altair0622.workers.dev";
+// ⚠️ 2026-08-20: 워커 이름이 wrangler.toml 과 달라 배포 때 **새 워커가 하나 더 생겼다.**
+//    옛 워커(fancy-voice-cabf)는 자동생성 이름이고 v0.29 이전 코드라 /rate·/vision 이 없다.
+//    신규 워커가 최신 코드 + 비전 키를 갖고 있으므로 이쪽으로 옮긴다.
+//    가격조회(/?url=)·요율(/rate)·사진인식(/vision) **세 경로가 전부 이 한 곳**을 본다 — 확인함.
+const PRICE_API = "https://purchase-optimizer-price.altair0622.workers.dev";
 
 // 폴백 = 무료 공개 프록시 (상품 URL만 전달됨)
 // ⚠️ 순서 중요(2026-08-11 점검): corsproxy.io는 403, allorigins는 무응답이라

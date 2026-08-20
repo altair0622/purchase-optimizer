@@ -95,6 +95,10 @@ const MUTANTS = [
     "    return visionErr('provider-error', (e && e.message) || String(e), cors, 200);",
     "    return json({ ok: true, category: '', candidates: [{ query: 'nike air max 90', why: 'x' }], read: [], guessed: [], ask: null }, 200, cors);"],
 
+  ['★ 망가진 키 가드를 끔 (Ctrl+V 로 들어간 제어문자가 그대로 제공자에 나감)',
+    "  if (key.length < 20 || /[^\x21-\x7e]/.test(key)) {",
+    '  if (false) {'],
+
   ['키가 없어도 제공자를 부름 (키 없이 과금 경로로 들어감)',
     '  if (!key) {',
     '  if (false) {'],

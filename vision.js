@@ -447,6 +447,8 @@ function renderGiveUp() {
 // 오류 — **추측한 검색어를 대신 내놓지 않는다**(조사 8장 마지막 줄).
 const ERR_COPY = {
   'no-key':                 ['vision.err.nokey',  '사진으로 찾기가 아직 켜져 있지 않아요.'],
+  // 키가 망가져 있는 경우. 워커의 상세 문구는 운영자용이라 사용자에겐 안 보여준다.
+  'bad-key':                ['vision.err.nokey',  '사진으로 찾기가 아직 켜져 있지 않아요.'],
   'gemini-tier-unconfirmed':['vision.err.nokey',  '사진으로 찾기가 아직 켜져 있지 않아요.'],
   'no-worker':              ['vision.err.nokey',  '사진으로 찾기가 아직 켜져 있지 않아요.'],
   'network':                ['vision.err.net',    '연결이 안 돼요. 잠시 뒤 다시 눌러 주세요.'],
