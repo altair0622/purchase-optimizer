@@ -406,7 +406,10 @@ function visionPrompt(lang, nImages) {
     '  "multiple"   - several different products are in frame and you cannot tell which one they mean',
     '  "none"       - you do not need another photo',
     '',
-    'Search queries ("query") must be in English. Write "category", "why" and "detail" in ' + langName + '.',
+    // ⚠️ "guessed" 를 빠뜨리면 안 된다 — 2026-08-20 정직성 게이트에서 실제로 걸렸다.
+    //    lang:'ko' 인데 guessed 절반이 영어로 왔다(화면에 그대로 인쇄되는 값이다).
+    //    스키마 description 에는 적혀 있었지만 프롬프트 마지막 줄이 이겼다.
+    'Search queries ("query") must be in English. Write "category", "why", "guessed" and "detail" in ' + langName + ' — every one of them, including each entry of the "guessed" array.',
   ].filter(Boolean).join('\n');
 }
 
