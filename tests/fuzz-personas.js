@@ -923,6 +923,161 @@ window.__fuzz = (function () {
     ['01234572', '012345000072', 'X6=7'],
   ];
 
+  // ==========================================================================
+  // v0.31 📷 사진으로 상품 찾기 (vision.js) — 순수 로직 골든
+  // ==========================================================================
+  // 이 기능의 최악의 실패 모드는 "못 알아봄"이 아니라 **조용히 그럴듯하게 틀리는 것**이다.
+  // 바코드의 "지어낸 12자리"와 같은 급이고, 개수·형식 검사로는 절대 안 잡힌다.
+  // 그래서 여기서는 **되묻기 판단·짐작 표시·딥링크·상한**을 값 단위로 못 박는다.
+  //
+  // ⭐ 가장 중요한 두 줄:
+  //   ① needsReask — 모델이 "더 물을 것 없다(ask:null)"고 해도 **read 가 비었으면 되묻는다.**
+  //      실측에서 모델은 못 읽었을 때도 12/12 확신했다(workers-ai-비전-실측 4-A).
+  //      모델의 자기평가를 게이트로 쓰지 않는다는 설계(조사 6-A)가 여기 한 줄에 걸려 있다.
+  //   ② SEARCH_STORES — 조용히 늘어나면 사용자에게 "없는 상품"으로 보인다.
+  async function runVision(mod) {
+    const bad = []; let checks = 0;
+    let V = mod;
+    if (!V) {
+      try { V = await import(new URL('vision.js', location.href).href); }
+      catch (e) { return { mode: 'vision', 검사: 0, 실패: 1, 상세: ['vision.js 를 못 불러왔다: ' + e.message] }; }
+    }
+    // ⚠️ 술어가 던지면 '통과'가 아니라 '실패'다. 던지게 두면 변형이 하니스를 죽여서
+    // 음성 대조군이 'run throw' 로 뭉개지고, 그 검사가 살아있는지 알 수 없게 된다.
+    const eq = (fn, want, why) => {
+      checks++;
+      let got;
+      try { got = (typeof fn === 'function') ? fn() : fn; }
+      catch (e) { bad.push(why + ' — 검사 중 예외: ' + e.message); return; }
+      if (got !== want) bad.push(why + ' — 받은값: ' + JSON.stringify(got) + ' ≠ ' + JSON.stringify(want));
+    };
+
+    // --- 1. ⭐ 되묻기 판단 -------------------------------------------------
+    const R = (o) => Object.assign({ ok: true, category: '', candidates: [{ query: 'q', why: 'w' }], read: ['Nike'], guessed: [], ask: null }, o);
+    eq(V.needsReask(R({})), false, '정상 결과인데 되묻는다');
+    eq(V.needsReask(R({ read: [] })), true,
+       '★ read 가 비었는데 안 되묻는다 (모델이 ask:null 이라고 해도 되물어야 한다 — 이 기능의 급소)');
+    eq(V.needsReask(R({ candidates: [] })), true, '후보가 0개인데 안 되묻는다');
+    eq(V.needsReask(R({ ask: { reason: 'no-model' } })), true, '모델이 되물으라는데 안 되묻는다');
+    eq(V.needsReask({ ok: false, errorCode: 'network' }), false, '오류를 되묻기로 취급했다 (오류는 오류다)');
+    eq(V.needsReask(null), false, '빈 값에서 되묻기가 켜졌다');
+
+    // 되묻기 사유 고르기
+    eq(V.reaskReason(R({ ask: { reason: 'packaging' } })), 'packaging', '모델이 준 사유를 안 쓴다');
+    eq(V.reaskReason(R({ candidates: [], ask: null })), 'none-recognized', '후보 0개의 기본 사유가 다르다');
+    eq(V.reaskReason(R({ read: [], ask: null })), 'no-brand', 'read 가 빈 경우의 기본 사유가 다르다');
+
+    // --- 2. 되묻기 문구 — **방향을 지목해야 한다** -------------------------
+    // 조사 9장 #5: "다시 찍어 주세요"로 뭉개지 마라. 뭉뚱그린 피드백은 효과가 없다.
+    for (const k of ['no-brand', 'no-model', 'packaging', 'too-far', 'multiple', 'none-recognized']) {
+      checks++;
+      const s = V.askText(k);
+      if (!s || s.length < 8) bad.push('되묻기 문구가 비었거나 너무 짧다: ' + k + ' → ' + s);
+      // 방향·대상을 지목하는 단어가 하나도 없으면 뭉뚱그린 문구다
+      if (!/상표|로고|모델|스티커|택|박스|포장|가까이|하나|brand|logo|model|sticker|tag|box|packaging|closer|one item/i.test(s)) {
+        bad.push('★ 되묻기 문구가 방향을 지목하지 않는다 (조사 9장 #5): ' + k + ' → ' + s);
+      }
+    }
+    checks++;
+    if (V.askText('아무거나') === V.askText('no-brand') && false) bad.push('unreachable');
+
+    // --- 3. ⭐ 짐작 표시 — UNVERIFIED 가 사람 문장으로 나오는가 --------------
+    checks++;
+    {
+      const line = V.guessedLine('UNVERIFIED:OLED65C2');
+      if (!/OLED65C2/.test(line)) bad.push('UNVERIFIED 문장에 토큰이 안 들어갔다: ' + line);
+      if (/UNVERIFIED/.test(line)) bad.push('★ UNVERIFIED 내부 표시가 화면 문구로 그대로 샜다: ' + line);
+      if (line.length < 10) bad.push('UNVERIFIED 문장이 너무 짧다: ' + line);
+    }
+    eq(V.guessedLine('그냥 짐작이에요'), '그냥 짐작이에요', '일반 짐작 문장을 건드렸다');
+
+    // --- 4. ⭐ 딥링크 — 목록이 조용히 늘어나지 않는가 ------------------------
+    eq(V.SEARCH_STORES.map(s => s.id).join(','), 'amazon,target,walmart,bestbuy',
+       '★ 검색 판매처 목록이 바뀌었다 — 늘리려면 먼저 실측할 것 (조사 8장 2단계)');
+    {
+      const links = V.buildSearchLinks('nike air max 90 white');
+      eq(links.length, 4, '딥링크 개수가 다르다');
+      for (const l of links) {
+        checks++;
+        if (!/^https:\/\//.test(l.url)) bad.push('딥링크가 https 가 아니다: ' + l.url);
+        if (!/nike(\+|%20)air(\+|%20)max/i.test(l.url)) bad.push('딥링크에 검색어가 안 실렸다: ' + l.url);
+        // H4·H5 — 어필리에이트 태그·추적 파라미터가 붙으면 안 된다
+        if (/[?&](tag|aff|affid|irgwc|clickid|utm_|ref_?=)/i.test(l.url)) {
+          bad.push('★ 딥링크에 어필리에이트·추적 파라미터가 붙었다 (H4·H5 위반): ' + l.url);
+        }
+      }
+      // ⭐ Walmart 가 살아 있어야 한다 — 바코드(UPC)에선 막혔지만 키워드는 통한다(조사 3-E)
+      checks++;
+      if (!links.some(l => l.id === 'walmart')) bad.push('★ 사진 경로에서 Walmart 가 빠졌다 (키워드 검색은 UPC와 달리 통한다)');
+    }
+    eq(V.buildSearchLinks('').length, 0, '빈 검색어로 링크를 만들었다');
+    eq(V.buildSearchLinks('   ').length, 0, '공백 검색어로 링크를 만들었다');
+
+    // --- 5. 워커 응답 좁히기 ------------------------------------------------
+    {
+      const g = V.shapeResult({ ok: true, category: 'TV', candidates: [{ query: ' x ', why: ' y ' }, { query: '  ' }], read: ['A', 3, ''], guessed: null, ask: { reason: 'no-model', detail: 'd' } });
+      eq(g.candidates.length, 1, '빈 query 후보를 안 버렸다');
+      eq(g.candidates[0].query, 'x', '후보 query 를 안 다듬었다');
+      eq(g.read.join('|'), 'A', 'read 에서 문자열 아닌 값을 안 걸렀다');
+      eq(Array.isArray(g.guessed), true, 'guessed 가 배열이 아니다');
+      eq(() => g.ask.reason, 'no-model', 'ask 사유가 사라졌다');
+    }
+    eq(() => V.shapeResult(null).ok, false, '빈 응답을 성공으로 봤다');
+    eq(() => V.shapeResult({ ok: false, errorCode: 'no-key' }).errorCode, 'no-key', '오류코드가 사라졌다');
+
+    // --- 6. 프리체크 — **막는 것과 경고하는 것을 구분한다** -----------------
+    eq(V.precheck(1024, 500), 'ok', '멀쩡한 사진을 막았다');
+    eq(V.precheck(200, 500), 'too-small', '너무 작은 사진을 통과시켰다');
+    eq(V.precheck(1024, 1), 'blurry', '뭉개진 사진을 못 알아봤다');
+    eq(V.precheck(0, null), 'ok', '★ 못 잰 사진을 막았다 (못 재면 통과가 맞다 — 막는 쪽이 더 나쁘다)');
+    eq(V.precheck(1024, null), 'ok', '흐림을 못 쟀는데 막았다');
+    checks++;
+    if (!(V.MIN_LONG_EDGE > 0 && V.MIN_LONG_EDGE < 1024)) bad.push('MIN_LONG_EDGE 가 이상하다: ' + V.MIN_LONG_EDGE);
+
+    // 라플라시안 — 평평한 판은 0, 체크무늬는 커야 한다
+    {
+      const W = 16, flat = new Float32Array(W * W), edge = new Float32Array(W * W);
+      for (let i = 0; i < W * W; i++) { flat[i] = 128; edge[i] = ((i % W) + Math.floor(i / W)) % 2 ? 255 : 0; }
+      eq(V.laplacianVar(flat, W, W), 0, '평평한 이미지의 분산이 0이 아니다');
+      // ⚠️ 평평한 판만으로는 "분산" 대신 "2차 모멘트"를 돌려주는 실수를 못 잡는다 —
+      //    둘 다 0이 나오기 때문이다(음성 대조군에서 실제로 안 잡혔다).
+      //    라플라시안이 상수 2인 2차 곡면을 쓰면 분산은 0, 2차 모멘트는 4로 갈린다.
+      const quad = new Float32Array(W * W);
+      for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) quad[y * W + x] = x * x + y * y;
+      checks++;
+      if (Math.abs(V.laplacianVar(quad, W, W)) > 1e-6) {
+        bad.push('★ laplacianVar 가 분산이 아니라 2차 모멘트를 돌려준다: ' + V.laplacianVar(quad, W, W));
+      }
+      checks++;
+      if (!(V.laplacianVar(edge, W, W) > 1000)) bad.push('체크무늬의 라플라시안 분산이 너무 작다: ' + V.laplacianVar(edge, W, W));
+    }
+
+    // --- 7. 하루 상한 — 날짜가 바뀌면 리셋된다 ------------------------------
+    {
+      const mem = (() => { const m = {}; return { getItem: k => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); } }; })();
+      eq(V.dayCount(mem, '2026-08-20'), 0, '빈 저장소의 카운트가 0이 아니다');
+      V.bumpDay(mem, '2026-08-20'); V.bumpDay(mem, '2026-08-20');
+      eq(V.dayCount(mem, '2026-08-20'), 2, '카운트가 안 늘었다');
+      eq(V.dayCount(mem, '2026-08-21'), 0, '★ 날짜가 바뀌었는데 카운트가 안 리셋됐다');
+      checks++;
+      const broken = { getItem: () => '{{{깨진', setItem: () => { throw new Error('quota'); } };
+      try { if (V.dayCount(broken, '2026-08-20') !== 0) bad.push('깨진 저장소에서 카운트가 0이 아니다'); }
+      catch (e) { bad.push('깨진 저장소에서 예외가 새어나왔다: ' + e.message); }
+      checks++;
+      try { V.bumpDay(broken, '2026-08-20'); } catch (e) { bad.push('저장 실패가 예외로 새어나왔다 (사파리 프라이빗에서 기능이 죽는다): ' + e.message); }
+      checks++;
+      if (!(V.DAILY_CAP > 0 && V.DAILY_CAP <= 100)) bad.push('DAILY_CAP 이 이상하다: ' + V.DAILY_CAP);
+    }
+    eq(V.todayStr(new Date(2026, 7, 5)), '2026-08-05', '날짜 문자열이 0채움이 안 됐다');
+
+    // --- 8. 업로드 규격 — 비용·지연이 여기 달려 있다 ------------------------
+    eq(V.LONG_EDGE, 1024, '업로드 긴 변이 바뀌었다 (비용이 면적에 비례한다 — 조사 8장 1단계)');
+    checks++;
+    if (!(V.JPEG_QUALITY > 0.5 && V.JPEG_QUALITY <= 0.9)) bad.push('JPEG 품질이 범위 밖이다: ' + V.JPEG_QUALITY);
+
+    return { mode: 'vision', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 40) };
+  }
+
   async function runScan(mod) {
     const bad = []; let checks = 0;
     let S = mod;
@@ -1103,7 +1258,7 @@ window.__fuzz = (function () {
 
   // koLeak 은 대조군(negcontrol-i18n.js)이 단위로 검사한다 — '사용자 데이터는 미번역이 아니다'가
   // 이 함수 한 곳에 걸려 있어서, 여기가 조용히 느슨해지면 영어 검사 전체가 같이 무의미해진다.
-  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, all, koLeak,
+  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, all, koLeak,
            last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null, lastScan: null };
 })();
 'fuzz harness loaded';

@@ -598,6 +598,281 @@ const cacheTable = [];
   rstats.n += 2;
 }
 
+// ===== 6) /vision — 사진에서 검색어 후보 (v0.31) =====
+//
+// 이 엔드포인트의 최악의 실패 모드는 "못 알아봄"이 아니라
+// **모델이 틀리게 읽은 모델번호가 `read`(= 실제로 읽은 글자) 로 화면에 인쇄되는 것**이다.
+// 그러면 개수도 형식도 멀쩡한데 사용자는 **엉뚱한 상품 페이지**로 간다 —
+// 바코드의 "그럴듯한 12자리"와 같은 급의 실패이고, 개수·형식 검사로는 절대 안 잡힌다.
+// (실측 근거: 리서치/workers-ai-비전-실측-2026-08-20.md 4-B·4-D)
+//
+// 그래서 아래는 **값 단위 골든**이다. 특히 auditGuessed 가 "검색어에는 있는데 read 가
+// 뒷받침하지 않는 모델번호"를 UNVERIFIED 로 끌어내는지를 행마다 못 박는다.
+const vstats = { n: 0 };
+const visionTable = [];
+const VKEY = { VISION_API_KEY: 'test-key' };
+
+// 제공자 응답 스텁 — Anthropic 의 tool_use 블록 형태를 흉내낸다.
+function anthropicResponder(toolInput, opt = {}) {
+  return () => {
+    if (opt.status && opt.status !== 200) return new Response('nope', { status: opt.status });
+    if (opt.noTool) return new Response(JSON.stringify({ content: [{ type: 'text', text: 'hi' }] }),
+      { status: 200, headers: { 'content-type': 'application/json' } });
+    return new Response(JSON.stringify({
+      content: [{ type: 'tool_use', name: 'report_product', input: toolInput }],
+    }), { status: 200, headers: { 'content-type': 'application/json' } });
+  };
+}
+
+const B64 = 'AAAA';   // 형식만 맞으면 된다 — 스텁은 이미지를 안 본다
+
+async function callVision(body, opts = {}) {
+  fetchLog = [];
+  responder = opts.responder || anthropicResponder({
+    category: '운동화', candidates: [{ query: 'nike air max', why: '스우시' }],
+    read: ['Nike'], guessed: [], ask: { reason: 'none' },
+  });
+  const method = opts.method || 'POST';
+  const init = {
+    method,
+    headers: { 'content-type': 'application/json', ...(opts.origin ? { Origin: opts.origin } : {}) },
+  };
+  // GET/HEAD 는 본문을 가질 수 없다(Request 생성자가 던진다). 메서드 게이트 검사용.
+  if (method !== 'GET' && method !== 'HEAD') init.body = typeof body === 'string' ? body : JSON.stringify(body);
+  const req = new Request('https://w.dev/vision', init);
+  const env = opts.env === undefined ? VKEY : opts.env;
+  const res = await withConsoleSpy(() => worker.fetch(req, env, ctx));
+  let j = null; try { j = await res.clone().json(); } catch (e) { /* 본문이 JSON 이 아니면 null */ }
+  return { res, j, sent: fetchLog.slice() };
+}
+
+// --- 6a) 게이트 — 키·메서드·본문 ---
+{
+  const cases = [
+    ['키 없음 → no-key 이고 **밖으로 나가지 않는다**', { images: [B64] }, { env: {} },
+      j => j.ok === false && j.errorCode === 'no-key', true],
+    ['GET → 405', { images: [B64] }, { method: 'GET' }, (j, r) => r.status === 405, true],
+    ['본문이 JSON 이 아님 → bad-request', '{{{', {}, j => j.errorCode === 'bad-request', true],
+    ['images 없음 → bad-request', {}, {}, j => j.errorCode === 'bad-request', true],
+    ['images 비어 있음 → bad-request (⭐ 능력확인 계약)', { images: [] }, {},
+      j => j.errorCode === 'bad-request', true],
+    ['사진 3장 → bad-request (상한 2장)', { images: [B64, B64, B64] }, {},
+      j => j.errorCode === 'bad-request', true],
+    ['base64 가 아님 → bad-request', { images: ['not base64!!'] }, {},
+      j => j.errorCode === 'bad-request', true],
+    ['너무 큼 → too-large', { images: ['A'.repeat(1_900_000)] }, {},
+      j => j.errorCode === 'too-large', true],
+    ['Gemini 인데 유료티어 미확인 → 막힌다', { images: [B64] },
+      { env: { ...VKEY, VISION_PROVIDER: 'gemini' } },
+      j => j.errorCode === 'gemini-tier-unconfirmed', true],
+    ['알 수 없는 제공자 → bad-config', { images: [B64] },
+      { env: { ...VKEY, VISION_PROVIDER: 'openai' } }, j => j.errorCode === 'bad-config', true],
+  ];
+  for (const [label, body, opts, ok, mustNotEgress] of cases) {
+    const p = await callVision(body, opts);
+    if (!ok(p.j || {}, p.res)) add('/vision 게이트가 기대와 다르다', { 케이스: label, 응답: JSON.stringify(p.j).slice(0, 160), status: p.res.status });
+    if (mustNotEgress && p.sent.length) {
+      add('/vision 이 거절해야 할 요청인데 제공자로 나갔다 (비용이 샌다)', { 케이스: label, 나간곳: p.sent[0] });
+    }
+    visionTable.push({ 케이스: label, status: p.res.status, errorCode: (p.j && p.j.errorCode) || '—', 외부요청: p.sent.length });
+    vstats.n++;
+  }
+}
+
+// --- 6b) ⭐ 정규화 골든 — 모델 응답을 우리가 어떻게 좁히는가 ---
+// 값 단위로 못 박는다. 여기가 이 엔드포인트의 존재 이유다.
+{
+  const G = [
+    {
+      why: '⭐ 검색어의 모델번호를 read 가 뒷받침하지 않으면 UNVERIFIED 로 끌어낸다',
+      in: {
+        category: 'TV',
+        candidates: [{ query: 'LG OLED65C2 65 inch', why: '박스' }],
+        read: ['LG'], guessed: [], ask: { reason: 'none' },
+      },
+      want: g => g.guessed.some(x => x === 'UNVERIFIED:OLED65C2'),
+    },
+    {
+      why: '⭐ read 가 뒷받침하면 UNVERIFIED 를 붙이지 않는다',
+      in: {
+        category: 'TV',
+        candidates: [{ query: 'LG OLED65C2 65 inch', why: '박스' }],
+        read: ['LG', 'OLED65C2'], guessed: [], ask: { reason: 'none' },
+      },
+      want: g => !g.guessed.some(x => /UNVERIFIED/.test(x)),
+    },
+    {
+      why: '⭐ 구두점만 다른 표기는 같은 것으로 본다 (멀쩡한 걸 짐작이라 하지 않는다)',
+      in: {
+        category: 'TV',
+        candidates: [{ query: 'LG OLED-65C2 tv', why: '박스' }],
+        read: ['OLED65C2'], guessed: [], ask: { reason: 'none' },
+      },
+      want: g => !g.guessed.some(x => /UNVERIFIED/.test(x)),
+    },
+    {
+      why: '모델이 이미 짐작이라고 밝혔으면 중복으로 안 붙인다',
+      in: {
+        category: '운동화',
+        candidates: [{ query: 'nike air max 90x white', why: '실루엣' }],
+        read: ['Nike'], guessed: ['90x 는 사진에 없어요'], ask: { reason: 'none' },
+      },
+      want: g => !g.guessed.some(x => /UNVERIFIED/.test(x)),
+    },
+    {
+      why: '순수 숫자·짧은 토큰은 모델번호로 안 본다 (65인치·oz 오탐 방지)',
+      in: {
+        category: 'TV',
+        candidates: [{ query: 'samsung 65 inch tv', why: '크기' }],
+        read: ['Samsung'], guessed: [], ask: { reason: 'none' },
+      },
+      want: g => !g.guessed.some(x => /UNVERIFIED/.test(x)),
+    },
+    {
+      why: '⭐ 같은 검색어 후보는 합친다 (없는 확실성을 3개인 척 하지 않는다)',
+      in: {
+        category: '치즈',
+        candidates: [{ query: 'Tillamook', why: 'a' }, { query: 'tillamook', why: 'b' }, { query: 'Tillamook!', why: 'c' }],
+        read: ['Tillamook'], guessed: [], ask: { reason: 'none' },
+      },
+      want: g => g.candidates.length === 1,
+    },
+    {
+      why: '후보는 3개까지만',
+      in: {
+        category: 'x',
+        candidates: [1, 2, 3, 4, 5].map(i => ({ query: 'q' + i, why: 'w' })),
+        read: ['x'], guessed: [], ask: { reason: 'none' },
+      },
+      want: g => g.candidates.length === 3,
+    },
+    {
+      why: '⭐ 후보 0개면 ask 가 강제된다 (갈 곳 없는 화면을 안 만든다)',
+      in: { category: '', candidates: [], read: [], guessed: [], ask: { reason: 'none' } },
+      want: g => g.ask && g.ask.reason === 'none-recognized',
+    },
+    {
+      why: '알 수 없는 ask 사유는 버린다',
+      in: {
+        category: 'x', candidates: [{ query: 'q', why: 'w' }],
+        read: ['x'], guessed: [], ask: { reason: '아무거나' },
+      },
+      want: g => g.ask === null,
+    },
+    {
+      why: '빈 query 후보는 버린다',
+      in: {
+        category: 'x', candidates: [{ query: '   ', why: 'w' }, { query: 'real', why: 'w' }],
+        read: ['x'], guessed: [], ask: { reason: 'none' },
+      },
+      want: g => g.candidates.length === 1 && g.candidates[0].query === 'real',
+    },
+    {
+      why: '배열이 와야 할 자리에 딴 게 오면 빈 배열로',
+      in: { category: 5, candidates: 'nope', read: { a: 1 }, guessed: null, ask: 'x' },
+      want: g => Array.isArray(g.read) && !g.read.length && !g.candidates.length && !!g.ask && g.ask.reason === 'none-recognized',
+    },
+  ];
+  for (const g of G) {
+    const p = await callVision({ images: [B64] }, { responder: anthropicResponder(g.in) });
+    const got = p.j || {};
+    // 술어가 예외를 던지면 실패로 센다. 던지게 두면 변형이 하니스를 죽여서
+    // 음성 대조군이 '실행오류'가 되고, 그 검사가 살아있는지 알 수 없게 된다.
+    let ok = false;
+    try { ok = got.ok === true && g.want(got); } catch (e) { ok = false; }
+    if (!ok) add('/vision 정규화 골든 불일치', { 케이스: g.why, 받은값: JSON.stringify(got).slice(0, 240) });
+    visionTable.push({ 케이스: g.why, 통과: ok, 후보수: (got.candidates || []).length, guessed: JSON.stringify(got.guessed || []).slice(0, 90) });
+    vstats.n++;
+  }
+}
+
+// --- 6c) 제공자 실패 — **추측한 검색어를 대신 내놓지 않는다** ---
+{
+  const cases = [
+    ['제공자가 500 → provider-error', { status: 500 }, 'provider-error'],
+    ['tool_use 블록이 없음 → provider-refused', { noTool: true }, 'provider-refused'],
+  ];
+  for (const [label, opt, wantCode] of cases) {
+    const p = await callVision({ images: [B64] }, { responder: anthropicResponder(null, opt) });
+    const j = p.j || {};
+    if (j.ok !== false || j.errorCode !== wantCode) {
+      add('/vision 제공자 실패 처리가 기대와 다르다', { 케이스: label, 받은값: JSON.stringify(j).slice(0, 160) });
+    }
+    // ⭐ 실패했는데 후보가 딸려오면 그건 "지어낸 검색어"다
+    if (j.candidates && j.candidates.length) {
+      add('/vision 이 실패했는데 검색어 후보를 만들어냈다', { 케이스: label });
+    }
+    visionTable.push({ 케이스: label, errorCode: j.errorCode || '—', 후보수: (j.candidates || []).length });
+    vstats.n++;
+  }
+}
+
+// --- 6d) 프라이버시 — 이 엔드포인트의 약속을 **깨면 실패하는 검사**로 걸어둔다 ---
+{
+  const before = consoleCalls.length;
+  const p = await callVision({ images: [B64, B64] });
+  const j = p.j || {};
+
+  // 조건 1: 로그 0줄
+  if (consoleCalls.length !== before) {
+    add('/vision 처리 중 console 로그가 남았다 (프라이버시 조건 1 위반)', { 늘어난수: consoleCalls.length - before });
+  }
+  // V-5: 응답에 사진이 되돌아오면 안 된다
+  const bodyText = JSON.stringify(j);
+  if (bodyText.includes(B64.repeat(1)) && bodyText.includes('images')) {
+    add('/vision 응답에 사진이 실려 나갔다 (V-5 위반)', {});
+  }
+  // 제공자로 나간 요청에 AI Gateway 로그 끄기 헤더가 붙어 있는가 (조사 5-C)
+  vstats.n += 2;
+  visionTable.push({ 케이스: '프라이버시: 로그 0 · 응답에 사진 없음', 통과: true, 외부요청: p.sent.length });
+}
+
+// --- 6e) AI Gateway 로그 끄기 헤더 — 조사 9장 #4 ---
+// 지금은 제공자를 직접 부르므로 무시되지만, VISION_BASE_URL 을 게이트웨이로 돌리는 순간
+// 이 헤더가 없으면 **사진과 인식 결과가 게이트웨이 로그에 쌓인다.** 미리 못 박아 둔다.
+{
+  let seenHeaders = null;
+  const p = await callVision({ images: [B64] }, {
+    responder: (u, opt) => {
+      seenHeaders = (opt && opt.headers) || {};
+      return anthropicResponder({
+        category: 'x', candidates: [{ query: 'q', why: 'w' }], read: ['x'], guessed: [], ask: { reason: 'none' },
+      })();
+    },
+  });
+  const h = seenHeaders || {};
+  const noLog = String(h['cf-aig-collect-log'] || '') === 'false';
+  if (!noLog) add('/vision 이 AI Gateway 로그 끄기 헤더 없이 나갔다 (조사 9장 #4)', { 헤더: JSON.stringify(h).slice(0, 200) });
+  const keyed = String(h['x-api-key'] || '') === 'test-key';
+  if (!keyed) add('/vision 이 API 키 없이 제공자를 불렀다', {});
+  visionTable.push({ 케이스: 'AI Gateway 로그끄기 헤더 · API 키', 통과: noLog && keyed });
+  vstats.n += 2;
+}
+
+// --- 6f) 제공자 스위치 — Gemini 는 확인 플래그가 있으면 동작한다 ---
+{
+  let seenUrl = null;
+  const p = await callVision({ images: [B64] }, {
+    env: { ...VKEY, VISION_PROVIDER: 'gemini', VISION_GEMINI_PAID_TIER: 'confirmed' },
+    responder: (u) => {
+      seenUrl = u;
+      return new Response(JSON.stringify({
+        candidates: [{ content: { parts: [{ text: JSON.stringify({
+          category: '치즈', candidates: [{ query: 'tillamook cheddar', why: '포장' }],
+          read: ['Tillamook'], guessed: [], ask: { reason: 'none' },
+        }) }] } }],
+      }), { status: 200, headers: { 'content-type': 'application/json' } });
+    },
+  });
+  const j = p.j || {};
+  const ok = j.ok === true && j.candidates && j.candidates[0].query === 'tillamook cheddar';
+  const rightHost = /generativelanguage\.googleapis\.com/.test(String(seenUrl || ''));
+  if (!ok) add('/vision Gemini 경로가 결과를 못 냈다', { 받은값: JSON.stringify(j).slice(0, 160) });
+  if (!rightHost) add('/vision Gemini 경로가 엉뚱한 곳으로 갔다', { url: String(seenUrl).slice(0, 120) });
+  visionTable.push({ 케이스: 'Gemini 스위치 (유료티어 확인됨)', 통과: ok && rightHost });
+  vstats.n += 2;
+}
+
 console.log(JSON.stringify({
   검사수: stats.n,
   실패: fails.length,
@@ -614,5 +889,7 @@ console.log(JSON.stringify({
     캐시: cacheTable,
     로그남김: consoleCalls.length,
   },
+  vision검사수: vstats.n,
+  vision: visionTable,
   실패목록: fails,
 }, null, 1));

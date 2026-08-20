@@ -74,8 +74,58 @@ const MUTANTS = [
     "const store = String(rawStore == null ? '' : rawStore);"],
 
   ['/rate 라우팅을 지움 (엔드포인트가 사라짐)',
-    "if (reqUrl.pathname.replace(/\\/+$/, '') === '/rate') {",
+    "if (path === '/rate') {",
     'if (false) {'],
+
+  // ===== /vision (v0.31) =====
+  // ★ 표시된 것들이 이 엔드포인트의 존재 이유다 — "지어낸 모델번호가 read 로 인쇄되는 것"을 막는 자리.
+  ['★ auditGuessed 를 꺼버림 (검색어의 모델번호가 짐작인지 안 밝힘)',
+    'guessed: auditGuessed(candidates, read, guessed),',
+    'guessed,'],
+
+  ['★ 후보 중복 제거를 끔 (같은 검색어를 3개인 척 보여줌)',
+    'if (!k || seen.has(k)) continue;',
+    'if (!k) continue;'],
+
+  ['★ 후보 0개인데 되묻기를 안 함 (갈 곳 없는 화면)',
+    "if (!candidates.length && reason === 'none') reason = 'none-recognized';",
+    ''],
+
+  ['★ 제공자가 죽었는데 검색어를 지어냄',
+    "    return visionErr('provider-error', (e && e.message) || String(e), cors, 200);",
+    "    return json({ ok: true, category: '', candidates: [{ query: 'nike air max 90', why: 'x' }], read: [], guessed: [], ask: null }, 200, cors);"],
+
+  ['키가 없어도 제공자를 부름 (키 없이 과금 경로로 들어감)',
+    '  if (!key) {',
+    '  if (false) {'],
+
+  ['Gemini 유료티어 확인을 건너뜀 (무료티어 = 사람이 사진을 읽음)',
+    "  if (provider === 'gemini' && String(env.VISION_GEMINI_PAID_TIER || '') !== 'confirmed') {",
+    '  if (false) {'],
+
+  ['AI Gateway 로그 끄기 헤더를 뺌 (사진·인식결과가 게이트웨이 로그에 쌓임)',
+    "const AI_GATEWAY_NO_LOG = { 'cf-aig-collect-log': 'false' };",
+    'const AI_GATEWAY_NO_LOG = {};'],
+
+  ['사진 장수 상한을 끔',
+    '  if (images.length > VISION_MAX_IMAGES) {',
+    '  if (false) {'],
+
+  ['사진 크기 상한을 끔',
+    "  if (total > VISION_MAX_B64) return visionErr('too-large', '사진이 너무 커 — 더 작게 줄여서 보내줘', cors, 413);",
+    ''],
+
+  ['base64 검증을 끔 (우리 클라이언트가 안 만든 것도 통과)',
+    "    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(im)) return visionErr('bad-request', '사진이 base64 가 아니야', cors, 400);",
+    ''],
+
+  ['images:[] 를 통과시킴 (능력확인 계약이 깨짐 → 버튼이 잘못 켜진다)',
+    "  if (!images.length) return visionErr('bad-request', 'images 가 비어 있어', cors, 400);",
+    ''],
+
+  ['보낸 사진을 로그로 남김 (프라이버시 조건 1 위반)',
+    '  const lang = body && body.lang === \'en\' ? \'en\' : \'ko\';',
+    '  console.log(\'vision\', images.length, images[0].slice(0, 20));\r\n  const lang = body && body.lang === \'en\' ? \'en\' : \'ko\';'],
 ];
 
 const rows = [];

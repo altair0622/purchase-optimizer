@@ -1,8 +1,9 @@
 /**
  * price-proxy — 계산기가 쓰는 Cloudflare Worker. 엔드포인트 2개.
  *
- *   GET /?url=<상품 URL>    → 상품 페이지에서 "가격만" 뽑아 JSON
- *   GET /rate?store=<슬러그> → Rakuten·TopCashback 캐시백 요율을 그 한 곳만 라이브 조회 (v0.29)
+ *   GET  /?url=<상품 URL>    → 상품 페이지에서 "가격만" 뽑아 JSON
+ *   GET  /rate?store=<슬러그> → Rakuten·TopCashback 캐시백 요율을 그 한 곳만 라이브 조회 (v0.29)
+ *   POST /vision              → 사진에서 "검색어 후보"를 뽑아 JSON (v0.31)
  *
  * 왜 만들었나
  *  - 계산기는 정적 페이지(GitHub Pages)라 상품 사이트를 직접 못 부른다(CORS).
@@ -33,6 +34,23 @@
  *  P-3. 엣지 캐시 키는 **매장 슬러그 하나**로만 만든다(`rateCacheKey`). 오리진·IP·헤더가
  *       섞이지 않으므로 사용자 단위 캐시가 생길 수 없고, 캐시는 매장 단위 공용이다.
  *  P-4. 응답에 원문 HTML을 담지 않는다 — 요율 숫자와 상태 문자열만 나간다.
+ *
+ * `/vision` 은 여기서 한 발 더 나간다 — **사진이 제3자(비전 API)로 나간다.** 이건 이 워커에서
+ * 가장 큰 완화이고, 그래서 조건을 하나 못 지킨다. **숨기지 않고 여기 적는다.**
+ *
+ *  V-1. 로그를 남기지 않는다 — 위 P-1 그대로. 이 파일에 console.* 는 여전히 **0개**다.
+ *  V-2. 요청자 식별 정보를 읽지 않는다 — 위 P-2 그대로. headers.get 은 Origin 한 곳뿐이다.
+ *       ⚠️ 그래서 **IP 단위 레이트리밋을 코드로 못 넣는다**(넣으려면 요청자를 식별해야 하므로).
+ *       남용 방어는 Cloudflare 대시보드의 엣지 레이트리밋과 제공자 콘솔의 월 예산 상한으로
+ *       건다 — 우리 손에 데이터가 안 남는 방식이다. worker/README.md 에 절차를 적어뒀다.
+ *  V-3. 🔴 **캐시가 없다 — 이 조건은 못 지킨다.** 이미지는 사람마다 달라서 공용 캐시 키를
+ *       만들 수 없다. `/rate` 가 "매장 단위 공용 캐시"로 지키던 자리를 여기서는 못 지킨다.
+ *       대신 **통과시키고 버린다** — 사진을 R2·KV·D1 어디에도 넣지 않는다(아래 V-4).
+ *  V-4. 사진을 저장하지 않는다 — 이 엔드포인트는 스토리지 바인딩을 하나도 안 쓴다.
+ *       Cloudflare 문서가 *"may be stored by Cloudflare **if you specifically use a storage
+ *       service**"* 라고 적고 있고, 우리는 안 쓰므로 저장되지 않는다. `wrangler.toml` 에
+ *       스토리지 바인딩이 없는 것이 그 근거다.
+ *  V-5. 응답에 사진을 되돌려주지 않는다 — 검색어 문자열과 짧은 판단 근거만 나간다.
  *
  * 한계(솔직히)
  *  - 봇 차단이 강한 곳(Best Buy 등)은 서버로 불러도 막힌다. CORS는 풀리지만
@@ -91,10 +109,19 @@ export default {
     const cors = corsHeaders(origin);
 
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-    if (request.method !== 'GET') return json({ error: 'GET만 지원해' }, 405, cors);
 
     const reqUrl = new URL(request.url);
-    if (reqUrl.pathname.replace(/\/+$/, '') === '/rate') {
+    const path = reqUrl.pathname.replace(/\/+$/, '');
+
+    // /vision 만 POST 다. 사진을 쿼리스트링에 담을 수 없기 때문이기도 하지만, 더 중요하게는
+    // **URL 은 남는 자리**다 — 리퍼러·중간 프록시 접근로그·브라우저 히스토리. 본문은 안 남는다.
+    if (path === '/vision') {
+      if (request.method !== 'POST') return json({ error: '/vision 은 POST만 지원해' }, 405, cors);
+      return handleVision(request, env, cors);
+    }
+
+    if (request.method !== 'GET') return json({ error: 'GET만 지원해' }, 405, cors);
+    if (path === '/rate') {
       return handleRate(reqUrl.searchParams.get('store'), ctx, cors);
     }
 
@@ -281,12 +308,333 @@ function parseTopcashback(html) {
   return rateFailed('요율 요소를 못 찾았어');          // ← 0% 아님. 모름이다.
 }
 
+// ===== /vision — 사진에서 "검색어 후보"를 뽑는다 (v0.31) =====
+//
+// 근거 문서: 리서치/사진-상품인식-조사.md 6장(설계의 급소) · 4장(프라이버시) · 5-C(남용)
+//            리서치/workers-ai-비전-실측-2026-08-20.md (Workers AI 가 왜 탈락했나)
+//
+// ⚠️ 이 엔드포인트가 만드는 것은 **검색어**다. 가격도, 최저가도, 상품 확정도 아니다.
+//
+// 설계의 핵심 두 줄 (조사 6-A·6-B — 이걸 모르면 아래 코드가 과해 보인다):
+//   1. **모델이 말하는 신뢰도 숫자는 못 쓴다.** verbalized confidence 는 80~100% 에
+//      5의 배수로 몰려서(ICLR 2024) `confidence < 70 이면 되묻기` 같은 게이트는 안 열린다.
+//   2. 그래서 신뢰도 대신 **사실 보고**를 시킨다 — `read`(이미지에서 실제로 읽은 글자)와
+//      `guessed`(짐작)를 갈라 받고, 후보를 여러 개 받는다. 되묻기 판단은 모델의 자기평가가
+//      아니라 **`read` 가 비었는가**로 한다.
+//
+// 그리고 **모델이 그 계약을 지킬 거라고 믿지 않는다.** 아래 normalizeVision() 이
+// 응답을 우리 쪽에서 다시 검사한다. 특히 auditGuessed() 는 실측에서 실제로 관찰된
+// 실패(모델번호를 틀리게 읽고 read 에 넣는 것)를 겨냥한 자리다.
+
+const VISION_MAX_IMAGES = 2;            // 되묻기까지 두 장. 세 번째는 없다 (조사 6-C)
+const VISION_MAX_B64 = 1_800_000;       // base64 합계 상한. 1024px q0.75 두 장이면 여유가 크다
+const VISION_TIMEOUT = 25_000;          // 매장에서 기다리는 시간이다. 넉넉하되 무한은 아니다
+const VISION_MAX_CANDIDATES = 3;        // 조사 6-B 겹 1 (Google PAIR 의 N-best 권고)
+const VISION_MAX_TOKENS = 700;          // ⚠️ 짧게 유지한다 — 실측에서 출력 토큰이 지연을 지배했다
+
+// 되묻기 사유. **문구는 여기 없다** — 클라이언트(vision.js)가 이 열거값을 받아
+// 자기 언어로 그린다. 모델에게 한국어 문구를 짓게 하면 (a)영어판이 깨지고
+// (b)"다시 찍어 주세요" 같은 뭉뚱그린 문장이 나온다(조사 9장 #5가 금지한 것).
+const VISION_ASK_REASONS = ['none', 'no-brand', 'no-model', 'packaging', 'too-far', 'multiple', 'none-recognized'];
+
+// 모델에게 주는 스키마. 도구 호출(Anthropic)·responseSchema(Gemini) 양쪽에 그대로 쓴다.
+// 형식을 강제로 못 박으면 "JSON 으로 답해줘" 보다 훨씬 안정적이다.
+// ⚠️ null 을 안 쓴다 — 두 제공자의 스키마 방언에서 nullable 처리가 갈린다.
+//    "되묻지 않음"은 ask.reason = 'none' 으로 표현하고, 정규화에서 null 로 바꾼다.
+function visionSchema() {
+  const str = d => ({ type: 'string', description: d });
+  return {
+    type: 'object',
+    properties: {
+      category: str('What kind of product this is, in the requested language. Empty string if unknown.'),
+      candidates: {
+        type: 'array',
+        description: 'Up to 3 search queries that MEANINGFULLY DIFFER from each other. Empty if you cannot identify the product.',
+        items: {
+          type: 'object',
+          properties: {
+            query: str('An English search query for a US retailer.'),
+            why: str('One short phrase, in the requested language, saying what this query is based on.'),
+          },
+          required: ['query', 'why'],
+        },
+      },
+      read: {
+        type: 'array',
+        description: 'Text you can LITERALLY SEE in the image, copied character by character. Empty array if you can read no text.',
+        items: { type: 'string' },
+      },
+      guessed: {
+        type: 'array',
+        description: 'Things you inferred that are NOT printed anywhere in the image. In the requested language.',
+        items: { type: 'string' },
+      },
+      ask: {
+        type: 'object',
+        properties: {
+          reason: { type: 'string', enum: VISION_ASK_REASONS, description: 'Use none if you do not need another photo.' },
+          detail: str('Optional: what you did manage to see. Requested language. Empty string if nothing to add.'),
+        },
+        required: ['reason'],
+      },
+    },
+    required: ['category', 'candidates', 'read', 'guessed', 'ask'],
+  };
+}
+
+// 프롬프트. **"확신하냐"고 묻지 않는다 — "무엇을 보았냐"고 묻는다**(조사 6-B 근거 1).
+// 모델이 잘하는 과제(사실 보고·나열)만 시키고, 못하는 과제(확률 보정)는 안 시킨다.
+function visionPrompt(lang, nImages) {
+  const langName = lang === 'en' ? 'English' : 'Korean';
+  return [
+    'A shopper is standing in a store and photographed a product. Your job is to produce SEARCH QUERIES they can use to find this exact product on US retail sites. You are not asked to find a price.',
+    nImages > 1 ? 'There are ' + nImages + ' photos OF THE SAME PRODUCT. Use them together - one may show the shape, another may show the label.' : '',
+    '',
+    'These rules outrank being helpful:',
+    '1. "read" is ONLY text you can literally see in the image, copied character by character. If you are unsure of even one character of a string, LEAVE IT OUT of "read".',
+    '2. NEVER put a model number in "read" unless you can read every character of it. A model number that is one character wrong sends the shopper to the wrong product.',
+    '3. "guessed" is anything you inferred that is NOT printed in the image - a model year inferred from the shape, a product line inferred from a logo. If a candidate query contains something you did not read, it MUST appear in "guessed".',
+    '4. Give up to 3 candidates that MEANINGFULLY DIFFER - e.g. one specific, one broader, one alternative reading. If you only know the brand, make the queries broader. DO NOT invent a model number to fill a slot. Two candidates, or one, is a fine answer.',
+    '5. If you cannot identify the product at all, return "candidates": [] and set ask.reason to "none-recognized". Do NOT offer a similar product instead.',
+    '',
+    'Set ask.reason to ask for one more photo when it would help:',
+    '  "no-brand"   - you cannot tell the brand; a logo or brand name needs to be in frame',
+    '  "no-model"   - you know the brand but not which model; a model-number sticker, tag or label would settle it',
+    '  "packaging"  - the item appears to have a box or packaging whose printed text would identify it',
+    '  "too-far"    - the text is there but too small or too far away to read',
+    '  "multiple"   - several different products are in frame and you cannot tell which one they mean',
+    '  "none"       - you do not need another photo',
+    '',
+    'Search queries ("query") must be in English. Write "category", "why" and "detail" in ' + langName + '.',
+  ].filter(Boolean).join('\n');
+}
+
+async function handleVision(request, env, cors) {
+  const provider = String((env && env.VISION_PROVIDER) || 'anthropic').toLowerCase();
+  if (provider !== 'anthropic' && provider !== 'gemini') {
+    return visionErr('bad-config', '알 수 없는 제공자 설정이야: ' + provider, cors, 503);
+  }
+
+  const key = env && env.VISION_API_KEY;
+  if (!key) {
+    // 키가 없는 것은 "장애"가 아니라 "아직 안 켰다"이다. 클라이언트는 이 코드를 보고
+    // 사진 버튼을 조용히 숨긴다 — 눌러서 실패하게 두지 않는다.
+    return visionErr('no-key', '사진 인식이 아직 켜져 있지 않아요', cors, 503);
+  }
+
+  // ⚠️ Gemini 함정 (조사 9장 #1): 무료 티어 약관에 "human reviewers may read, annotate,
+  // and process your API input and output" 이 있다. **사람이 사용자의 매장 사진을 읽는다.**
+  // 그런데 키만 봐서는 무료인지 유료인지 알 수 없다 → 코드로는 구분이 불가능하다.
+  // 그래서 운영자가 명시적으로 확인하게 만든다. 이걸 안 켜면 고지 문구가 조용히 거짓이 된다.
+  if (provider === 'gemini' && String(env.VISION_GEMINI_PAID_TIER || '') !== 'confirmed') {
+    return visionErr('gemini-tier-unconfirmed',
+      'Gemini 는 유료 티어 확인 없이는 안 써 — VISION_GEMINI_PAID_TIER=confirmed 가 필요해', cors, 503);
+  }
+
+  let body;
+  try { body = await request.json(); }
+  catch { return visionErr('bad-request', 'JSON 본문이 필요해', cors, 400); }
+
+  const images = Array.isArray(body && body.images) ? body.images : [];
+  if (!images.length) return visionErr('bad-request', 'images 가 비어 있어', cors, 400);
+  if (images.length > VISION_MAX_IMAGES) {
+    return visionErr('bad-request', '사진은 최대 ' + VISION_MAX_IMAGES + '장까지야', cors, 400);
+  }
+  let total = 0;
+  for (const im of images) {
+    if (typeof im !== 'string' || !im) return visionErr('bad-request', '사진 형식이 잘못됐어', cors, 400);
+    // base64 만 받는다. 다른 문자가 섞여 있으면 우리 클라이언트가 만든 게 아니다.
+    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(im)) return visionErr('bad-request', '사진이 base64 가 아니야', cors, 400);
+    total += im.length;
+  }
+  if (total > VISION_MAX_B64) return visionErr('too-large', '사진이 너무 커 — 더 작게 줄여서 보내줘', cors, 413);
+
+  const lang = body && body.lang === 'en' ? 'en' : 'ko';
+  const model = String(env.VISION_MODEL || (provider === 'gemini' ? 'gemini-2.5-flash-lite' : 'claude-haiku-4-5'));
+  const call = provider === 'gemini' ? callGeminiVision : callAnthropicVision;
+
+  let raw;
+  try {
+    raw = await call({ key, model, images, prompt: visionPrompt(lang, images.length), env });
+  } catch (e) {
+    // 실패는 실패라고 말한다. **추측한 검색어를 대신 내놓지 않는다**
+    // (조사 8장 "조용히 틀리지 않는 구조" 마지막 줄).
+    return visionErr('provider-error', (e && e.message) || String(e), cors, 200);
+  }
+  if (!raw || typeof raw !== 'object') return visionErr('provider-refused', '인식 결과를 받지 못했어', cors, 200);
+
+  return json({ ok: true, ...normalizeVision(raw) }, 200, cors);
+}
+
+const visionErr = (code, why, cors, status) =>
+  json({ ok: false, errorCode: code, error: why }, status || 200, cors);
+
+// ---------------------------------------------------------------------------
+// 응답 정규화 — **모델이 계약을 지킬 거라고 믿지 않는다**
+// ---------------------------------------------------------------------------
+// 실측(workers-ai-비전-실측-2026-08-20.md 4-D)에서 관찰된 것: 형식은 맞는데 내용이
+// 전부 어긋났다. read 에 틀린 모델번호가 들어갔고, 후보 3개가 같은 문자열의 접두사였고,
+// guessed 와 read 가 뒤집혀 있었다. 그 중 **코드로 잡을 수 있는 것은 여기서 잡는다.**
+function normalizeVision(r) {
+  const s = (v, max) => typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, max) : '';
+  const arr = (v, max, cap) => (Array.isArray(v) ? v : []).map(x => s(x, max)).filter(Boolean).slice(0, cap);
+
+  const read = arr(r.read, 80, 6);
+  const guessed = arr(r.guessed, 160, 6);
+
+  // 후보 — 빈 query 는 버리고, **같은 검색어는 합친다.**
+  // 왜 합치나: 후보 여러 개의 값어치는 "갈리는 것 자체가 불확실성 신호"라는 데 있다(조사 6-B 겹 1).
+  // 실측에서 세 후보가 같은 문자열의 접두사로 나온 적이 있는데, 그걸 3개인 척 보여주면
+  // **없는 확실성을 지어내는 것**이다. 하나로 줄어들면 줄어든 대로 보여준다.
+  const seen = new Set();
+  const candidates = [];
+  for (const c of (Array.isArray(r.candidates) ? r.candidates : [])) {
+    const query = s(c && c.query, 120);
+    if (!query) continue;
+    const k = query.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    if (!k || seen.has(k)) continue;
+    seen.add(k);
+    candidates.push({ query, why: s(c && c.why, 160) });
+    if (candidates.length >= VISION_MAX_CANDIDATES) break;
+  }
+
+  let reason = (r.ask && VISION_ASK_REASONS.includes(r.ask.reason)) ? r.ask.reason : 'none';
+  // 후보가 없으면 되묻기 사유는 무조건 "못 알아봤다"이다. 모델이 none 이라 해도 덮는다 —
+  // 후보 0개 + 되묻기 없음 = 사용자가 갈 곳이 없는 화면이다.
+  if (!candidates.length && reason === 'none') reason = 'none-recognized';
+
+  return {
+    category: s(r.category, 60),
+    candidates,
+    read,
+    guessed: auditGuessed(candidates, read, guessed),
+    ask: reason === 'none' ? null : { reason, detail: s(r.ask && r.ask.detail, 160) },
+  };
+}
+
+// ⭐ 이 함수가 이 엔드포인트에서 가장 중요한 자리다.
+//
+// 실측에서 모델은 OLED65C2 를 OLED-D65C2 로, KX-7742B 를 KX-7744B 로 읽고
+// **그것을 read(= 실제로 읽은 글자) 에 넣었다.** 화면에는 "박스에서 …를 읽었어요" 로
+// 나가므로, 그대로 두면 **거짓말이 사용자 눈앞에 인쇄된다.**
+//
+// 모델이 정직해지게 만들 방법은 없다. 대신 **검색어에 들어간 모델번호가 read 에
+// 뒷받침되는지 우리가 대조한다.** 뒷받침이 없으면 그건 정의상 짐작이므로 guessed 로 옮긴다.
+// 그러면 화면에 ⚠️ "'…'는 사진에서 확인하지 못했어요" 가 뜨고, 사용자가 손에 든 물건과
+// 대조할 수 있다 — 보정 문제를 사용자에게 떠넘기는 게 아니라 **검증 가능한 형태로 바꾸는 것**이다.
+//
+// 무엇을 모델번호로 보는가: **영문자와 숫자가 섞인 4자 이상 토큰.**
+// OLED65C2·KX-7742B·WH-1000XM5 가 걸리고, Nike·sneakers·65(순수 숫자)는 안 걸린다.
+// 순수 숫자를 뺀 이유: "65인치"·"40oz" 같은 치수는 사진에서 못 읽어도 카테고리로 짐작할 수 있고,
+// 한 글자 틀려도 검색 결과가 눈에 띄게 어긋나서 사용자가 바로 안다. 모델번호는 그렇지 않다.
+//
+// ⚠️ 대조는 **구두점을 지우고** 한다 — read 에 "OLED65C2", 검색어에 "OLED-65C2" 로
+//    나오는 경우를 다른 값으로 세면 멀쩡한 걸 짐작이라고 표시하게 된다.
+function auditGuessed(candidates, read, guessed) {
+  const haystack = read.join(' ').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const already = guessed.join(' ').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const out = guessed.slice();
+  const flagged = new Set();
+
+  for (const c of candidates) {
+    for (const tok of String(c.query).split(/[\s,]+/)) {
+      const t = tok.replace(/^[^A-Za-z0-9]+/, '').replace(/[^A-Za-z0-9]+$/, '');
+      if (t.length < 4) continue;
+      if (!/[A-Za-z]/.test(t) || !/[0-9]/.test(t)) continue;          // 문자+숫자 혼합만
+      const flat = t.toLowerCase().replace(/[^a-z0-9]+/g, '');
+      if (!flat || flagged.has(flat)) continue;
+      flagged.add(flat);
+      if (haystack.includes(flat)) continue;                          // read 가 뒷받침한다
+      if (already.includes(flat)) continue;                           // 모델이 이미 짐작이라고 밝혔다
+      out.push('UNVERIFIED:' + t);   // 문구는 클라이언트가 붙인다 (언어별로 달라야 하므로)
+    }
+  }
+  return out.slice(0, 8);
+}
+
+// ---------------------------------------------------------------------------
+// 제공자 호출
+// ---------------------------------------------------------------------------
+// 두 곳 다 **구조화 출력**을 강제한다 — "JSON 으로 답해줘"는 형식이 깨진다.
+//
+// ⚠️ cf-aig-collect-log: false 를 항상 붙인다. 지금은 제공자를 직접 부르므로 이 헤더가
+//    무시되지만, 나중에 누가 VISION_BASE_URL 을 Cloudflare AI Gateway 로 돌리면
+//    **게이트웨이가 기본값으로 프롬프트와 응답(= 사진과 인식 결과)을 로그에 저장한다**(조사 5-C).
+//    그때 이 줄이 없으면 조용히 사진이 쌓인다. 미리 박아 둔다 — 대시보드 옵트아웃과 둘 다 해야 한다.
+const AI_GATEWAY_NO_LOG = { 'cf-aig-collect-log': 'false' };
+
+async function visionFetch(url, init) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), VISION_TIMEOUT);
+  try { return await fetch(url, { ...init, signal: ctrl.signal }); }
+  finally { clearTimeout(timer); }
+}
+
+async function callAnthropicVision({ key, model, images, prompt, env }) {
+  const base = String(env.VISION_BASE_URL || 'https://api.anthropic.com').replace(/\/+$/, '');
+  const content = images.map(data => ({
+    type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data },
+  }));
+  content.push({ type: 'text', text: prompt });
+
+  const res = await visionFetch(base + '/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      ...AI_GATEWAY_NO_LOG,
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: VISION_MAX_TOKENS,
+      tools: [{
+        name: 'report_product',
+        description: 'Report what you can and cannot read on the product in the photo.',
+        input_schema: visionSchema(),
+      }],
+      tool_choice: { type: 'tool', name: 'report_product' },
+      messages: [{ role: 'user', content }],
+    }),
+  });
+  if (!res.ok) throw new Error('인식 서버가 HTTP ' + res.status + ' 를 줬어');
+  const j = await res.json();
+  const tu = (j && Array.isArray(j.content) ? j.content : []).find(b => b && b.type === 'tool_use');
+  return tu ? tu.input : null;
+}
+
+async function callGeminiVision({ key, model, images, prompt, env }) {
+  const base = String(env.VISION_BASE_URL || 'https://generativelanguage.googleapis.com').replace(/\/+$/, '');
+  const parts = images.map(data => ({ inline_data: { mime_type: 'image/jpeg', data } }));
+  parts.push({ text: prompt });
+
+  const res = await visionFetch(base + '/v1beta/models/' + encodeURIComponent(model) + ':generateContent', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-goog-api-key': key, ...AI_GATEWAY_NO_LOG },
+    body: JSON.stringify({
+      contents: [{ parts }],
+      generationConfig: {
+        maxOutputTokens: VISION_MAX_TOKENS,
+        responseMimeType: 'application/json',
+        responseSchema: visionSchema(),
+      },
+    }),
+  });
+  if (!res.ok) throw new Error('인식 서버가 HTTP ' + res.status + ' 를 줬어');
+  const j = await res.json();
+  const txt = j && j.candidates && j.candidates[0] && j.candidates[0].content
+    && j.candidates[0].content.parts && j.candidates[0].content.parts[0]
+    && j.candidates[0].content.parts[0].text;
+  if (!txt) return null;
+  try { return JSON.parse(txt); } catch { throw new Error('인식 결과가 JSON 이 아니야'); }
+}
+
 // ===== 응답 헬퍼 =====
 function corsHeaders(origin) {
   const allowed = ALLOW_ORIGINS.includes(origin) ? origin : ALLOW_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Vary': 'Origin',
   };

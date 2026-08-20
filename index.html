@@ -294,7 +294,7 @@
       <p class="brandline">The price after everything.</p>
     </div>
     <div class="langtog" id="langTog" data-i18n-title="lang.toggle.title" title="언어 전환"><button type="button" data-lang="ko">KO</button><button type="button" data-lang="en">EN</button></div>
-    <span class="ver">v0.29</span>
+    <span class="ver">v0.31</span>
   </div>
   <p class="tagline" data-i18n="brand.tagline"><b>다 빼고 나면, 실제로 얼마.</b> 같은 물건을 파는 여러 곳을 캐시백·카드 적립·오퍼까지 반영한 <b>실제 부담</b>으로 비교해요.
     카드는 있으면 더 정확해지고, <b>없어도 답은 나와요.</b></p>
@@ -369,14 +369,30 @@ https://www.target.com/p/...
     </div>
     <p class="cpp-note" data-i18n="start.note">URL마다 <b>판매처 칸이 자동으로 만들어지고, 캐시백 %와 가격까지 채워져요</b>. 가격은 일부 사이트가 막아서 실패할 수 있는데, 그럴 땐 그 칸만 직접 넣으면 돼요. <b>카드는 없어도 계산돼요</b> — 어디서·어느 캐시백으로 사면 싼지는 그대로 나와요.<br>
       🔒 가격을 대신 읽어오려면 <b>붙여넣은 상품 URL만</b> 조회 서버로 나가요(다른 입력은 이 브라우저 밖으로 나가지 않아요). 싫으면 URL 대신 가격을 직접 넣으면 돼요 — <a href="#disclosures" onclick="openDisclosures(event)">자세히</a>.</p>
-    <!-- 📷 매장 바코드 스캔 (v0.29) — 사진 한 장.
+    <!-- 📷 사진으로 상품 찾기 (v0.31) — **1차 경로**.
+         근거: 리서치/사진-상품인식-조사.md 8장(MVP) · 7장(바코드 격하)
+         인식 본체(vision.js)는 이 파일에 없다. 버튼을 누른 사람만 같은 출처에서 1회 받는다.
+         ⚠️ 스캐너와 달리 **157KB 라이브러리가 필요 없다** — 사진 경로가 바코드보다 오히려 가볍다.
+         ⚠️ 워커에 비전 API 키가 안 꽂혀 있으면 아래 글루가 이 줄을 **아예 안 켠다**.
+            눌러서 실패하게 두지 않는다. -->
+    <div id="visionRow" style="display:none;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">
+      <label class="mini" id="visionBtn" for="visionFile" style="cursor:pointer" data-i18n="vision.btn">📷 사진으로 상품 찾기</label>
+      <input type="file" id="visionFile" accept="image/*" capture="environment" hidden>
+      <span class="muted" data-i18n="vision.btn.note">바코드가 없어도 돼요 · <b>찍은 사진은 기기 밖으로 나가요</b> — <a href="#disclosures" onclick="openDisclosures(event)">어디로 가는지 보기</a></span>
+    </div>
+    <div id="visionPanel"></div>
+
+    <!-- 📊 매장 바코드 스캔 (v0.29) — **보조 경로로 격하**(조사 7장). 지우지 않는다:
+         ① 포장 상품엔 더 정확하고 실패가 이진적이라 "그럴듯한 오답"이 없다
+         ② **사진이 기기 밖으로 안 나가는 실제 탈출구**다 — 제거하면 되찾을 수 없는 자산이다
+         ③ 이미 만들어져 있고 지연 로딩이라 안 쓰는 사용자에겐 0바이트다
          스캐너 본체(scanner.js + quagga2 157KB)는 이 파일에 없다. 버튼을 누른 사람만
          같은 출처에서 1회 받는다(리서치/바코드-매장스캔-조사.md 8-D).
          file:// 에서는 동적 import 가 막히므로 아래 글루가 이 줄을 아예 안 켠다. -->
     <div id="scanRow" style="display:none;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">
-      <label class="mini" id="scanBtn" for="scanFile" style="cursor:pointer" data-i18n="scan.btn">📷 매장에서 바코드 찍기</label>
+      <label class="mini" id="scanBtn" for="scanFile" style="cursor:pointer" data-i18n="scan.btn">📊 바코드 찍기</label>
       <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
-      <span class="muted" data-i18n="scan.btn.note">사진 한 장이면 돼요 · <b>사진은 이 기기 밖으로 나가지 않아요</b> — 주방·소형가전·완구·화장품엔 잘 통하고, <b>TV·대형가전·코스트코 물건엔 잘 안 통해요</b>.</span>
+      <span class="muted" data-i18n="scan.btn.note">포장에 바코드가 있을 때 · <b>이쪽은 사진이 기기 밖으로 나가지 않아요</b> — 주방·소형가전·완구·화장품엔 잘 통하고, <b>TV·대형가전·코스트코 물건엔 잘 안 통해요</b>.</span>
     </div>
     <div id="scanPanel"></div>
   </div>
@@ -552,7 +568,7 @@ https://www.target.com/p/...
   </div>
 
   <p class="muted" style="text-align:center" data-i18n="footer.note">
-    v0.29 — 입력은 이 브라우저에 자동 저장돼요. 지갑은 <b>🔗 링크 복사</b>로 다른 기기·다른 사람에게 넘길 수 있어요.<br>
+    v0.31 — 입력은 이 브라우저에 자동 저장돼요. 지갑은 <b>🔗 링크 복사</b>로 다른 기기·다른 사람에게 넘길 수 있어요.<br>
     📱 폰에서는 브라우저 메뉴 → <b>"홈 화면에 추가"</b>하면 앱처럼 설치돼요 (오프라인에서도 열려요).
   </p>
 
@@ -561,7 +577,7 @@ https://www.target.com/p/...
        코드 주석에만 있었다. 셀링포인트와 모순되지 않으려면 UI에 있어야 한다. -->
   <div class="card" id="disclosures">
     <details>
-      <summary data-i18n="disc.data.title"><b>🔒 내 데이터는 어디로 가나요</b> — 한 가지만 밖으로 나가요</summary>
+      <summary data-i18n="disc.data.title"><b>🔒 내 데이터는 어디로 가나요</b> — 나가는 것만 전부 적었어요</summary>
       <p class="cashnote" data-i18n="disc.data.p1">
         <b>계정도 로그인도 없어요.</b> 카드 지갑·포인트 가치·가격·쿠폰·계산 결과는 전부 <b>이 브라우저 안에만</b>(localStorage) 있고 서버로 보내지 않아요. 계산도 전부 이 페이지 안에서 돌아요.
         광고·애널리틱스·추적 스크립트는 한 개도 붙어 있지 않아요(외부 스크립트·폰트도 없어요).
@@ -572,7 +588,7 @@ https://www.target.com/p/...
         네트워크 요청은 한 건도 나가지 않고, 🔗 지갑 링크에도 싣지 않아요.
       </p>
       <p class="cashnote" data-i18n="disc.data.p2">
-        <b>딱 하나 나가는 것 = 가격 자동 조회를 쓸 때, 그 상품 URL.</b> 붙여넣은 링크가 아래 순서로 전달돼요:
+        <b>① 가격 자동 조회를 쓸 때 = 그 상품 URL이 나가요.</b> 붙여넣은 링크가 아래 순서로 전달돼요:
       </p>
       <p class="cashnote" data-i18n="disc.data.p3">
         ① <b>제가 운영하는 가격조회 서버</b>(Cloudflare Worker) — 상품 URL만 받아서 <b>가격·제목만</b> 돌려줘요. 페이지 원문은 넘겨주지 않고, 저장하거나 기록하는 코드도 없어요(<a href="https://github.com/altair0622/purchase-optimizer/tree/main/worker" target="_blank" rel="noopener">코드 공개</a>). 결과는 30분 캐시예요.<br>
@@ -584,8 +600,15 @@ https://www.target.com/p/...
       <p class="cashnote" data-i18n="disc.data.p5">
         그 밖에 이 페이지가 부르는 건 <b>같은 사이트의 캐시백 % 파일 하나</b>(<code>rates.json</code>, 제3자 아님)뿐이에요. 캐시백 포털·판매처 링크는 <b>직접 눌렀을 때만</b> 그쪽으로 이동해요.
       </p>
+      <p class="cashnote" data-i18n="disc.data.vision">
+        <b>📷 사진으로 찾기 — 이 버튼은 사진이 나가요.</b> 찍은 사진은 <b>저희 워커를 거쳐 이미지 인식 API로 전송</b>돼요. 사진에서 상품 이름을 읽어내기 위해서예요.<br>
+        · <b>저희는 사진을 저장하지 않고, 누가 보냈는지도 기록하지 않아요</b> — 워커에 로그가 0줄이고 IP를 읽지 않아요. <b>통과시키고 버려요</b> — 캐시도 하지 않아요.<br>
+        · <b>Anthropic은 이 사진을 모델 학습에 쓰지 않고, 요청 처리가 끝나면 삭제한다고 밝히고 있어요.</b> 사진에서 읽어낸 <b>글자 기록은 최대 30일</b> 남을 수 있어요.<br>
+        · <b>사진에 찍힌 건 다 같이 가요.</b> 상품만 오려서 보내지 않아요 — 옆에 있는 사람이나 매장 간판이 같이 찍혔다면 그것도 함께 가요.<br>
+        <b>사진을 보내고 싶지 않으면 — 상품명을 직접 입력해도 똑같이 동작해요.</b> 그러면 사진은 아무 데도 안 가요. 만든 검색어로 여는 <b>판매처 검색 링크는 직접 누를 때만</b> 이동해요.
+      </p>
       <p class="cashnote" data-i18n="disc.data.scan">
-        <b>📷 바코드를 찍어도 사진은 나가지 않아요.</b> 사진은 <b>이 브라우저 안에서</b> 읽고 바로 버려요 — 저희 서버로도, 어디로도 보내지 않아요.
+        <b>📊 바코드를 찍으면 사진은 나가지 않아요.</b> 사진은 <b>이 브라우저 안에서</b> 읽고 바로 버려요 — 저희 서버로도, 어디로도 보내지 않아요.
         버튼을 누르면 <b>같은 사이트에서 스캐너 코드</b>(<code>scanner.js</code> + <code>vendor/quagga2.min.js</code>, 약 157KB)를 <b>한 번</b> 내려받아요 — 제3자가 아니라 <code>rates.json</code>과 같은 등급이에요. <b>누르지 않으면 아예 받지 않아요.</b>
         읽은 숫자로 만드는 <b>아마존·베스트바이 검색 링크는 직접 누를 때만</b> 그쪽으로 이동해요.
       </p>
@@ -787,8 +810,8 @@ Object.assign(STRINGS.en, {
   'start.paste.ph': 'https://www.amazon.com/dp/...\nhttps://www.walmart.com/ip/...\nhttps://www.target.com/p/...\n— or paste the product title and $price as-is',
   'start.compare': 'Compare',
   'start.note': 'Each URL <b>becomes a seller row, with the cashback % and the price filled in</b>. Some sites block price reads; when that happens, type that one price yourself. <b>Cards are not required</b> — which seller and which cashback route is cheapest comes out either way.<br>🔒 To read a price for you, <b>only the product URL you pasted</b> goes to our fetcher (nothing else leaves this browser). Don’t want that? Type the price instead of the URL — <a href="#disclosures" onclick="openDisclosures(event)">details</a>.',
-  'scan.btn': '📷 Scan a barcode in the store',
-  'scan.btn.note': 'One photo is enough · <b>the photo never leaves this device</b> — works well on kitchenware, small appliances, toys and cosmetics, and <b>does not work on TVs, large appliances, or Costco items</b>.',
+  'scan.btn': '📊 Scan a barcode',
+  'scan.btn.note': 'When the package has a barcode · <b>this one never sends the photo off your device</b> — works well on kitchenware, small appliances, toys and cosmetics, and <b>does not work on TVs, large appliances, or Costco items</b>.',
 
   // ── 상품 정보 ────────────────────────────────────────────────────
   'product.title': '🛍️ Item',
@@ -1218,15 +1241,15 @@ Object.assign(STRINGS.en, {
   'share.prompt': 'Copy this link to share it:',
 
   // ── 푸터 · 고지 ──────────────────────────────────────────────────
-  'footer.note': 'v0.29 — your inputs save automatically in this browser. Hand your wallet to another device or another person with <b>🔗 Copy link</b>.<br>📱 On a phone, browser menu → <b>"Add to Home Screen"</b> installs it like an app (it opens offline too).',
-  'disc.data.title': '<b>🔒 Where does my data go</b> — exactly one thing leaves',
+  'footer.note': 'v0.31 — your inputs save automatically in this browser. Hand your wallet to another device or another person with <b>🔗 Copy link</b>.<br>📱 On a phone, browser menu → <b>"Add to Home Screen"</b> installs it like an app (it opens offline too).',
+  'disc.data.title': '<b>🔒 Where does my data go</b> — everything that leaves is listed here',
   'disc.data.p1': '<b>No account, no login.</b> Your card wallet, point valuations, prices, coupons and results live <b>only in this browser</b> (localStorage) and are never sent to a server. The math runs on this page. There is not one ad, analytics or tracking script on it (no third-party scripts or fonts either).',
   'disc.data.offers': '<b>🎁 Pasting your card offers sends nothing out either.</b> Paste an entire Amex or Chase screen and it is read <b>on this page only</b>, and only the <b>merchant, benefit and expiry</b> are stored in this browser. <b>The pasted text itself is not saved</b> (it has card last-4s and account state mixed into it). Not one network request goes out, and it never rides along in the 🔗 wallet link.',
-  'disc.data.p2': '<b>The one thing that leaves = the product URL, when you use the price fetcher.</b> The link you pasted travels like this:',
+  'disc.data.p2': '<b>① When you use the price fetcher, the product URL leaves.</b> The link you pasted travels like this:',
   'disc.data.p3': '① <b>Our own price fetcher</b> (a Cloudflare Worker) — it takes the product URL and returns <b>the price and title only</b>. It does not hand back the page source, and there is no code in it that stores or logs anything (<a href="https://github.com/altair0622/purchase-optimizer/tree/main/worker" target="_blank" rel="noopener">source is public</a>). Results are cached for 30 minutes.<br>② If ① fails (the site blocks bots), it tries once more through <b>a third-party public proxy, <code>r.jina.ai</code></b>. That sends the product URL to <b>a server we do not control</b>, and <b>we cannot vouch for their logging policy.</b> Values from there are low-confidence, so they are <b>never auto-filled</b> — you get a confirm button instead.',
   'disc.data.p4': '<b>Don’t want that:</b> skip the URL and <b>type the price in</b> — then nothing leaves at all. (Typing a seller name on its own triggers no fetch.)',
   'disc.data.p5': 'Beyond that, the only thing this page requests is <b>one cashback % file from the same site</b> (<code>rates.json</code>, not a third party). Cashback portal and seller links only go anywhere <b>when you click them.</b>',
-  'disc.data.scan': '<b>📷 Scanning a barcode doesn’t send the photo anywhere.</b> The photo is read <b>inside this browser</b> and thrown away immediately — not to our server, not anywhere. Pressing the button downloads <b>the scanner code from the same site</b> (<code>scanner.js</code> + <code>vendor/quagga2.min.js</code>, about 157KB) <b>once</b> — same tier as <code>rates.json</code>, not a third party. <b>Don’t press it and it is never downloaded.</b> The Amazon and Best Buy search links built from the number <b>only open when you click them.</b>',
+  'disc.data.scan': '<b>📊 Scanning a barcode doesn’t send the photo anywhere.</b> The photo is read <b>inside this browser</b> and thrown away immediately — not to our server, not anywhere. Pressing the button downloads <b>the scanner code from the same site</b> (<code>scanner.js</code> + <code>vendor/quagga2.min.js</code>, about 157KB) <b>once</b> — same tier as <code>rates.json</code>, not a third party. <b>Don’t press it and it is never downloaded.</b> The Amazon and Best Buy search links built from the number <b>only open when you click them.</b>',
   'disc.limits.title': '<b>⚖️ What this calculator can’t do, and disclaimers</b>',
   'disc.limits.body': 'This is <b>not financial advice.</b> It doesn’t decide whether to open a card or make a purchase; it is <b>a calculator that does the arithmetic</b> on numbers you enter.<br>Cashback %, card earn conditions and offers change constantly and the values here are a snapshot, so <b>check the real screens right before you pay.</b><br>Portal cashback is <b>pending, not guaranteed</b> — failed tracking, returns and gift-card payments all void it.<br>Point values are <b>an estimate</b> of a good redemption and <b>do not reduce your statement balance.</b><br>Sales tax and return shipping are <b>not in the math.</b>',
   'disc.referral.title': '<b>🤝 Referral disclosure</b>',
@@ -1259,6 +1282,48 @@ Object.assign(STRINGS.en, {
   'scan.fail.none.note': 'Shoot again with the barcode <b>large, square and in focus</b>. A curved package or a reflective wrapper reads badly.',
   'scan.fail.load': 'Couldn’t download the scanner code. Check your connection and press it again.',
   'scan.loadfail': 'Couldn’t download the scanner code — check your connection and press it again.',
+  // ── 📷 사진으로 상품 찾기 (vision.js) ────────────────────────────
+  'vision.btn': '📷 Find this product from a photo',
+  'vision.btn.note': 'No barcode needed · <b>the photo does leave your device</b> — <a href="#disclosures" onclick="openDisclosures(event)">see where it goes</a>',
+  'disc.data.vision': '<b>📷 Find from a photo — this button does send the photo.</b> Your photo goes <b>through our worker to an image recognition API</b>, so it can read the product name off the picture.<br>· <b>We don’t store the photo and we don’t record who sent it</b> — the worker has zero log lines and never reads your IP. <b>It passes through and is dropped</b> — we don’t even cache it.<br>· <b>Anthropic states that it doesn’t use these images to train models and deletes them once the request is processed.</b> The <b>text</b> read out of the photo may be retained for <b>up to 30 days</b>.<br>· <b>Whatever is in the frame goes too.</b> We don’t crop to the product — if a person or a store sign is in the shot, that goes as well.<br><b>Don’t want to send a photo? Typing the product name works exactly the same</b>, and then nothing leaves. The retailer search links built from the query <b>only open when you click them.</b>',
+  'vision.busy': 'Looking for the product in your photo…',
+  'vision.busy.note': 'Your photo <b>is leaving the device right now</b>. We pass it through without storing it.',
+  'vision.busy.two': 'We’re looking at both photos together.',
+  'vision.found': 'Here’s what we see',
+  'vision.read': 'Read',
+  'vision.read.none': '<b>We couldn’t read any text in the photo</b> — everything below is a guess.',
+  'vision.guessed': 'Guessed',
+  'vision.unverified': 'We couldn’t confirm “{x}” from the photo — that’s a guess',
+  'vision.alts': 'Other candidates — tap one to put it in the box above',
+  'vision.q.aria': 'Search query',
+  'vision.go': 'Search with this',
+  'vision.note': '<b>Check it, fix it, then press.</b> The search only opens when you press. <b>We don’t know the price</b> — check it yourself at the retailer, then paste that product page URL into the box above and the net-cost comparison starts.',
+  'vision.again': '📷 Take another',
+  'vision.ask.brand': 'Take one more with the brand name or logo in frame',
+  'vision.ask.model': 'If there’s a sticker or tag with a model number, shoot that — on a TV or appliance it’s the strip under the screen or the back panel',
+  'vision.ask.pkg': 'Take one with the printed text on the box or packaging visible',
+  'vision.ask.close': 'Get a bit closer, close enough that the lettering is readable',
+  'vision.ask.one': 'Frame just the one item you’re looking for',
+  'vision.ask.none': 'We couldn’t tell what this is. Take one more with the brand or model name visible',
+  'vision.ask.fallback': 'Take one more with the brand or model name visible',
+  'vision.ask.note': '<b>We judge both photos together</b> — keep the one you just took, you only need one more.',
+  'vision.ask.got': 'Read so far',
+  'vision.giveup': 'We couldn’t identify it',
+  'vision.giveup.note': 'Even with two photos we aren’t sure what this is. <b>We won’t hand you a search query we aren’t sure about</b> — it could send you to the wrong product.',
+  'vision.esc.type': '<b>Typing the product name</b> works exactly the same — and then the photo goes nowhere.',
+  'vision.esc.scan': 'If the package has a barcode, use <b>Scan a barcode</b> — <b>that one never sends the photo off your device</b>.',
+  'vision.blur': 'Looks a little shaky',
+  'vision.blur.note': 'One more shot <b>a bit closer</b>, close enough to read the lettering, finds it much better. You can still send this one.',
+  'vision.blur.send': 'Send it anyway',
+  'vision.link.suffix': ' search',
+  'vision.err.nokey': 'Find-from-photo isn’t switched on yet.',
+  'vision.err.net': 'Can’t connect. Try again in a moment.',
+  'vision.err.big': 'That photo is too large. Please take another.',
+  'vision.err.cap': 'That’s it for today — up to {n} photos a day. Typing the product name keeps working.',
+  'vision.err.small': 'The photo is too small to read any lettering. Please take another.',
+  'vision.err.read': 'We couldn’t read that photo. Please take another.',
+  'vision.err.generic': 'Not working right now. Try again in a moment.',
+  'vision.loadfail': 'Couldn’t download the recognition code — check your connection and press it again.',
 
 });
 // ===== 포인트 통화 =====
@@ -3377,7 +3442,55 @@ function openDisclosures(e){
   box.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
-// ===== 📷 매장 바코드 스캔 (v0.29) =====
+// ===== 📷 사진으로 상품 찾기 (v0.31) =====
+// 여기 있는 건 버튼 하나와 지연 로딩 글루뿐이다. 축소·프리체크·인식·UI·문구는 전부 vision.js 에 있고,
+// 그 파일은 **버튼을 누른 순간에만** 같은 출처에서 받는다 — 안 누르면 0바이트.
+// 바코드와 달리 **외부 라이브러리가 없다**(157KB quagga2 불필요) → H7(원격 코드 실행 금지)에 더 안전하다.
+//
+// ⚠️ 워커에 비전 API 키가 없으면 **버튼을 아예 안 켠다.** 눌러서 실패하게 두지 않는다.
+//    확인 방법: images:[] 로 한 번 물어본다 — 제공자를 부르지 않고 응답 코드만 갈린다.
+//    **사진도 사용자 데이터도 나가지 않는다.** 결과는 sessionStorage 에 캐시해 세션당 한 번만 묻는다.
+//
+//    ⭐ 판정은 **"켜졌다는 신호가 있을 때만 켠다"**(opt-in)이지 "꺼졌다는 신호가 없으면 켠다"가 아니다.
+//    처음엔 후자로 짰다가 실제로 틀렸다: **`/vision` 이 없는 옛 워커**가 배포돼 있으면 405 를 주는데
+//    거기엔 errorCode 가 없어서 "꺼짐 신호 없음"이 되고 **버튼이 켜져 버렸다.** 배포 순서가
+//    어긋나는 건 정상적인 일이므로(워커 재배포 전에 페이지가 먼저 올라갈 수 있다) opt-in 이 맞다.
+//    → 키가 꽂혀 있으면 images:[] 는 `bad-request` 로 돌아온다. **그 신호 하나만 켜기로 친다.**
+//    ⚠️ 이 계약은 하니스가 못 박는다(fuzz-worker.mjs 의 /vision 능력확인 검사).
+// ⚠️ file:// 에서는 동적 import 가 CORS 로 막힌다 → 로컬 사본에는 이 기능이 안 뜬다(바코드와 같은 예외).
+(function(){
+  const row=document.getElementById('visionRow'), inp=document.getElementById('visionFile');
+  if(!row||!inp||location.protocol==='file:'||!PRICE_API) return;
+
+  const CAP='pa_vision_on';
+  const show=()=>{ row.style.display='flex'; };
+  let cached=null; try{ cached=sessionStorage.getItem(CAP); }catch(e){}
+  if(cached==='1') show();
+  else if(cached!=='0'){
+    fetch(PRICE_API.replace(/\/$/,'')+'/vision',
+          {method:'POST',headers:{'content-type':'application/json'},body:'{"images":[]}'})
+      .then(r=>r.json()).then(j=>{
+        const on = !!(j && j.errorCode==='bad-request');   // ← 켜짐 신호 하나만 인정한다
+        try{ sessionStorage.setItem(CAP, on?'1':'0'); }catch(e){}
+        if(on) show();
+      }).catch(()=>{});   // 워커가 안 뜨면 조용히 버튼 없이 간다
+  }
+
+  let mod=null; const load=()=>mod||(mod=import('./vision.js'));
+  // 사진 찍는 동안 미리 받아둔다. 라벨 클릭은 OS 파일 선택기를 그대로 열기 때문에
+  // 여기서 사용자 제스처를 소비하지 않는다(iOS 에서 이게 중요하다).
+  row.addEventListener('click', load);
+  inp.addEventListener('change', ()=>{
+    const f=inp.files&&inp.files[0]; inp.value='';   // 같은 사진을 다시 고를 수 있게 비운다
+    if(!f) return;
+    load().then(m=>m.handleFile(f)).catch(()=>{
+      const p=document.getElementById('visionPanel');
+      if(p) p.innerHTML='<p class="muted">'+t('vision.loadfail','사진 인식 코드를 받지 못했어요 — 연결을 확인하고 다시 눌러 주세요.')+'</p>';
+    });
+  });
+})();
+
+// ===== 📊 매장 바코드 스캔 (v0.29 · v0.31에서 보조 경로로 격하) =====
 // 여기 있는 건 버튼 하나와 지연 로딩 글루뿐이다. 해독 로직·UI·문구는 전부 scanner.js 에 있고,
 // 그 파일과 quagga2(157KB)는 **버튼을 누른 순간에만** 같은 출처에서 받는다 — 안 누르면 0바이트.
 // CDN 을 쓰지 않으므로 "외부 스크립트 0개"와 H7(원격 코드 실행 금지)이 둘 다 유지된다.
