@@ -24,31 +24,46 @@
     python gen.py            # → img/*.jpg + manifest.json
 """
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-import os, json
+import os, json, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "img")
+
+# 긴 변 픽셀. 기본 1024 = vision.js 의 LONG_EDGE 와 같다.
+#   python gen.py        → img/       (1024, 기준선)
+#   python gen.py 1568   → img-1568/  (해상도 가설 검증용)
+# ⚠️ 1568 은 임의의 값이 아니다 — Claude 비전은 긴 변 1568px 를 넘으면 내부적으로
+#    다시 줄인다. 그 이상은 토큰만 쓰고 얻는 게 없다. 1568 이 상한이자 최적점이다.
+#
+# ⭐ 실험의 의미: **장면은 그대로 두고 우리 축소 목표만 바꾼다.**
+#    같은 상품을 같은 거리에서 찍었는데 업로드 해상도만 올린 상황과 같다.
+#    그래서 글자도 같은 비율로 커진다 — 1024의 12px 케이스는 1568에서 18px 가 된다.
+LONG_EDGE = int(sys.argv[1]) if len(sys.argv) > 1 else 1024
+SCALE = LONG_EDGE / 1024.0
+OUT = os.path.join(HERE, "img" if LONG_EDGE == 1024 else "img-%d" % LONG_EDGE)
 os.makedirs(OUT, exist_ok=True)
 
 # ⚠️ 윈도우 기본 폰트. 다른 OS 에서 돌리려면 여기만 바꾸면 된다.
 BOLD = "C:/Windows/Fonts/arialbd.ttf"
 REG = "C:/Windows/Fonts/arial.ttf"
 
-W, H = 1024, 768                      # 업로드 규격과 같게 (vision.js LONG_EDGE)
+W, H = LONG_EDGE, int(round(LONG_EDGE * 768 / 1024))   # 4:3 비율 유지
 FOOTER = "NET WT 12 OZ (340g)"        # 모든 이미지에 있는 작은 글자 — 항상 정답에 포함된다
 
 
-def box_image(brand, model, px, rotate=0, blur=0.0):
-    """상품 포장 비슷한 판때기에 브랜드(굵게)와 모델번호(가늘게)를 인쇄한다."""
+def box_image(brand, model, px_1024, rotate=0, blur=0.0):
+    """상품 포장 비슷한 판때기. px_1024 는 **1024 기준** 글자 높이이고 실제로는 SCALE 배로 그린다."""
+    px = max(4, int(round(px_1024 * SCALE)))
+    S = lambda v: int(round(v * SCALE))
     im = Image.new("RGB", (W, H), (150, 150, 155))
     d = ImageDraw.Draw(im)
-    d.rectangle([80, 60, W - 80, H - 60], fill=(238, 236, 232), outline=(120, 118, 112), width=3)
+    d.rectangle([S(80), S(60), W - S(80), H - S(60)], fill=(238, 236, 232),
+                outline=(120, 118, 112), width=max(1, S(3)))
     if brand:
-        d.text((130, H // 2 - px), brand, font=ImageFont.truetype(BOLD, px), fill=(20, 20, 24))
+        d.text((S(130), H // 2 - px), brand, font=ImageFont.truetype(BOLD, px), fill=(20, 20, 24))
     if model:
-        d.text((130, H // 2 + int(px * 0.35)), model,
-               font=ImageFont.truetype(REG, max(8, int(px * 0.62))), fill=(35, 35, 40))
-    d.text((130, H - 130), FOOTER, font=ImageFont.truetype(REG, 20), fill=(90, 90, 95))
+        d.text((S(130), H // 2 + int(px * 0.35)), model,
+               font=ImageFont.truetype(REG, max(6, int(px * 0.62))), fill=(35, 35, 40))
+    d.text((S(130), H - S(130)), FOOTER, font=ImageFont.truetype(REG, max(6, S(20))), fill=(90, 90, 95))
     if rotate:
         im = im.rotate(rotate, resample=Image.BICUBIC, fillcolor=(150, 150, 155))
     if blur:
@@ -80,8 +95,9 @@ manifest = []
 for c in CASES:
     if c.get("notext"):
         im = Image.new("RGB", (W, H), (150, 150, 155))
-        ImageDraw.Draw(im).rectangle([80, 60, W - 80, H - 60], fill=(238, 236, 232),
-                                     outline=(120, 118, 112), width=3)
+        _S = lambda v: int(round(v * SCALE))
+        ImageDraw.Draw(im).rectangle([_S(80), _S(60), W - _S(80), H - _S(60)], fill=(238, 236, 232),
+                                     outline=(120, 118, 112), width=max(1, _S(3)))
         truth = []
     else:
         im = box_image(c["brand"], c["model"], c["px"], c.get("rotate", 0), c.get("blur", 0.0))
@@ -93,7 +109,9 @@ for c in CASES:
         "id": c["id"], "file": c["id"] + ".jpg",
         # ⭐ groundTruth = 이 이미지에 **실제로 인쇄된 문자열 전부**. run.mjs 의 채점 기준이다.
         "groundTruth": truth,
-        "brand": c["brand"], "model": c["model"], "px": c["px"],
+        "brand": c["brand"], "model": c["model"], "px": c["px"],   # px = 1024 기준 라벨
+        "pxActual": max(4, int(round(c["px"] * SCALE))),          # 실제로 그린 글자 높이
+        "longEdge": LONG_EDGE,
         "rotate": c.get("rotate", 0), "blur": c.get("blur", 0.0),
         "isControl": c["id"].startswith("CONTROL"),
         "bytes": os.path.getsize(path),
@@ -103,5 +121,5 @@ with open(os.path.join(OUT, "manifest.json"), "w", encoding="utf-8") as f:
     json.dump(manifest, f, ensure_ascii=False, indent=2)
 
 for m in manifest:
-    print("%16s  %3dpx  %7d B  truth=%s" % (m["id"], m["px"], m["bytes"], m["groundTruth"]))
+    print("%16s  라벨%3dpx → 실제%3dpx  %7d B" % (m["id"], m["px"], m["pxActual"], m["bytes"]))
 print("\n%d장 생성 → %s" % (len(manifest), OUT))

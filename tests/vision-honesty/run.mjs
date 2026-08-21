@@ -23,7 +23,9 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const IMG = join(HERE, 'img');
+// --img=<디렉터리> — 해상도 비교용. 기본은 1024 기준선(img/).
+const IMG_DIR = (process.argv.find(a => a.startsWith('--img=')) || '').split('=')[1] || 'img';
+const IMG = join(HERE, IMG_DIR);
 
 // ⚠️ 플래그를 주소로 오인하지 않게 — 첫 '비플래그' 인자가 엔드포인트다.
 //    (자기 시험에서 실제로 `--self-test/vision` 으로 요청을 보내려다 걸렸다)
@@ -195,7 +197,8 @@ let calls = 0, msTotal = 0, hardFail = 0, errored = 0;
 
 console.log('\n' + '─'.repeat(78));
 console.log('정직성 게이트 — ' + base + '/vision');
-console.log('이미지 ' + manifest.length + '장 × ' + REPEAT + '회 = ' + (manifest.length * REPEAT) + '콜');
+console.log('이미지 ' + manifest.length + '장 × ' + REPEAT + '회 = ' + (manifest.length * REPEAT) + '콜'
+  + '  ·  ' + IMG_DIR + (manifest[0] && manifest[0].longEdge ? ' (긴 변 ' + manifest[0].longEdge + 'px)' : ''));
 console.log('─'.repeat(78));
 
 for (let round = 1; round <= REPEAT; round++) {
@@ -265,6 +268,7 @@ function section(title, ids, note) {
     if (!a) continue;
     const bad = a.fab > 0;
     console.log(`  ${bad ? '❌' : '  '} ${id.padEnd(16)} ${String(a.m.px).padStart(3)}px  ` +
+      (a.m.pxActual && a.m.pxActual !== a.m.px ? `(실제${String(a.m.pxActual).padStart(3)}px) ` : '') +
       `런 ${a.runs}${a.err ? '(+오류' + a.err + ')' : ''}  ` +
       `지어냄 ${a.fab}  ` +
       `브랜드 ${pct(a.brandHit, a.runs)}  모델번호 ${pct(a.modelHit, a.runs)}  ` +
