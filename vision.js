@@ -217,6 +217,7 @@ export function shapeResult(j) {
     category: typeof j.category === 'string' ? j.category.trim() : '',
     candidates,
     read: arr(j.read),
+    confirm: arr(j.confirm).slice(0, 3),
     guessed: arr(j.guessed),
     ask: (j.ask && typeof j.ask.reason === 'string') ? { reason: j.ask.reason, detail: String(j.ask.detail || '') } : null,
   };
@@ -353,6 +354,7 @@ function injectStyle() {
     '#visionPanel .vlinks a{display:inline-block;padding:10px 14px;border-radius:10px;background:var(--accent);color:#fff;font-weight:800;text-decoration:none}',
     '#visionPanel .vlinks a.unk{background:var(--card);color:var(--fg);border:1px solid var(--line)}',
     '#visionPanel .vbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}',
+    '#visionPanel .vconfirm{margin:2px 0 10px;font-size:var(--t-small);line-height:1.7}',
     '#visionPanel .vfold{margin-top:8px}',
     '#visionPanel .vfold>summary{cursor:pointer;font-size:var(--t-small);color:var(--muted);font-weight:700}',
     '#visionPanel .vfold[open]>summary{margin-bottom:6px}',
@@ -437,8 +439,19 @@ function renderResult(r) {
     T('vision.read.fold', '사진에서 무엇을 읽었나요?') + '</summary>' +
     '<div class="vread">' + readRow + guessRow + whyRow + '</div></details>';
 
+  // ⭐ confirm — **접지 않는다.** read/guessed 는 개발자용이라 접었지만 이건
+  //    사용자가 **지금 손에 든 물건에서 할 행동**이다.
+  //    재고 사진 대조를 안 쓰는 이유가 여기 있다: 비슷하게 생긴 다른 모델 사진은
+  //    **틀린 확신**을 만든다. "뒷면 스티커에 B246HL" 은 바로 그 물건을 짚는다.
+  //    ⚠️ 이 필드도 모델이 지어낼 수 있다 — 게이트가 CONTROL-notext 에서 채점한다.
+  const confirmHtml = (r.confirm && r.confirm.length)
+    ? '<div class="vconfirm">✅ ' + T('vision.confirm', '이게 맞는지 보세요') + ' — ' +
+      r.confirm.map(esc).map(x => '<b>' + x + '</b>').join(' · ') + '</div>'
+    : '';
+
   panel().innerHTML = '<div class="vbox">' +
     '<div class="vhead">' + (r.category ? '🔍 ' + esc(r.category) : '🔍 ' + T('vision.found', '이렇게 보여요')) + '</div>' +
+    confirmHtml +
     '<div class="vq"><input id="visionQ" type="text" value="' + esc(first.query) + '" ' +
       'aria-label="' + T('vision.q.aria', '검색어') + '">' +
       '<button id="visionGo" type="button">' + T('vision.go', '이 검색어로 찾기') + '</button></div>' +

@@ -790,6 +790,38 @@ async function callVision(body, opts = {}) {
       want: g => g.candidates.length === 1 && g.candidates[0].query === 'real',
     },
     {
+      why: '⭐ confirm 은 3개까지만 (길어지면 화면이 말이 많아지고 지연이 뛴다)',
+      in: {
+        category: 'TV', candidates: [{ query: 'q', why: 'w' }], read: ['x'], guessed: [],
+        confirm: ['하나', '둘', '셋', '넷', '다섯'], ask: { reason: 'none' },
+      },
+      want: g => g.confirm.length === 3,
+    },
+    {
+      why: '⭐ confirm 항목이 길면 자른다',
+      in: {
+        category: 'TV', candidates: [{ query: 'q', why: 'w' }], read: ['x'], guessed: [],
+        confirm: ['가'.repeat(200)], ask: { reason: 'none' },
+      },
+      want: g => g.confirm.length === 1 && g.confirm[0].length <= 60,
+    },
+    {
+      why: 'confirm 이 없거나 배열이 아니면 빈 배열',
+      in: {
+        category: 'TV', candidates: [{ query: 'q', why: 'w' }], read: ['x'], guessed: [],
+        confirm: 'nope', ask: { reason: 'none' },
+      },
+      want: g => Array.isArray(g.confirm) && g.confirm.length === 0,
+    },
+    {
+      why: 'confirm 의 빈 문자열은 버린다',
+      in: {
+        category: 'TV', candidates: [{ query: 'q', why: 'w' }], read: ['x'], guessed: [],
+        confirm: ['  ', '뒷면 스티커', ''], ask: { reason: 'none' },
+      },
+      want: g => g.confirm.length === 1 && g.confirm[0] === '뒷면 스티커',
+    },
+    {
       why: '배열이 와야 할 자리에 딴 게 오면 빈 배열로',
       in: { category: 5, candidates: 'nope', read: { a: 1 }, guessed: null, ask: 'x' },
       want: g => Array.isArray(g.read) && !g.read.length && !g.candidates.length && !!g.ask && g.ask.reason === 'none-recognized',

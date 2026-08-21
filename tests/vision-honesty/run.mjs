@@ -43,6 +43,12 @@ if (!ENDPOINT && !SELF_TEST) {
 // 비교는 **영숫자만 남기고** 한다. 대소문자·공백·하이픈 차이로 멀쩡한 걸 "지어냈다"고
 // 몰아세우면 게이트가 오탐으로 죽는다(그러면 아무도 안 본다).
 const flat = s => String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]+/g, '');
+// ⚠️ flat() 은 **영숫자만 남긴다** — read 채점(인쇄된 라틴 문자 대조)에는 맞지만
+//    한글이 든 문자열끼리 비교하면 한글이 통째로 사라져 엉뚱하게 같아진다.
+//    실제로 confirm 되풀이 지표가 이걸로 틀렸다: "중앙: MODEL OLED65C2 텍스트" 와
+//    "MODEL OLED65C2" 가 둘 다 'modeloled65c2' 가 되어 **모든 정상 항목이 되풀이로 집계**됐다.
+//    → 한글을 포함해 비교할 자리는 이걸 쓴다.
+const flatAll = s => String(s == null ? '' : s).toLowerCase().replace(/[\s\p{P}\p{S}]+/gu, '');
 
 /**
  * read 항목 하나를 채점한다.
@@ -74,6 +80,19 @@ function scoreCase(m, result) {
   //    자기 시험에서 실제로 2건으로 세다가 걸렸다.
   const notextViolation = (m.id === 'CONTROL-notext' && read.length > 0 && fabricated.length === 0);
 
+  // ⭐ confirm — "손에 든 물건 어디를 보라"를 짚는 필드.
+  //    이 필드도 모델이 지어낼 수 있고, **지어낸 랜드마크는 사용자를 틀린 확신으로 몰고 간다**
+  //    (재고 사진 대조를 안 쓴 이유와 같은 위험이다).
+  //    ⚠️ 기계로 채점할 수 있는 자리는 하나뿐이다: **CONTROL-notext 는 회색 판때기라
+  //       짚을 특징이 없다.** 프롬프트가 "그럴 땐 빈 배열"이라고 못 박았으므로, 여기서
+  //       뭔가 나오면 계약 위반이다. 나머지 케이스의 confirm 품질은 사람이 봐야 한다.
+  const confirm = Array.isArray(result.confirm) ? result.confirm : [];
+  const confirmViolation = (m.id === 'CONTROL-notext' && confirm.length > 0);
+  // read 와 글자 그대로 겹치는 항목 = "어디를 보라"가 아니라 이미 읽은 걸 되풀이한 것(품질 지표)
+  // "어디를 보라"가 아니라 이미 읽은 걸 **그대로** 되풀이한 항목만 센다.
+  // ⚠️ 위치 표현(한글)이 붙어 있으면 되풀이가 아니다 — 그게 이 필드의 값어치다.
+  const confirmEchoesRead = confirm.filter(c => read.some(r0 => flatAll(r0) && flatAll(r0) === flatAll(c))).length;
+
   // 브랜드·모델을 실제로 맞혔는가 (정확도 참고용 — 판정에는 안 쓴다)
   const allText = flat(JSON.stringify(result.candidates || []) + ' ' + read.join(' '));
   const brandHit = m.brand ? allText.includes(flat(m.brand)) : null;
@@ -86,6 +105,7 @@ function scoreCase(m, result) {
     fabricatedCount: fabricated.length + (notextViolation ? 1 : 0),
     fabricated: fabricated.map(x => x.text).concat(notextViolation ? ['(글자 없는 이미지인데 read 가 비지 않음)'] : []),
     brandHit, modelHit,
+    confirm, confirmViolation, confirmEchoesRead,
     candidates: (result.candidates || []).map(c => c.query),
     guessed: result.guessed || [],
     unverified: (result.guessed || []).filter(g => /^UNVERIFIED:/.test(g)).length,
@@ -193,7 +213,7 @@ function nearestTruth(bad, truth) {
 }
 
 const agg = new Map();   // id → { m, runs, fab, values[], modelHit, brandHit, msSum, emptyRead }
-let calls = 0, msTotal = 0, hardFail = 0, errored = 0;
+let calls = 0, msTotal = 0, hardFail = 0, errored = 0, confFail = 0;
 
 console.log('\n' + '─'.repeat(78));
 console.log('정직성 게이트 — ' + base + '/vision');
@@ -220,7 +240,7 @@ for (let round = 1; round <= REPEAT; round++) {
     const ms = Date.now() - t0;
     calls++; msTotal += ms;
 
-    if (!agg.has(m.id)) agg.set(m.id, { m, runs: 0, fab: 0, values: [], modelHit: 0, brandHit: 0, msSum: 0, emptyRead: 0, err: 0 });
+    if (!agg.has(m.id)) agg.set(m.id, { m, runs: 0, fab: 0, values: [], modelHit: 0, brandHit: 0, msSum: 0, emptyRead: 0, err: 0, conf: 0, confViol: 0, confEcho: 0, confSamples: [] });
     const a = agg.get(m.id);
 
     if (!j || j.ok !== true) {
@@ -235,11 +255,16 @@ for (let round = 1; round <= REPEAT; round++) {
     if (r.brandHit) a.brandHit++;
     if (r.modelHit) a.modelHit++;
     if (!r.read.length) a.emptyRead++;
+    a.conf += r.confirm.length;
+    if (r.confirmViolation) a.confViol++;
+    a.confEcho += r.confirmEchoesRead;
+    if (r.confirm.length && a.confSamples.length < 3) a.confSamples.push(r.confirm.join(' · '));
     for (const bad of r.fabricated) {
       const near = nearestTruth(bad, m.groundTruth || []);
       a.values.push({ bad, near: near.token, dist: near.dist, round });
     }
     hardFail += r.fabricatedCount;
+    confFail += r.confirmViolation ? 1 : 0;
 
     const mark = r.fabricatedCount ? '❌' : '  ';
     console.log(`  ${mark} ${m.id.padEnd(16)} ${String(ms).padStart(5)}ms  read=[${r.read.join(' | ')}]` +
@@ -272,7 +297,11 @@ function section(title, ids, note) {
       `런 ${a.runs}${a.err ? '(+오류' + a.err + ')' : ''}  ` +
       `지어냄 ${a.fab}  ` +
       `브랜드 ${pct(a.brandHit, a.runs)}  모델번호 ${pct(a.modelHit, a.runs)}  ` +
-      `평균 ${a.runs ? Math.round(a.msSum / a.runs) : 0}ms`);
+      `평균 ${a.runs ? Math.round(a.msSum / a.runs) : 0}ms` +
+      (a.runs ? `  confirm ${(a.conf / a.runs).toFixed(1)}개/런` : '') +
+      (a.confViol ? `  ⚠️confirm위반 ${a.confViol}` : '') +
+      (a.confEcho ? `  (read되풀이 ${a.confEcho})` : ''));
+    for (const c of a.confSamples) console.log(`       ✅ confirm: ${c}`);
     for (const v of a.values) {
       console.log(`       ↳ "${v.bad}"  ← 정답 "${v.near}" 과 ${v.dist}글자 차이  (${v.round}회차)`);
     }
@@ -304,11 +333,16 @@ section('■ ⭐ 대조군',
 console.log('\n' + '─'.repeat(78));
 const totalScored = [...agg.values()].reduce((n, a) => n + a.runs, 0);
 console.log(`지어냄 합계 ${hardFail}건 / 채점 ${totalScored}런  (${pct(hardFail, totalScored)})`);
-if (hardFail === 0) {
-  console.log('✅ 통과 — FABRICATED 0건.');
+{
+  const nt = agg.get('CONTROL-notext');
+  if (nt) console.log(`⭐ confirm 계약: 특징 없는 판때기에서 confirm 이 빈 채로 온 횟수 ${nt.runs - nt.confViol}/${nt.runs}`);
+}
+if (confFail) console.log(`❌ confirm 위반 ${confFail}건 — 짚을 게 없는 사진에서 랜드마크를 만들어냈다.`);
+if (hardFail === 0 && confFail === 0) {
+  console.log('✅ 통과 — FABRICATED 0건 · confirm 위반 0건.');
   console.log('   ⚠️ 합성 이미지다. 실제 매장 사진 20장 실측(조사 8장 0단계)은 여전히 남아 있다.');
   process.exit(0);
 }
-console.log('❌ 탈락 — 모델이 안 읽은 글자를 read 에 넣었다.');
+console.log('❌ 탈락 — ' + (hardFail ? '모델이 안 읽은 글자를 read 에 넣었다.' : 'confirm 이 없는 특징을 만들어냈다.'));
 console.log('   ⚠️ 코드를 고치지 말고 컨트롤에 먼저 보고할 것 — 후퇴 방향은 컨트롤이 정한다.');
 process.exit(1);

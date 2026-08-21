@@ -104,6 +104,15 @@ const MUTANTS = [
     "  'https://www.priceafter.com',",
     ''],
 
+  // ★ confirm 은 사용자가 **손에 든 물건을 보고 확정하는** 근거라, 길거나 무제한이면
+  //   화면이 다시 말이 많아지고 출력 토큰이 늘어 지연이 뛴다.
+  ['★ confirm 상한을 없앰 (화면이 늘어지고 지연이 뛴다)',
+    '  const confirm = arr(r.confirm, 60, 3);',
+    '  const confirm = arr(r.confirm, 100000, 100);'],
+  ['★ confirm 을 응답에서 빼버림 (확인 근거가 사라진다)',
+    '    confirm,',
+    ''],
+
   ['★ 망가진 키 가드를 끔 (Ctrl+V 로 들어간 제어문자가 그대로 제공자에 나감)',
     "  if (key.length < 20 || /[^\x21-\x7e]/.test(key)) {",
     '  if (false) {'],

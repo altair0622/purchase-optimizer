@@ -379,6 +379,11 @@ function visionSchema() {
         description: 'Things you inferred that are NOT printed anywhere in the image. In the requested language.',
         items: { type: 'string' },
       },
+      confirm: {
+        type: 'array',
+        description: 'Up to 3 SHORT phrases telling the shopper WHERE TO LOOK on the item in their hand to check this is the right product. Each is a place plus what is there. Empty array if the photo shows nothing specific enough to point at.',
+        items: { type: 'string' },
+      },
       ask: {
         type: 'object',
         properties: {
@@ -388,7 +393,7 @@ function visionSchema() {
         required: ['reason'],
       },
     },
-    required: ['category', 'candidates', 'read', 'guessed', 'ask'],
+    required: ['category', 'candidates', 'read', 'guessed', 'confirm', 'ask'],
   };
 }
 
@@ -407,6 +412,8 @@ function visionPrompt(lang, nImages) {
     '3. "guessed" is anything you inferred that is NOT printed in the image - a model year inferred from the shape, a product line inferred from a logo. If a candidate query contains something you did not read, it MUST appear in "guessed".',
     '4. Give up to 3 candidates that MEANINGFULLY DIFFER - e.g. one specific, one broader, one alternative reading. If you only know the brand, make the queries broader. DO NOT invent a model number to fill a slot. Two candidates, or one, is a fine answer.',
     '5. If you cannot identify the product at all, return "candidates": [] and set ask.reason to "none-recognized". Do NOT offer a similar product instead.',
+    '6. "confirm" = up to 3 SHORT phrases pointing at WHERE ON THE ITEM the shopper can check you got it right. Each names a place and what is there, e.g. "bottom-right of the bezel: acer logo" or "sticker on the back: the model number". A place the shopper can look at right now beats repeating what you already read.',
+    '7. ONLY put something in "confirm" if you can actually SEE it in this photo. Do NOT describe what this kind of product usually looks like. If the photo shows nothing specific enough to point at, "confirm" MUST be an empty array. A confident wrong landmark makes the shopper certain about the wrong item - that is worse than saying nothing.',
     '',
     'Set ask.reason to ask for one more photo when it would help:',
     '  "no-brand"   - you cannot tell the brand; a logo or brand name needs to be in frame',
@@ -419,7 +426,7 @@ function visionPrompt(lang, nImages) {
     // ⚠️ "guessed" 를 빠뜨리면 안 된다 — 2026-08-20 정직성 게이트에서 실제로 걸렸다.
     //    lang:'ko' 인데 guessed 절반이 영어로 왔다(화면에 그대로 인쇄되는 값이다).
     //    스키마 description 에는 적혀 있었지만 프롬프트 마지막 줄이 이겼다.
-    'Search queries ("query") must be in English. Write "category", "why", "guessed" and "detail" in ' + langName + ' — every one of them, including each entry of the "guessed" array.',
+    'Search queries ("query") must be in English. Write "category", "why", "guessed", "confirm" and "detail" in ' + langName + ' — every one of them, including each entry of the "guessed" and "confirm" arrays.',
   ].filter(Boolean).join('\n');
 }
 
@@ -509,6 +516,9 @@ function normalizeVision(r) {
 
   const read = arr(r.read, 80, 6);
   const guessed = arr(r.guessed, 160, 6);
+  // ⚠️ 3개 × 60자로 짧게 자른다. 문장으로 늘어지면 화면이 다시 말이 많아지고,
+  //    출력 토큰이 늘면 지연이 뛴다(구조화 출력에서 10.2초가 났던 전례).
+  const confirm = arr(r.confirm, 60, 3);
 
   // 후보 — 빈 query 는 버리고, **같은 검색어는 합친다.**
   // 왜 합치나: 후보 여러 개의 값어치는 "갈리는 것 자체가 불확실성 신호"라는 데 있다(조사 6-B 겹 1).
@@ -535,6 +545,7 @@ function normalizeVision(r) {
     category: s(r.category, 60),
     candidates,
     read,
+    confirm,
     guessed: auditGuessed(candidates, read, guessed),
     ask: reason === 'none' ? null : { reason, detail: s(r.ask && r.ask.detail, 160) },
   };
