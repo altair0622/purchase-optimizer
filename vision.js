@@ -190,11 +190,12 @@ export function shouldPromote(result) {
 // 하루 승격 횟수 상한.
 // ⚠️ **이것도 방어가 아니다**(localStorage 라 지우면 그만). 진짜 방어선은 엣지 레이트리밋과
 //    제공자 월 예산 상한이다. 여기서 막는 건 "정직한 사용자가 하루에 폭주하는 것"뿐이다.
-// 숫자 근거: 승격 1회 ≈ $0.012(Opus). 10회면 기기당 하루 $0.12 이고, 사진 상한 20장의
-// Haiku 비용($0.06)까지 더해도 하루 $0.18 이다. 하루에 **알아볼 수 없는 물건을 10개** 찍는
-// 건 정상 사용에서 드물어서, 정직한 사용자는 이 선에 닿지 않는다.
-// ⚠️ 이 값은 **비용 감각으로 정한 것이지 측정된 값이 아니다.** 실사용 로그가 없다.
-export const PROMOTE_DAILY_CAP = 10;
+// ⚠️ **40 도 감으로 잡은 값이다.** 근거는 "실물 20장 테스트가 **전부** 승격해도 안 걸리게
+//    + 여유 2배" 하나뿐이고, **실사용 분포는 아직 모른다.** 실측 뒤에 다시 정할 값이다.
+//    (10 이었을 때의 근거였던 "하루 10개는 드물다"도 마찬가지로 감이었다 — 그리고 그 감이
+//     틀렸다. 글자 없는 물건을 몰아서 찍는 사용 패턴에서는 10 이 쉽게 걸린다.)
+// 비용 감각: 승격 1회 ≈ $0.012(Opus). 40회면 기기당 하루 $0.48 이다.
+export const PROMOTE_DAILY_CAP = 40;
 const PROMOTE_DAY_KEY = 'pa_vision_promote_day';
 
 export function promoteCount(store, today) {
@@ -456,6 +457,7 @@ function injectStyle() {
     '#visionPanel .vbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}',
     '#visionPanel .vconfirm{margin:2px 0 10px;font-size:var(--t-small);line-height:1.7}',
     '#visionPanel .vseek{margin-top:10px;font-size:var(--t-small);color:var(--muted)}',
+    '#visionPanel .vcapped{margin-top:10px;font-size:var(--t-small);line-height:1.6;color:var(--warn)}',
     '#visionPanel .vspin{display:inline-block;width:10px;height:10px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:vspin 0.8s linear infinite;vertical-align:-1px}',
     '@keyframes vspin{to{transform:rotate(360deg)}}',
     // 갱신됐다는 걸 **알 수 있어야 한다.** 조용히 바뀌면 방금 읽은 것과 화면이 어긋난다.
@@ -651,6 +653,27 @@ function showSeeking() {
   el.innerHTML = '<span class="vspin"></span> ' + T('vision.seeking', '더 자세히 찾아보는 중…');
   box.appendChild(el);
 }
+// ⭐ 하루 상한에 걸렸을 때 **화면에 말한다.**
+//
+// 예전엔 showSeeking() 전에 조용히 return 했다. 그러면 화면엔 1차 결과만 남고
+// **사용자는 승격이 일어나지 않은 걸 알 방법이 없다.** 이 도구에서 제일 나쁜 실패 모드다 —
+// "더 찾아봤는데 이게 최선"과 "아예 안 찾아봤다"가 화면에서 구분이 안 된다.
+//
+// ⚠️ 다른 조용한 종료 경로는 **일부러 조용한 채로 둔다**(퇴화 금지 원칙):
+//    · !r.promoted  — 워커에서 승격이 꺼져 있다. 운영 설정이지 사용자가 알 일이 아니다
+//    · !r.ok        — 승격 실패. 1차 결과가 멀쩡하므로 실패를 알릴 이유가 없다
+//    · token 불일치 — 사용자가 이미 화면을 바꿨다. 그 위에 끼어들면 안 된다
+//    상한만 다르다: **사용자의 오늘 사용량 때문에 기능이 덜 돌았고, 내일은 된다.**
+function renderPromoteCapped() {
+  const box = panel().querySelector('.vbox');
+  if (!box || box.querySelector('.vcapped')) return;
+  const el = document.createElement('div');
+  el.className = 'vcapped';
+  el.innerHTML = T('vision.promoteCapped',
+    '오늘 <b>더 자세히 찾기</b>는 다 썼어요 — <b>지금 보이는 건 1차 결과예요.</b> 내일 다시 돼요.');
+  box.appendChild(el);   // ← 1차 결과를 지우거나 바꾸지 않는다. 덧붙이기만 한다.
+}
+
 function clearSeeking() {
   const el = panel().querySelector('.vseek');
   if (el) el.remove();
@@ -779,7 +802,7 @@ async function promote(list, token) {
   // ⚠️ 승격은 **768px 사본**을 보낸다(1차의 1568 이 아니다). 실측에서 12.4초 → 7.7초.
   //    승격 경로는 읽을 글자가 없어서 올린 것이라 해상도를 낮춰도 잃을 글자가 없다.
   const store = (() => { try { return window.localStorage; } catch (e) { return null; } })();
-  if (store && promoteCount(store, todayStr()) >= PROMOTE_DAILY_CAP) return;
+  if (store && promoteCount(store, todayStr()) >= PROMOTE_DAILY_CAP) { renderPromoteCapped(); return; }
   showSeeking();
   let r = null;
   try { r = await askVision(list, { promote: true }); }
