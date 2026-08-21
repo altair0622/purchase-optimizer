@@ -1075,13 +1075,28 @@ window.__fuzz = (function () {
     {
       const R = o => Object.assign({ ok: true, read: ['acer'], candidates: [{ query: 'q', why: 'w' }],
                                      guessed: [], confirm: [], ask: null, promoted: false }, o);
-      eq(() => V.shouldPromote(R({})), false, '★ 글자를 읽었는데 승격했다 (비용만 5배 든다)');
+      // ⭐ 트리거 = **검색어가 읽은 글자에 뿌리내렸는가**
+      eq(() => V.shouldPromote(R({ read: ['acer'], candidates: [{ query: 'Acer B246HL monitor', why: 'w' }] })), false,
+         '★ 검색어가 읽은 글자에 뿌리내렸는데 승격했다 (비용만 5배 든다)');
       eq(() => V.shouldPromote(R({ read: [] })), true, '★ 읽은 글자가 없는데 승격 안 했다 (큰 모델만 답을 낸다)');
+      // (b)안의 구멍 — read 는 안 비었지만 브랜드가 아니다
+      eq(() => V.shouldPromote(R({ read: ['NET WT 12 OZ'], candidates: [{ query: 'snack 12 oz bag', why: 'w' }] })), true,
+         '★ 읽은 건 용량뿐인데 승격 안 했다 (검색어가 짐작뿐이다 — read 가 비었는지만 보면 놓친다)');
+      // ⚠️ **3자 이상 숫자**를 써야 한다. '12' 는 길이 필터에서 이미 걸러져서
+      //    숫자 판정을 아예 안 거친다 — 음성 대조군에서 이 케이스가 헛돈 게 드러났다.
+      eq(() => V.shouldPromote(R({ read: ['2024'], candidates: [{ query: '2024 model pan', why: 'w' }] })), true,
+         '★ 숫자만 겹치는 걸 뿌리로 쳤다 (숫자는 브랜드가 아니다)');
+      eq(() => V.shouldPromote(R({ read: ['Tillamook'], candidates: [{ query: 'tillamook cheddar', why: 'w' }] })), false,
+         '대소문자만 다른 브랜드를 못 알아봤다');
+      eq(() => V.queryIsGrounded(R({ read: ['acer'], candidates: [{ query: 'Acer B246HL', why: 'w' }] })), true, 'grounded 판정이 틀렸다');
+      eq(() => V.queryIsGrounded(R({ read: [], candidates: [{ query: 'Acer', why: 'w' }] })), false, 'read 가 빈데 grounded 라고 했다');
       eq(() => V.shouldPromote(R({ read: [], promoted: true })), false, '★ 승격된 결과를 또 승격했다 (무한 루프)');
       eq(() => V.shouldPromote({ ok: false }), false, '오류를 승격했다');
       eq(() => V.shouldPromote(null), false, '빈 값에서 승격이 켜졌다');
       // ⚠️ ask 만으로 판단하지 않는다 — Opus 도 맞히면서 no-brand 를 냈다
-      eq(() => V.shouldPromote(R({ read: ['acer'], ask: { reason: 'no-brand' } })), false,
+      // ⚠️ 검색어를 **뿌리내린 것**으로 준다. 예전엔 자리표시자 'q' 를 썼는데, 새 규칙에선
+      //    'q' 가 read 에 없으니 승격이 맞다 — 낡은 기대값이 실패로 떴다(하니스가 정직했다).
+      eq(() => V.shouldPromote(R({ read: ['acer'], candidates: [{ query: 'Acer B246HL monitor', why: 'w' }], ask: { reason: 'no-brand' } })), false,
          '★ ask=no-brand 만 보고 승격했다 (모델 자기평가는 못 믿는다 — 읽은 글자가 있으면 안 올린다)');
     }
     // 승격 하루 상한 — 날짜가 바뀌면 리셋된다
@@ -1099,6 +1114,13 @@ window.__fuzz = (function () {
       const broken = { getItem: () => '{{{', setItem: () => { throw new Error('quota'); } };
       try { if (V.promoteCount(broken, '2026-08-21') !== 0) bad.push('깨진 저장소에서 승격 카운트가 0이 아니다'); }
       catch (e) { bad.push('깨진 저장소에서 예외가 새어나왔다: ' + e.message); }
+    }
+
+    // 승격 해상도 — 1차와 달라야 한다(목적이 다르다)
+    eq(() => V.PROMOTE_LONG_EDGE, 768, '★ 승격 해상도가 바뀌었다 — 실측으로 정한 값이다(768+lean = 7.7초·정확도 100%)');
+    checks++;
+    if (!(V.PROMOTE_LONG_EDGE < V.LONG_EDGE)) {
+      bad.push('승격 해상도가 1차보다 작지 않다 — 승격이 느려질 이유가 없다: ' + V.PROMOTE_LONG_EDGE);
     }
 
     // --- 8. 업로드 규격 — 비용·지연이 여기 달려 있다 ------------------------

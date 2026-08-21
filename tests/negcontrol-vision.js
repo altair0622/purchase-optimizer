@@ -31,7 +31,8 @@ window.__negVision = function () {
                      'needsReask', 'reaskReason', 'guessedLine', 'shapeResult',
                      'MIN_LONG_EDGE', 'MIN_LAPLACIAN_VAR', 'laplacianVar', 'precheck',
                      'DAILY_CAP', 'dayCount', 'bumpDay', 'todayStr',
-                     'shouldPromote', 'PROMOTE_DAILY_CAP', 'promoteCount', 'bumpPromote',
+                     'shouldPromote', 'queryIsGrounded', 'PROMOTE_DAILY_CAP', 'promoteCount', 'bumpPromote',
+                     'PROMOTE_LONG_EDGE',
                      'LONG_EDGE', 'JPEG_QUALITY'];
 
     function build(src) {
@@ -47,8 +48,14 @@ window.__negVision = function () {
 
     const MUT = [
       // ★ 이 기능의 존재 이유 — "조용히 그럴듯하게 틀리지 않는다"
+      ['★ 승격 해상도를 1차와 같게 (12.4초로 되돌아간다)',
+        s => s.replace('const PROMOTE_LONG_EDGE = 768;', 'const PROMOTE_LONG_EDGE = 1568;')],
+
+      ['★ 숫자만 겹쳐도 뿌리로 침 (짐작뿐인데 승격을 안 하게 된다)',
+        s => s.replace("      if (!/[a-z]/.test(t)) continue;          // 순수 숫자는 브랜드가 아니다", '')],
+
       ['★ 글자를 읽었는데도 승격함 — 비용이 5배로 튄다',
-        s => s.replace('  return !result.read || !result.read.length;     // ← 읽은 글자가 없으면 = 짐작뿐이면',
+        s => s.replace('  return !queryIsGrounded(result);                // 검색어가 읽은 글자에 안 걸려 있으면 = 짐작뿐',
                        '  return true;')],
 
       ['★ 승격 하루 상한을 0으로 (승격이 영영 안 일어난다)',

@@ -149,10 +149,42 @@ export function guessedLine(s) {
 //
 // ⚠️ `ask === 'no-brand'` 만으로는 판단하지 않는다. **Opus 도 맞히면서 no-brand 를 냈다** —
 //    모델의 자기평가는 여기서도 신뢰할 수 없다(6-A 와 같은 이유).
+// ⭐ 무엇을 "실패"로 볼 것인가 — **검색어가 읽은 글자에 뿌리내렸는가**로 본다.
+//
+// 후보 세 가지를 놓고 골랐다:
+//   (a) `ask === 'no-brand'` — ❌ **버렸다.** Opus 도 **맞히면서** no-brand 를 냈다.
+//       모델의 자기평가는 여기서도 못 믿는다(6-A 와 같은 이유).
+//   (b) `read` 가 비었는지 — 기계적이고 좋지만 **구멍이 있다.** 포장에서 "12 OZ" 만 읽고
+//       브랜드를 못 읽으면 read 는 안 비는데, 검색어는 여전히 짐작뿐이다.
+//   (c) ⭐ **후보의 어떤 낱말이 `read` 에 실제로 있는가** — 이걸 쓴다.
+//
+// (c)가 나은 이유: 브랜드를 알아보는 데 **사전도 고유명사 휴리스틱도 필요 없다.**
+// "브랜드를 안다" 는 실질적으로 **"검색어의 그 낱말을 사진에서 읽었다"** 이기 때문이다.
+// 그래서 (b)를 포함하면서(읽은 게 없으면 뿌리도 없다) (b)의 구멍까지 막는다.
+//
+// 낱말 판정은 auditGuessed 와 같은 기준을 쓴다 — **글자 3자 이상**. 숫자·단위("12","oz")는
+// 브랜드가 아니고 우연히 겹치기 쉬워서 뺀다.
+const promoteFlat = x => String(x == null ? '' : x).toLowerCase().replace(/[^a-z0-9]+/g, '');
+export function queryIsGrounded(result) {
+  const read = (result && result.read) || [];
+  if (!read.length) return false;
+  const hay = read.map(promoteFlat).join(' ');
+  for (const c of (result.candidates || [])) {
+    for (const tok of String((c && c.query) || '').split(/[\s,]+/)) {
+      const t = promoteFlat(tok);
+      if (t.length < 3) continue;              // 짧으면 우연히 겹친다
+      if (!/[a-z]/.test(t)) continue;          // 순수 숫자는 브랜드가 아니다
+      if (hay.includes(t)) return true;        // ← 읽은 글자가 이 낱말을 뒷받침한다
+    }
+  }
+  return false;
+}
+
 export function shouldPromote(result) {
   if (!result || !result.ok) return false;
   if (result.promoted) return false;              // 이미 승격된 결과는 다시 안 올린다
-  return !result.read || !result.read.length;     // ← 읽은 글자가 없으면 = 짐작뿐이면
+  if (!result.candidates || !result.candidates.length) return true;   // 아무것도 못 냈다
+  return !queryIsGrounded(result);                // 검색어가 읽은 글자에 안 걸려 있으면 = 짐작뿐
 }
 
 // 하루 승격 횟수 상한.
@@ -294,6 +326,22 @@ export function shapeResult(j) {
 //    1024에서 16px 는 20% 실패인데 1568에서 18px 는 0% 였다. 절대 글자 높이만이 변수가
 //    아니라 이미지 전체 해상도·JPEG 손실·모델 내부 타일링이 함께 작용한다.
 export const LONG_EDGE = 1568;
+
+// ⭐ 승격 경로 전용 해상도. **1차와 다르다.**
+// 실측(Opus, 같은 마우스 사진, 각 3회):
+//   1568 + 전체 스키마 → 12,445ms · 브랜드 100%
+//   1568 + lean       →  9,060ms · 100%
+//   1024 + 전체       → 10,453ms · **33%** ⚠️
+//   1024 + lean       →  8,702ms · 100%
+//   **768 + lean      →  7,707ms · 100%**   ← 채택 (−38%, 정확도 손실 0)
+//
+// ⚠️ **더 줄이지 마라.** 1024+전체가 33%로 흔들린 것이 경고다 — 시각 신호가 약해지면
+//    어느 지점에서 무너지고, **Opus 를 쓰는 유일한 이유가 그 정확도다.**
+//    6초를 위해 100%를 잃으면 승격 자체가 무의미해진다.
+// ⚠️ **768 이 바닥인지는 모른다.** 그 아래를 재보지 않았다. 필요가 생기면 그때 재라.
+// ⚠️ 1차(LONG_EDGE=1568)는 **작은 인쇄 글자를 읽어야** 하므로 여기와 목적이 다르다.
+//    승격 경로는 애초에 읽을 글자가 없어서 올린 것이라 해상도를 낮춰도 잃을 글자가 없다.
+export const PROMOTE_LONG_EDGE = 768;
 export const JPEG_QUALITY = 0.75;
 
 async function toBitmap(file) {
@@ -313,12 +361,13 @@ async function toBitmap(file) {
 }
 
 // 파일 하나 → { b64, longEdge, lapVar }. 실패하면 예외.
-export async function prepareImage(file) {
+export async function prepareImage(file, longEdge) {
+  const edge = longEdge || LONG_EDGE;
   const bmp = await toBitmap(file);
   const w0 = bmp.width || bmp.naturalWidth, h0 = bmp.height || bmp.naturalHeight;
   if (!w0 || !h0) throw new Error('사진 크기를 읽지 못했어');
 
-  const scale = Math.min(1, LONG_EDGE / Math.max(w0, h0));
+  const scale = Math.min(1, edge / Math.max(w0, h0));
   const w = Math.max(1, Math.round(w0 * scale)), h = Math.max(1, Math.round(h0 * scale));
 
   const cv = document.createElement('canvas');
@@ -676,7 +725,8 @@ function wire() {
 
 // 첫 사진을 들고 있다가 두 번째와 함께 보낸다(조사 6-C: "두 번째 사진은 첫 번째와
 // 함께 한 요청으로 보낸다" — 첫 장에 전체 모양이, 둘째 장에 글자가 있으므로).
-let held = [];        // base64 목록
+let held = [];        // base64 목록 (1차용 · 1568px)
+let heldSmall = [];   // 승격용 사본 (768px) — 같은 사진을 작게 다시 인코딩한 것
 let attempts = 0;     // 0 → 첫 장, 1 → 되묻기 후 둘째 장. 2 에서 끝낸다.
 
 // ⭐ 승격 결과가 **사용자 작업 위를 덮지 않게** 하는 두 값.
@@ -686,9 +736,9 @@ let attempts = 0;     // 0 → 첫 장, 1 → 되묻기 후 둘째 장. 2 에서
 let userTouched = false;
 let viewToken = 0;
 
-export function resetVision() { held = []; attempts = 0; userTouched = false; viewToken++; }
+export function resetVision() { held = []; heldSmall = []; attempts = 0; userTouched = false; viewToken++; }
 
-async function send(list) {
+async function send(list, smallList) {
   // ⚠️ **새 요청이 시작되면 이전 승격 결과는 버린다.**
   //    승격은 항상 되묻기 화면 위에서 도는데(읽은 글자가 없어야 승격하므로), 그 화면에서
   //    사용자가 할 수 있는 행동이 바로 **두 번째 사진 찍기**다. 그때 늦게 도착한 이전 승격이
@@ -706,15 +756,15 @@ async function send(list) {
     // ⭐ 되묻는 순간이 승격이 **가장 값어치 있는** 때다 — 읽은 글자가 없어서 되묻는 것이므로.
     //    사용자가 두 번째 사진을 찍는 동안 뒤에서 큰 모델이 답을 낼 수도 있다.
     //    새 사진이 오면 viewToken 이 올라가 이 결과는 버려진다.
-    if (shouldPromote(r)) promote(list, viewToken);
+    if (shouldPromote(r)) promote(smallList || list, viewToken);
     return;
   }
   renderResult(r);
   // ⭐ 1차 결과를 **먼저 보여준 뒤** 승격을 건다. 사용자는 4.5초만 기다리고,
   //    그다음엔 화면을 읽는 중이며 그러는 동안 좋아진다 → 체감 지연이 거의 없다.
   const token = viewToken;
-  if (shouldPromote(r)) promote(list, token);
-  held = []; attempts = 0;   // resetVision() 을 안 쓴다 — viewToken 이 올라가면 위 승격이 버려진다
+  if (shouldPromote(r)) promote(smallList || list, token);
+  held = []; heldSmall = []; attempts = 0;   // resetVision() 을 안 쓴다 — viewToken 이 올라가면 위 승격이 버려진다
 }
 
 // ⭐ 승격 실행 — 1차 화면은 이미 떠 있고, 이건 **뒤에서** 돈다.
@@ -726,6 +776,8 @@ async function send(list) {
 //   ② 승격이 실패하거나 꺼져 있으면 **1차 결과를 그대로 둔다.** 퇴화 금지.
 //   ③ 바꿀 때는 **바뀌었다고 말한다.**
 async function promote(list, token) {
+  // ⚠️ 승격은 **768px 사본**을 보낸다(1차의 1568 이 아니다). 실측에서 12.4초 → 7.7초.
+  //    승격 경로는 읽을 글자가 없어서 올린 것이라 해상도를 낮춰도 잃을 글자가 없다.
   const store = (() => { try { return window.localStorage; } catch (e) { return null; } })();
   if (store && promoteCount(store, todayStr()) >= PROMOTE_DAILY_CAP) return;
   showSeeking();
@@ -748,18 +800,24 @@ export async function handleFile(file) {
   const store = (() => { try { return window.localStorage; } catch (e) { return null; } })();
   if (store && dayCount(store, todayStr()) >= DAILY_CAP) { renderError('daily-cap'); return; }
 
-  let prep;
-  try { prep = await prepareImage(file); }
+  let prep, prepSmall;
+  try {
+    prep = await prepareImage(file);
+    // 승격용 사본을 **미리** 만들어 둔다 — 승격이 걸리는 순간엔 원본 File 이 없다.
+    // 캔버스 한 번 더 그리는 비용뿐이고 네트워크로는 필요할 때만 나간다.
+    prepSmall = await prepareImage(file, PROMOTE_LONG_EDGE);
+  }
   catch (e) { renderError('read-failed', (e && e.message) || ''); return; }
 
   const verdict = precheck(prep.longEdge, prep.lapVar);
   if (verdict === 'too-small') { renderError('too-small'); return; }
 
   const list = held.concat([prep.b64]);
+  const smallList = heldSmall.concat([prepSmall.b64]);
   const go = () => {
     if (store) bumpDay(store, todayStr());
-    held = list;
-    send(list);
+    held = list; heldSmall = smallList;
+    send(list, smallList);
   };
   // 흐림은 막지 않고 되돌린다 — **안 보내면 돈이 안 든다**(조사 6-B-2). 그래도 보낼 수 있다.
   if (verdict === 'blurry' && attempts === 0) { renderBlurry(go); return; }
