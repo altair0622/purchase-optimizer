@@ -303,7 +303,7 @@
       <p class="brandline">The price after everything.</p>
     </div>
     <div class="langtog" id="langTog" data-i18n-title="lang.toggle.title" title="언어 전환"><button type="button" data-lang="ko">KO</button><button type="button" data-lang="en">EN</button></div>
-    <span class="ver">v0.32</span>
+    <span class="ver">v0.33</span>
   </div>
   <p class="tagline" data-i18n="brand.tagline"><b>다 빼고 나면, 실제로 얼마.</b> 캐시백·카드 적립까지 뺀 <b>실제 부담</b>으로 비교해요.</p>
 
@@ -318,11 +318,7 @@
        달고** 있었다. 사용자에겐 이게 하나의 질문이다 — "이 물건을 어떻게 알려줄까?"
        → ① 셋을 한 줄에 ② 설명은 **고른 뒤에** ③ 지갑·고지는 아래로. -->
   <div class="card product-only" id="startCard">
-    <h2 data-i18n="start.q">이 물건, 어디서 사는 게 쌀까요?</h2>
-    <div class="demobar" id="demoBar" style="display:none">
-      <span data-i18n="demo.body">👋 지금 보이는 건 <b>예시</b>예요 — Grayson 로프트 베드 · Crate &amp; Barrel · $1,699.</span>
-      <button class="mini" id="demoClear" type="button" data-i18n="demo.clear">예시 지우고 시작</button>
-    </div>
+    <h2 data-i18n="start.q">어떤 물건을 찾고 있나요?</h2>
 
     <!-- 입력 수단 3개. 설명문을 각자 달지 않는다 — 고른 뒤에 해당 패널에서 말한다.
          📷·📊 는 조건이 맞을 때만 켜진다(아래 글루). ⌨️ 는 항상 있다 — 폴백이라서. -->
@@ -332,6 +328,17 @@
       <label class="pick" id="scanBtn" for="scanFile" hidden data-i18n="pick.barcode">📊 바코드</label>
       <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
       <button class="pick" id="typeBtn" type="button" data-i18n="pick.type">⌨️ 직접 넣기</button>
+    </div>
+    <!-- ⑥ 촬영 요령 — 한 줄. 사진 버튼이 켜졌을 때만 보인다(글루). -->
+    <p class="muted" id="pickTip" hidden style="margin:8px 0 0;font-size:var(--t-small)"
+       data-i18n="pick.tip">📷 <b>모델명·상표가 보이게</b> 찍으면 잘 찾아요</p>
+
+    <!-- 예시 안내 — v0.33 에서 입력 버튼 **아래**로 내렸다.
+         위에 두면 첫 방문자(= 📷 를 가장 찾아야 하는 사람)에게만 버튼이 265px→373px 로 밀린다.
+         이 안내가 설명하는 예시 데이터는 어차피 더 아래에 있다. -->
+    <div class="demobar" id="demoBar" style="display:none">
+      <span data-i18n="demo.body">👋 지금 보이는 건 <b>예시</b>예요 — lululemon 얼라인 레깅스 · lululemon · $98.</span>
+      <button class="mini" id="demoClear" type="button" data-i18n="demo.clear">예시 지우고 시작</button>
     </div>
 
     <div id="visionPanel"></div>
@@ -366,7 +373,7 @@ https://www.walmart.com/ip/...
     <div class="grid g2">
       <div>
         <label data-i18n="product.name">상품명</label>
-        <input id="pname" value="Grayson 로프트 베드">
+        <input id="pname" value="lululemon 얼라인 레깅스">
       </div>
       <div>
         <label data-i18n="product.cat">카테고리 (모든 판매처 공통)</label>
@@ -577,7 +584,7 @@ https://www.walmart.com/ip/...
   </div>
 
   <p class="muted" style="text-align:center" data-i18n="footer.note">
-    v0.32 — 입력은 이 브라우저에 자동 저장돼요. 지갑은 <b>🔗 링크 복사</b>로 다른 기기·다른 사람에게 넘길 수 있어요.<br>
+    v0.33 — 입력은 이 브라우저에 자동 저장돼요. 지갑은 <b>🔗 링크 복사</b>로 다른 기기·다른 사람에게 넘길 수 있어요.<br>
     📱 폰에서는 브라우저 메뉴 → <b>"홈 화면에 추가"</b>하면 앱처럼 설치돼요 (오프라인에서도 열려요).
   </p>
 
@@ -812,14 +819,15 @@ Object.assign(STRINGS.en, {
   // ── 1. 시작 ──────────────────────────────────────────────────────
   'start.title': 'Start here',
   'start.sub': 'Paste a few seller URLs and they get compared automatically',
-  'demo.body': '👋 What you’re looking at is an <b>example</b> — Grayson loft bed · Crate &amp; Barrel · $1,699.',
+  'demo.body': '👋 What you’re looking at is an <b>example</b> — lululemon Align leggings · lululemon · $98.',
   // v0.32 — 입력 수단 3개를 한 줄에
-  'start.q': 'Where is this cheapest?',
+  'start.q': 'What are you looking for?',
   'pick.photo': '📷 Take a photo',
   'pick.barcode': '📊 Barcode',
   'pick.type': '⌨️ Type it',
+  'pick.tip': '📷 Frame the <b>model name or brand</b> and it finds it much better',
   'demo.clear': 'Clear the example',
-  'demo.pname': 'Grayson loft bed',
+  'demo.pname': 'lululemon Align leggings',
   'start.paste.label': 'Seller <b>URLs</b>, one per line (one is enough)',
   'start.paste.ph': 'https://www.amazon.com/dp/...\nhttps://www.walmart.com/ip/...\nhttps://www.target.com/p/...\n— or paste the product title and $price as-is',
   'start.compare': 'Compare',
@@ -1255,7 +1263,7 @@ Object.assign(STRINGS.en, {
   'share.prompt': 'Copy this link to share it:',
 
   // ── 푸터 · 고지 ──────────────────────────────────────────────────
-  'footer.note': 'v0.32 — your inputs save automatically in this browser. Hand your wallet to another device or another person with <b>🔗 Copy link</b>.<br>📱 On a phone, browser menu → <b>"Add to Home Screen"</b> installs it like an app (it opens offline too).',
+  'footer.note': 'v0.33 — your inputs save automatically in this browser. Hand your wallet to another device or another person with <b>🔗 Copy link</b>.<br>📱 On a phone, browser menu → <b>"Add to Home Screen"</b> installs it like an app (it opens offline too).',
   'disc.data.title': '<b>🔒 Where does my data go</b> — everything that leaves is listed here',
   'disc.data.p1': '<b>No account, no login.</b> Your card wallet, point valuations, prices, coupons and results live <b>only in this browser</b> (localStorage) and are never sent to a server. The math runs on this page. There is not one ad, analytics or tracking script on it (no third-party scripts or fonts either).',
   'disc.data.offers': '<b>🎁 Pasting your card offers sends nothing out either.</b> Paste an entire Amex or Chase screen and it is read <b>on this page only</b>, and only the <b>merchant, benefit and expiry</b> are stored in this browser. <b>The pasted text itself is not saved</b> (it has card last-4s and account state mixed into it). Not one network request goes out, and it never rides along in the 🔗 wallet link.',
@@ -1311,7 +1319,7 @@ Object.assign(STRINGS.en, {
   'vision.alts': 'Other candidates — tap one to put it in the box above',
   'vision.q.aria': 'Search query',
   'vision.go': 'Search with this',
-  'vision.note': '<b>Check it, fix it, then press.</b> <b>We don’t check the text it says it read, either</b> — with model numbers especially, compare them character by character against the item in your hand. The search only opens when you press. <b>We don’t know the price</b> — check it yourself at the retailer, then paste that product page URL into the box above and the net-cost comparison starts.',
+  'vision.note': '<b>Check it, fix it, then press.</b> With model numbers, <b>compare against the item in your hand</b>.',
   'vision.again': '📷 Take another',
   'vision.ask.brand': 'Take one more with the brand name or logo in frame',
   'vision.ask.model': 'If there’s a sticker or tag with a model number, shoot that — on a TV or appliance it’s the strip under the screen or the back panel',
@@ -1338,6 +1346,8 @@ Object.assign(STRINGS.en, {
   'vision.err.read': 'We couldn’t read that photo. Please take another.',
   'vision.err.generic': 'Not working right now. Try again in a moment.',
   'vision.loadfail': 'Couldn’t download the recognition code — check your connection and press it again.',
+  'vision.alts.fold': 'Search differently',
+  'vision.read.fold': 'What did it read in the photo?',
   'vision.handoff': 'Made {n} seller rows below',
   'vision.handoff.note': 'Open <b>See the price</b> on each seller, then just type the price and the ranking appears. If the query is wrong, take another photo.',
 
@@ -3497,7 +3507,7 @@ function shareWallet(){
 function init(){
   applyI18n();   // 정적 마크업의 한국어를 STRINGS.ko로 수집 + 활성 언어로 교체
   applyBrand();  // 워드마크·타이틀·aria-label을 BRAND 한 곳에서 주입 (i18n 뒤에 와야 title이 맞다)
-  const seededDefault=()=>{ scenarios=[ blankScenario({store:"Crate & Barrel", domain:"crateandbarrel.com", price:1699}) ]; };
+  const seededDefault=()=>{ scenarios=[ blankScenario({store:"lululemon", domain:"lululemon.com", price:98}) ]; };
   const hadSaved=loadState();
   // ?lang= 만 붙은 건 "공유 링크로 들어왔다"가 아니다 — 언어 토글이 URL에 남기는 값이라,
   // 이걸 공유 파라미터로 세면 첫 방문에도 예시 안내가 안 뜨고 예시 상품명이 한국어로 굳는다.
@@ -3511,7 +3521,7 @@ function init(){
   const isDemo = !hadSaved && !hadQuery;
   // 예시 상품명은 마크업의 value로 굳어 있다(JS 없이 열었을 때의 폴백). 영어판에서 한국어가
   // 남지 않도록 여기서 t()를 태운다 — 사용자가 이미 입력한 게 있으면(hadSaved) 건드리지 않는다.
-  if(isDemo) document.getElementById('pname').value = t('demo.pname','Grayson 로프트 베드');
+  if(isDemo) document.getElementById('pname').value = t('demo.pname','lululemon 얼라인 레깅스');
 
   renderWallet();
   renderCppInputs();
@@ -3632,7 +3642,7 @@ function openDisclosures(e){
   if(!btn||!inp||location.protocol==='file:'||!PRICE_API) return;
 
   const CAP='pa_vision_on';
-  const show=()=>{ btn.hidden=false; };
+  const show=()=>{ btn.hidden=false; const tip=document.getElementById('pickTip'); if(tip) tip.hidden=false; };
   let cached=null; try{ cached=sessionStorage.getItem(CAP); }catch(e){}
   if(cached==='1') show();
   else if(cached!=='0'){

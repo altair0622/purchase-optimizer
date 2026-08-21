@@ -353,6 +353,9 @@ function injectStyle() {
     '#visionPanel .vlinks a{display:inline-block;padding:10px 14px;border-radius:10px;background:var(--accent);color:#fff;font-weight:800;text-decoration:none}',
     '#visionPanel .vlinks a.unk{background:var(--card);color:var(--fg);border:1px solid var(--line)}',
     '#visionPanel .vbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}',
+    '#visionPanel .vfold{margin-top:8px}',
+    '#visionPanel .vfold>summary{cursor:pointer;font-size:var(--t-small);color:var(--muted);font-weight:700}',
+    '#visionPanel .vfold[open]>summary{margin-bottom:6px}',
   ].join('\n');
   document.head.appendChild(st);
 }
@@ -396,41 +399,57 @@ function renderBusy(n) {
 // ⭐ 결과 화면 — 이 함수가 조사 6-B 의 "겹 2·겹 3"을 그린다.
 //    겹 2 = 무엇을 읽었고 무엇을 짐작했는지 노출
 //    겹 3 = 검색어를 **편집 가능한 칸**으로 두고 **자동 실행하지 않는다**
+// ⭐ 결과 화면 — v0.33 에서 크게 덜어냈다.
+//
+// 사용자 피드백 두 개가 같은 곳을 가리켰다:
+//   "읽은 것 짐작한 것들은 개발 측면에서 보이면 좋지 소비자에게는 투머치인 것 같아."
+//   "'이 검색어로 찾기' 부분은 다른 후보들이랑 어떻게 선택해야 하는지 모르겠어. 직관적이지 않아."
+//
+// 진단: **개발자용 구조를 그대로 소비자 화면에 올려놨다.** read/guessed 는 우리가 설계를
+// 검증하려고 만든 필드이고, 후보 3개는 우리가 확신을 못 해서 떠넘긴 것이다.
+// → 화면에 남기는 건 **행동을 바꾸는 것**뿐: 편집 가능한 검색어 한 줄 + 누를 버튼.
+//   나머지는 **접는다. 지우지는 않는다** — 모델이 1~3글자 틀리게 읽어도 우리가 못 잡으므로
+//   "왜 이렇게 나왔지?"를 확인할 경로는 남아야 한다(실측 부록 C-1).
 function renderResult(r) {
-  const readLine = r.read.length
+  const first = r.candidates[0];
+  const alts = r.candidates.slice(1);
+
+  // ⑤ 다른 후보 — 접는다. 펼치면 누르는 즉시 위 칸에 들어간다.
+  const altHtml = alts.length
+    ? '<details class="vfold"><summary>' +
+        T('vision.alts.fold', '다르게 찾기') + ' <span class="tag">' + alts.length + '</span></summary>' +
+        '<div class="valt">' + alts.map(c =>
+          '<label><input type="radio" name="vAlt" data-q="' + esc(c.query) + '"> <code>' + esc(c.query) + '</code>' +
+          (c.why ? ' <span class="muted">— ' + esc(c.why) + '</span>' : '') + '</label>').join('') +
+        '</div></details>'
+    : '';
+
+  // ③ 읽은 것 / 짐작한 것 — 접는다. 결과가 이상할 때 여는 자리다.
+  const readRow = r.read.length
     ? '<div>👀 ' + T('vision.read', '읽은 것') + ': <b>' + r.read.map(esc).join('</b> · <b>') + '</b></div>'
     : '<div>👀 ' + T('vision.read.none', '<b>사진에서 읽어낸 글자가 없어요</b> — 아래는 전부 짐작이에요.') + '</div>';
-  const guessLine = r.guessed.length
+  const guessRow = r.guessed.length
     ? '<div class="vguess">⚠️ ' + T('vision.guessed', '짐작한 것') + ': ' +
       r.guessed.map(g => esc(guessedLine(g))).join(' · ') + '</div>'
     : '';
-
-  const first = r.candidates[0];
-  const alts = r.candidates.slice(1);
-  const altHtml = alts.length
-    ? '<div class="valt"><div class="muted">' + T('vision.alts', '다른 후보 — 누르면 위 칸에 들어가요') + '</div>' +
-      alts.map((c, i) =>
-        '<label><input type="radio" name="vAlt" data-q="' + esc(c.query) + '"> <code>' + esc(c.query) + '</code>' +
-        (c.why ? ' <span class="muted">— ' + esc(c.why) + '</span>' : '') + '</label>').join('') +
-      '</div>'
-    : '';
+  const whyRow = first.why ? '<div class="muted">— ' + esc(first.why) + '</div>' : '';
+  const readHtml = '<details class="vfold"><summary>' +
+    T('vision.read.fold', '사진에서 무엇을 읽었나요?') + '</summary>' +
+    '<div class="vread">' + readRow + guessRow + whyRow + '</div></details>';
 
   panel().innerHTML = '<div class="vbox">' +
     '<div class="vhead">' + (r.category ? '🔍 ' + esc(r.category) : '🔍 ' + T('vision.found', '이렇게 보여요')) + '</div>' +
-    '<div class="vread">' + readLine + guessLine + '</div>' +
     '<div class="vq"><input id="visionQ" type="text" value="' + esc(first.query) + '" ' +
       'aria-label="' + T('vision.q.aria', '검색어') + '">' +
       '<button id="visionGo" type="button">' + T('vision.go', '이 검색어로 찾기') + '</button></div>' +
-    (first.why ? '<div class="muted" style="font-size:var(--t-small)">— ' + esc(first.why) + '</div>' : '') +
-    altHtml +
+    // ④ 남기는 건 **행동을 바꾸는 문장**뿐이다.
+    //    "읽었다는 글자도 저희가 대조해 본 건 아니에요" 는 지웠다 — 우리 사정을 설명할 뿐
+    //    사용자가 할 일을 바꾸지 않는다. 정직성은 문장을 늘려서가 아니라
+    //    **편집 가능한 검색창 + 아래 한 줄**로 지켜진다.
+    '<p class="cpp-note" style="margin:8px 0 0">' + T('vision.note',
+      '<b>맞는지 확인하고 고쳐서 누르세요.</b> 모델번호는 <b>손에 든 물건과 맞춰 보세요</b>.') + '</p>' +
+    altHtml + readHtml +
     '<div id="visionLinks"></div>' +
-    '<p class="cpp-note" style="margin:10px 0 0">' + T('vision.note',
-      '<b>맞는지 확인하고 고쳐서 누르세요.</b> 누르면 <b>아래에 판매처 비교가 만들어져요</b>. ' +
-      // ⭐ 경계를 명시한다. 우리가 보장하는 건 "모델이 읽었다고 한 것을 그대로 보여준다"까지다.
-      '<b>읽었다는 글자도 저희가 대조해 본 건 아니에요</b> — 특히 모델번호는 ' +
-      '손에 든 물건과 한 글자씩 맞춰 보세요. 검색은 누를 때만 열려요. ' +
-      '<b>가격은 우리가 몰라요</b> — 판매처에서 <b>직접 가격을 확인</b>하고, 그 상품 페이지 URL 을 ' +
-      '위 붙여넣기 칸에 넣으면 순비용 비교가 시작돼요.') + '</p>' +
     '<div class="vbtns">' + againBtn() + '</div>' +
     '</div>';
   wire();
