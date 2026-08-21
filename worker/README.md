@@ -131,7 +131,7 @@ npx wrangler secret put VISION_API_KEY          # Gemini 키
 
 ```
 POST /vision
-{ "images": ["<base64 JPEG>", ...],  // 1~2장. 클라이언트가 1024px·q0.75 로 줄여서 보낸다
+{ "images": ["<base64 JPEG>", ...],  // 1~2장. 클라이언트가 1568px·q0.75 로 줄여서 보낸다
   "lang": "ko" | "en" }
 ```
 

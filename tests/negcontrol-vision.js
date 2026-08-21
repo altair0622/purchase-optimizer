@@ -96,8 +96,10 @@ window.__negVision = function () {
       ['저장소가 깨졌을 때 예외가 새어나감 (사파리 프라이빗에서 기능이 죽는다)',
         s => s.replace('  } catch (e) { return 0; }', '  } finally { }')],
 
-      ['업로드 긴 변을 4배로 — 비용이 면적에 비례한다',
-        s => s.replace('const LONG_EDGE = 1024;', 'const LONG_EDGE = 4096;')],
+      ['★ 업로드 긴 변을 1024 로 되돌림 — 12px 구간 실패율이 100% 로 돌아간다',
+        // ⚠️ PRISTINE 은 `export ` 를 이미 걷어낸 뒤다. 여기에 export 를 붙이면
+        //    변형이 안 먹고 소스변경:false 로 조용히 헛돈다(실제로 한 번 그랬다).
+        s => s.replace('const LONG_EDGE = 1568;', 'const LONG_EDGE = 1024;')],
 
       ['shapeResult 가 빈 query 후보를 안 버림',
         s => s.replace("    .filter(c => c && typeof c.query === 'string' && c.query.trim())",

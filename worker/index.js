@@ -337,7 +337,7 @@ function parseTopcashback(html) {
 // 실패(모델번호를 틀리게 읽고 read 에 넣는 것)를 겨냥한 자리다.
 
 const VISION_MAX_IMAGES = 2;            // 되묻기까지 두 장. 세 번째는 없다 (조사 6-C)
-const VISION_MAX_B64 = 1_800_000;       // base64 합계 상한. 1024px q0.75 두 장이면 여유가 크다
+const VISION_MAX_B64 = 1_800_000;       // base64 합계 상한. 1568px q0.75 두 장(≈170KB)이면 여유가 크다
 const VISION_TIMEOUT = 25_000;          // 매장에서 기다리는 시간이다. 넉넉하되 무한은 아니다
 const VISION_MAX_CANDIDATES = 3;        // 조사 6-B 겹 1 (Google PAIR 의 N-best 권고)
 const VISION_MAX_TOKENS = 700;          // ⚠️ 짧게 유지한다 — 실측에서 출력 토큰이 지연을 지배했다
