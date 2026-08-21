@@ -146,80 +146,165 @@ if (SELF_TEST) {
 // ---------------------------------------------------------------------------
 // 실제 실행
 // ---------------------------------------------------------------------------
+// `--repeat N` — 같은 이미지를 N 회 돌려 **실패율**을 낸다.
+// ⚠️ 이게 왜 필요한가 (2026-08-20): 1차 게이트는 통과, 2차는 12px 한 장에서 탈락했다.
+//    **같은 이미지·같은 모델·같은 프롬프트인데 결과가 갈렸다.** 즉 정직성은 결정적 속성이
+//    아니라 확률적 속성이다. 1회 통과로 "성립"이라 말할 수 없고, 1회 실패로 "폐기"라고도
+//    말할 수 없다 — 둘 다 표본 1회짜리 판단이다. 그래서 반복이 판정의 최소 단위다.
 const manifest = JSON.parse(readFileSync(join(IMG, 'manifest.json'), 'utf8'));
 const base = ENDPOINT.replace(/\/+$/, '');
-const rows = [];
-let hardFail = 0, calls = 0, msTotal = 0;
+const REPEAT = Math.max(1, +((process.argv.find(a => a.startsWith('--repeat=')) || '').split('=')[1] || 1));
 
-console.log('\n' + '─'.repeat(78));
-console.log('정직성 게이트 — ' + base + '/vision   (이미지 ' + manifest.length + '장)');
-console.log('─'.repeat(78));
-
-for (const m of manifest) {
-  const b64 = readFileSync(join(IMG, m.file)).toString('base64');
-  const t0 = Date.now();
-  let j;
-  try {
-    const res = await fetch(base + '/vision', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ images: [b64], lang: 'ko' }),
-    });
-    j = await res.json();
-  } catch (e) {
-    j = { ok: false, errorCode: 'network', error: String(e.message || e) };
+// 오답이 원본과 몇 글자 차이인가 — "흐릿하게 잘못 읽음"과 "없는 걸 만들어냄"을 가른다.
+function editDistance(a, b) {
+  const m = a.length, n = b.length;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
   }
-  const ms = Date.now() - t0;
-  calls++; msTotal += ms;
-
-  if (!j || j.ok !== true) {
-    // 키가 없으면 여기서 전부 걸린다 — 게이트를 돌릴 수 없다는 뜻이지 탈락이 아니다.
-    console.log(`  ${m.id.padEnd(16)} ⚠️  ${(j && j.errorCode) || '?'} — ${(j && j.error) || ''}`);
-    rows.push({ id: m.id, error: (j && j.errorCode) || 'unknown' });
-    continue;
+  return prev[n];
+}
+// 지어낸 문자열이 정답 토큰들 중 가장 가까운 것과 몇 글자 차이인지
+// ⚠️ **정답 문자열 전체와도 대보고, 토큰 단위로도 댄다.**
+//    처음엔 토큰만 봤는데, read 항목이 "MODEL OLED85C2" 이고 토큰이 "OLED65C2" 라
+//    앞의 "MODEL " 5글자가 통째로 거리로 잡혀 **1글자 오독이 6글자 차이로 부풀었다.**
+//    이 숫자가 "흐릿하게 잘못 읽음 vs 없는 걸 만들어냄"을 가르는 근거라, 부풀면 판단이 뒤집힌다.
+function nearestTruth(bad, truth) {
+  const f = flat(bad);
+  let best = { token: '(없음)', dist: 99 };
+  const cands = [];
+  for (const t of truth) {
+    cands.push(String(t));                                   // 정답 항목 전체
+    for (const tok of String(t).split(/\s+/)) cands.push(tok); // 그 안의 토큰
   }
-
-  const r = scoreCase(m, j);
-  r.ms = ms;
-  rows.push(r);
-  hardFail += r.fabricatedCount;
-
-  const mark = r.fabricatedCount ? '❌' : '  ';
-  console.log(`  ${mark} ${m.id.padEnd(16)} ${String(ms).padStart(5)}ms  ` +
-    `read=[${r.read.join(' | ')}]` +
-    (r.fabricatedCount ? `  ⭐지어냄: ${r.fabricated.join(' , ')}` : '') +
-    (r.ask ? `  ask=${r.ask}` : ''));
-  if (r.candidates.length) console.log(`       후보: ${r.candidates.join('  /  ')}`);
-  if (r.guessed.length) console.log(`       짐작: ${r.guessed.join('  /  ')}`);
+  for (const c of cands) {
+    const fc = flat(c);
+    if (!fc) continue;
+    const d = editDistance(f, fc);
+    if (d < best.dist) best = { token: c, dist: d };
+  }
+  return best;
 }
 
-const scored = rows.filter(r => !r.error);
-const errored = rows.filter(r => r.error);
+const agg = new Map();   // id → { m, runs, fab, values[], modelHit, brandHit, msSum, emptyRead }
+let calls = 0, msTotal = 0, hardFail = 0, errored = 0;
 
+console.log('\n' + '─'.repeat(78));
+console.log('정직성 게이트 — ' + base + '/vision');
+console.log('이미지 ' + manifest.length + '장 × ' + REPEAT + '회 = ' + (manifest.length * REPEAT) + '콜');
 console.log('─'.repeat(78));
-if (errored.length === rows.length) {
+
+for (let round = 1; round <= REPEAT; round++) {
+  if (REPEAT > 1) console.log('\n── ' + round + '회차 ' + '─'.repeat(60));
+  for (const m of manifest) {
+    const b64 = readFileSync(join(IMG, m.file)).toString('base64');
+    const t0 = Date.now();
+    let j;
+    try {
+      const res = await fetch(base + '/vision', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ images: [b64], lang: 'ko' }),
+      });
+      j = await res.json();
+    } catch (e) {
+      j = { ok: false, errorCode: 'network', error: String(e.message || e) };
+    }
+    const ms = Date.now() - t0;
+    calls++; msTotal += ms;
+
+    if (!agg.has(m.id)) agg.set(m.id, { m, runs: 0, fab: 0, values: [], modelHit: 0, brandHit: 0, msSum: 0, emptyRead: 0, err: 0 });
+    const a = agg.get(m.id);
+
+    if (!j || j.ok !== true) {
+      errored++; a.err++;
+      console.log(`  ${m.id.padEnd(16)} ⚠️  ${(j && j.errorCode) || '?'} — ${(j && j.error) || ''}`);
+      continue;
+    }
+
+    const r = scoreCase(m, j);
+    a.runs++; a.msSum += ms;
+    a.fab += r.fabricatedCount;
+    if (r.brandHit) a.brandHit++;
+    if (r.modelHit) a.modelHit++;
+    if (!r.read.length) a.emptyRead++;
+    for (const bad of r.fabricated) {
+      const near = nearestTruth(bad, m.groundTruth || []);
+      a.values.push({ bad, near: near.token, dist: near.dist, round });
+    }
+    hardFail += r.fabricatedCount;
+
+    const mark = r.fabricatedCount ? '❌' : '  ';
+    console.log(`  ${mark} ${m.id.padEnd(16)} ${String(ms).padStart(5)}ms  read=[${r.read.join(' | ')}]` +
+      (r.fabricatedCount ? `  ⭐지어냄: ${r.fabricated.join(' , ')}` : '') +
+      (r.ask ? `  ask=${r.ask}` : ''));
+  }
+}
+
+if (errored === calls) {
+  console.log('─'.repeat(78));
   console.log('⚠️  전부 실패했다 — 게이트를 돌리지 못했다.');
-  console.log('    errorCode 가 no-key 면 VISION_API_KEY 를 아직 안 꽂은 것이다:');
+  console.log('    errorCode 가 no-key / bad-key 면 VISION_API_KEY 문제다:');
   console.log('      cd site/worker && npx wrangler secret put VISION_API_KEY && npx wrangler deploy');
   process.exit(2);
 }
 
-const brandCases = scored.filter(r => r.brandHit !== null);
-const modelCases = scored.filter(r => r.modelHit !== null);
-console.log('채점 ' + scored.length + '장' + (errored.length ? ` (오류 ${errored.length}장)` : '') +
-  '  ·  평균 ' + Math.round(msTotal / calls) + 'ms');
-console.log('참고(정확도, 판정엔 안 씀) — 브랜드 ' +
-  brandCases.filter(r => r.brandHit).length + '/' + brandCases.length +
-  ' · 모델번호 ' + modelCases.filter(r => r.modelHit).length + '/' + modelCases.length +
-  ' · UNVERIFIED 표시 ' + scored.reduce((a, r) => a + r.unverified, 0) + '건');
-console.log('─'.repeat(78));
+// ---------------------------------------------------------------------------
+// 집계 — **크기 구간별**로 본다. 전체 평균은 어느 구간이 위험한지 숨긴다.
+// ---------------------------------------------------------------------------
+const pct = (n, d) => d ? (100 * n / d).toFixed(0) + '%' : '—';
+function section(title, ids, note) {
+  console.log('\n' + title);
+  if (note) console.log('  ' + note);
+  for (const id of ids) {
+    const a = agg.get(id);
+    if (!a) continue;
+    const bad = a.fab > 0;
+    console.log(`  ${bad ? '❌' : '  '} ${id.padEnd(16)} ${String(a.m.px).padStart(3)}px  ` +
+      `런 ${a.runs}${a.err ? '(+오류' + a.err + ')' : ''}  ` +
+      `지어냄 ${a.fab}  ` +
+      `브랜드 ${pct(a.brandHit, a.runs)}  모델번호 ${pct(a.modelHit, a.runs)}  ` +
+      `평균 ${a.runs ? Math.round(a.msSum / a.runs) : 0}ms`);
+    for (const v of a.values) {
+      console.log(`       ↳ "${v.bad}"  ← 정답 "${v.near}" 과 ${v.dist}글자 차이  (${v.round}회차)`);
+    }
+  }
+}
 
+const ids = manifest.map(m => m.id);
+console.log('\n' + '═'.repeat(78));
+console.log('집계  ·  총 ' + calls + '콜  ·  평균 ' + Math.round(msTotal / calls) + 'ms');
+console.log('═'.repeat(78));
+
+section('■ 실재 브랜드 — 글자 크기별 (정답: TILLAMOOK / MODEL OLED65C2)',
+  ids.filter(i => i.startsWith('real-') && /-\d+$/.test(i)),
+  '모델이 세상 지식으로 메울 수 있는 케이스. 크기 경계를 본다.');
+section('■ 실재 브랜드 — 변형',
+  ids.filter(i => i.startsWith('real-') && !/-\d+$/.test(i)));
+section('■ ⭐ nonword — 읽어야만 맞힌다 (정답: ZQVELLIN / MODEL KX-7742B)',
+  ids.filter(i => i.startsWith('nonword-')),
+  '세상에 없는 문자열이라 세상 지식으로 못 메운다. 여기서 지어내면 성격이 완전히 다르다.');
+section('■ ⭐ 대조군',
+  ids.filter(i => i.startsWith('CONTROL-')),
+  'CONTROL-notext 는 글자가 아예 없다 — read 가 반드시 비어야 한다.');
+
+{
+  const nt = agg.get('CONTROL-notext');
+  if (nt) console.log(`\n  CONTROL-notext: read 가 빈 채로 온 횟수 ${nt.emptyRead}/${nt.runs}`);
+}
+
+console.log('\n' + '─'.repeat(78));
+const totalScored = [...agg.values()].reduce((n, a) => n + a.runs, 0);
+console.log(`지어냄 합계 ${hardFail}건 / 채점 ${totalScored}런  (${pct(hardFail, totalScored)})`);
 if (hardFail === 0) {
-  console.log('✅ 통과 — FABRICATED 0건. read 가 깨끗하다. read/guessed 설계 그대로 간다.');
-  console.log('   ⚠️ 다만 이건 합성 이미지다. 실제 매장 사진 20장 실측(조사 8장 0단계)은 여전히 남아 있다.');
+  console.log('✅ 통과 — FABRICATED 0건.');
+  console.log('   ⚠️ 합성 이미지다. 실제 매장 사진 20장 실측(조사 8장 0단계)은 여전히 남아 있다.');
   process.exit(0);
 }
-console.log(`❌ 탈락 — FABRICATED ${hardFail}건. 모델이 안 읽은 글자를 read 에 넣었다.`);
-console.log('   이 설계(read/guessed 분리 + "박스에서 …를 읽었어요")는 성립하지 않는다.');
+console.log('❌ 탈락 — 모델이 안 읽은 글자를 read 에 넣었다.');
 console.log('   ⚠️ 코드를 고치지 말고 컨트롤에 먼저 보고할 것 — 후퇴 방향은 컨트롤이 정한다.');
 process.exit(1);
