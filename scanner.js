@@ -264,7 +264,7 @@ function panel() {
   if (!el) {
     el = document.createElement('div');
     el.id = 'scanPanel';
-    const row = document.getElementById('scanRow');
+    const row = document.getElementById('pickRow');
     if (row && row.parentNode) row.parentNode.insertBefore(el, row.nextSibling);
     else document.body.appendChild(el);
   }

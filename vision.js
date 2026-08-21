@@ -362,7 +362,7 @@ function panel() {
   if (!el) {
     el = document.createElement('div');
     el.id = 'visionPanel';
-    const row = document.getElementById('visionRow');
+    const row = document.getElementById('pickRow');
     if (row && row.parentNode) row.parentNode.insertBefore(el, row.nextSibling);
     else document.body.appendChild(el);
   }
@@ -377,7 +377,7 @@ const againBtn = () => '<button class="mini" id="visionAgain" type="button">' +
 // 바코드를 여기에 두는 것이 조사 7장의 "격하하되 남긴다"의 구체적 형태다:
 // 사진이 두 번 실패한 자리가 바코드가 가장 값어치 있는 자리다.
 function escapeHatches() {
-  const hasScan = !!document.getElementById('scanRow');
+  const hasScan = !!document.getElementById('scanBtn');
   return '<div class="valt" style="margin-top:12px">' +
     '<div>· ' + T('vision.esc.type', '<b>상품명을 직접 입력</b>해도 똑같이 동작해요 — 그러면 사진은 아무 데도 안 가요.') + '</div>' +
     (hasScan ? '<div>· ' + T('vision.esc.scan',
@@ -425,7 +425,7 @@ function renderResult(r) {
     altHtml +
     '<div id="visionLinks"></div>' +
     '<p class="cpp-note" style="margin:10px 0 0">' + T('vision.note',
-      '<b>맞는지 확인하고 고쳐서 누르세요.</b> ' +
+      '<b>맞는지 확인하고 고쳐서 누르세요.</b> 누르면 <b>아래에 판매처 비교가 만들어져요</b>. ' +
       // ⭐ 경계를 명시한다. 우리가 보장하는 건 "모델이 읽었다고 한 것을 그대로 보여준다"까지다.
       '<b>읽었다는 글자도 저희가 대조해 본 건 아니에요</b> — 특히 모델번호는 ' +
       '손에 든 물건과 한 글자씩 맞춰 보세요. 검색은 누를 때만 열려요. ' +
@@ -512,6 +512,34 @@ function renderLinks(query) {
     esc(l.name) + T('vision.link.suffix', '에서 찾기') + '</a>').join('') + '</div>';
 }
 
+// ⭐ v0.32 — 검색어가 정해지면 **판매처 비교로 바로 넘긴다.**
+// 예전엔 여기서 검색 링크 4개를 그리고 끝냈는데, 그러면 사용자가 판매처를 열고 URL 을 복사해
+// 붙여넣어야 결론이 나온다 — **매장에 서서 그걸 할 사람은 없다.**
+// 계산기(index.html)가 있으면 그쪽 applyRecognizedProduct() 가 판매처 칸을 만들고 캐시백 %까지
+// 채운다. 계산기가 없으면(단독 테스트·하니스) 예전처럼 링크만 그린다 — 이 파일은 혼자서도 돌아야 한다.
+function runSearch(query) {
+  const q = String(query == null ? '' : query).trim();
+  if (!q) return;
+  try {
+    if (typeof applyRecognizedProduct === 'function') {
+      const r = applyRecognizedProduct(q, {});
+      if (r && r.ok) { renderHandoff(q, r); return; }
+    }
+  } catch (e) { /* 계산기 쪽이 실패하면 아래 링크 경로로 물러난다 */ }
+  renderLinks(q);
+}
+
+// 넘긴 뒤의 화면 — 판매처 칸에 링크가 이미 들어가 있으므로 여기서 또 링크를 나열하지 않는다.
+function renderHandoff(q, r) {
+  panel().innerHTML = '<div class="vbox">' +
+    '<div class="vhead">✅ ' + T('vision.handoff', '아래에 판매처 {n}곳을 만들었어요').replace('{n}', String(r.n)) + '</div>' +
+    '<p class="muted" style="margin:0"><code>' + esc(q) + '</code></p>' +
+    '<p class="cpp-note" style="margin:8px 0 0">' + T('vision.handoff.note',
+      '판매처마다 <b>가격 보기</b>로 확인하고 가격만 넣으면 순위가 나와요. 검색어가 틀렸으면 다시 찍어 주세요.') + '</p>' +
+    '<div class="vbtns">' + againBtn() + '</div></div>';
+  wire();
+}
+
 function wire() {
   const again = document.getElementById('visionAgain');
   if (again) again.addEventListener('click', () => {
@@ -521,8 +549,9 @@ function wire() {
   const q = document.getElementById('visionQ');
   const go = document.getElementById('visionGo');
   // ⭐ 검색을 자동 실행하지 않는다 — 누를 때만 링크가 생긴다(조사 9장 #2).
-  if (go && q) go.addEventListener('click', () => renderLinks(q.value));
-  if (q) q.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); renderLinks(q.value); } });
+  // ⭐ 검색을 자동 실행하지 않는다 — 누를 때만 넘어간다(조사 9장 #2). 그건 그대로다.
+  if (go && q) go.addEventListener('click', () => runSearch(q.value));
+  if (q) q.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runSearch(q.value); } });
   panel().querySelectorAll('input[name="vAlt"]').forEach(el => {
     el.addEventListener('change', () => {
       const box = document.getElementById('visionQ');

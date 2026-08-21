@@ -116,6 +116,15 @@
     padding:2px 8px;border-radius:20px}
   /* 모드 토글 + 사이트 모드 */
   .modebar{display:inline-flex;background:#eef1f4;border-radius:11px;padding:3px;margin:0 0 18px;gap:3px}
+  /* 입력 수단 3개 — v0.32. 세로로 쌓으면서 각자 설명을 달면 길어질 수밖에 없다(사용자: "너무 말이 많아").
+     폰(375px)에서 셋이 한 줄에 들어가야 하므로 flex:1 + 최소폭으로 잡는다. */
+  .pickrow{display:flex;gap:8px;margin:4px 0 0}
+  .pick{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;
+        padding:14px 6px;border:1px solid var(--line);border-radius:12px;background:var(--card);
+        color:var(--fg);font-weight:800;font-size:14px;cursor:pointer;text-align:center;line-height:1.25}
+  .pick:hover{border-color:var(--accent)}
+  .pick.on{border-color:var(--accent);background:var(--accent);color:#fff}
+  #typePanel{margin-top:12px}
   .modebar button{background:transparent;color:var(--muted);font-weight:700;padding:9px 16px;border-radius:9px;font-size:13px}
   .modebar button:hover{background:#e4e8ec}
   .modebar button.on{background:#fff;color:var(--accent);box-shadow:var(--shadow)}
@@ -294,107 +303,55 @@
       <p class="brandline">The price after everything.</p>
     </div>
     <div class="langtog" id="langTog" data-i18n-title="lang.toggle.title" title="언어 전환"><button type="button" data-lang="ko">KO</button><button type="button" data-lang="en">EN</button></div>
-    <span class="ver">v0.31</span>
+    <span class="ver">v0.32</span>
   </div>
-  <p class="tagline" data-i18n="brand.tagline"><b>다 빼고 나면, 실제로 얼마.</b> 같은 물건을 파는 여러 곳을 캐시백·카드 적립·오퍼까지 반영한 <b>실제 부담</b>으로 비교해요.
-    카드는 있으면 더 정확해지고, <b>없어도 답은 나와요.</b></p>
-
-  <!-- 0. 내 카드 (온보딩) — 접은 상태로 시작한다.
-       "선택 사항"이라고 써놓고 카탈로그 25행이 첫 화면을 독점하던 문제(진단 §1). -->
-  <div class="card foldcard walletcard" id="walletCard">
-   <details id="walletPanel">
-    <summary><span data-i18n="wallet.title">👛 내 카드</span> <span class="wsum" id="walletSummary">안 골라도 계산은 돼요 — 고르면 더 정확해져요</span></summary>
-    <div class="foldbody">
-    <div id="walletWelcome" style="display:none">
-      <div class="welcome">
-        <div class="wtitle" data-i18n="wallet.welcome.title">💳 카드는 선택 사항이에요</div>
-        <p data-i18n="wallet.welcome.body"><b>안 골라도 돼요.</b> 어디서 사면 제일 싼지, 어느 캐시백 링크로 들어갈지는 카드 없이도 그대로 계산돼요.<br>
-        카드를 골라두면 <b>거기서 얼마나 더 줄어드는지</b>까지 같이 보여드려요.</p>
-        <button class="mini" id="walletExample" type="button" data-i18n="wallet.example">🔎 인기 카드로 예시 보기</button>
-        <span class="muted" style="margin-left:8px" data-i18n="wallet.example.note">— 나중에 바꿀 수 있어요</span>
-      </div>
-    </div>
-    <input id="walletSearch" data-i18n-ph="wallet.search.ph" placeholder="카드 검색 (예: Sapphire, Gold, Double Cash, Venture)" style="margin-bottom:12px">
-    <div id="walletCatalog" class="walletcat"></div>
-    <details id="ccPanel" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
-      <summary data-i18n="cc.title">➕ 목록에 없는 카드 직접 추가 <span class="muted" style="font-weight:600">— 이름·적립률만 넣으면 계산에 합류</span></summary>
-      <div class="grid g2" style="margin-top:10px">
-        <div><label data-i18n="cc.name">카드 이름</label><input id="ccName" data-i18n-ph="cc.name.ph" placeholder="예: US Bank Cash+, 회사 법인카드"></div>
-        <div><label data-i18n="cc.cur">적립 종류</label><select id="ccCur"></select></div>
-      </div>
-      <div style="margin-top:10px"><label data-i18n="cc.base">기본 적립률 <span class="muted" style="font-weight:600">— 모든 카테고리에 적용 (현금이면 %, 포인트면 배수)</span></label>
-        <input id="ccBase" type="number" step="0.5" min="0" value="1" style="max-width:160px"></div>
-      <details id="ccCatDetails" style="margin-top:8px">
-        <summary data-i18n="cc.percat">카테고리별로 다르게 <span class="muted" style="font-weight:600">— 예: 외식만 3</span></summary>
-        <div class="grid g4" style="margin-top:8px" id="ccCatGrid"></div>
-      </details>
-      <div style="display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">
-        <button class="mini" id="ccSave" type="button" style="background:var(--accent);color:#fff" data-i18n="cc.save">＋ 카드 추가</button>
-        <button class="mini" id="ccCancel" type="button" style="display:none" data-i18n="cc.cancel">편집 취소</button>
-        <span class="muted" id="ccMsg"></span>
-      </div>
-      <p class="cpp-note" data-i18n="cc.note">추가한 카드는 <b>직접 추가</b> 그룹에 나타나고 ✎ 수정 · ✕ 삭제할 수 있어요. 이 브라우저에 저장되고, 🔗 지갑 링크에도 포함돼서 받은 사람에게 그대로 전달돼요.</p>
-    </details>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:8px">
-      <span class="muted"><span class="wcount" id="walletCount">0장</span> <span data-i18n="wallet.count.suffix">선택됨 · 지갑이 아래 계산 전체에 반영돼요</span></span>
-      <span style="display:flex;gap:8px"><button class="mini" id="walletShare" type="button" data-i18n-title="wallet.share.title" title="내 카드 구성을 URL로 복사 — 받은 사람은 같은 지갑으로 시작" data-i18n="wallet.share">🔗 내 지갑 링크 복사</button><button class="mini del" id="walletClear" type="button" data-i18n="wallet.clear">비우기</button></span>
-    </div>
-    <p class="cpp-note" data-i18n="wallet.share.note">🔗 <b>내 지갑 링크 복사</b> = 내가 고른 카드 구성을 링크 하나로 — 폰↔PC 이동하거나, 카드 구성이 같은 가족에게 보내면 <b>같은 지갑으로 시작</b>해요. · 적립률은 2026년 대표값이에요(참고용 — 실제 약관·한도와 다를 수 있어요).</p>
-    </div><!-- /.foldbody -->
-   </details>
-  </div>
+  <p class="tagline" data-i18n="brand.tagline"><b>다 빼고 나면, 실제로 얼마.</b> 캐시백·카드 적립까지 뺀 <b>실제 부담</b>으로 비교해요.</p>
 
   <div class="modebar">
     <button id="modeProduct" type="button" class="on" data-i18n="mode.product">🛒 상품 모드 <small style="font-weight:600;font-size:11px;opacity:.8">가격으로 실제 부담</small></button>
     <button id="modeSite" type="button" data-i18n="mode.site">🏬 사이트 모드 <small style="font-weight:600;font-size:11px;opacity:.8">가격 없이 카드+링크</small></button>
   </div>
 
-  <!-- 1. 여기서 시작 — 붙여넣기 + 상품 정보(구 1번 카드를 여기로 합침).
-       입력 바로 다음에 결론이 오도록 순서를 바꿨다(진단 §1). -->
-  <div class="card product-only">
-    <h2><span class="num">1</span> <span data-i18n="start.title">여기서 시작</span> <span class="tag" data-i18n="start.sub">파는 곳 URL을 여러 개 붙여넣으면 자동 비교</span></h2>
+  <!-- 1. 여기서 시작 — v0.32 재배치.
+       사용자 피드백: "사진으로 상품찾기가 너무 아래 있는 거 같아서. 너무 말이 많아."
+       진단: 입력 수단 3개(붙여넣기·사진·바코드)가 456/740/821px 에 흩어져 **각자 설명문을
+       달고** 있었다. 사용자에겐 이게 하나의 질문이다 — "이 물건을 어떻게 알려줄까?"
+       → ① 셋을 한 줄에 ② 설명은 **고른 뒤에** ③ 지갑·고지는 아래로. -->
+  <div class="card product-only" id="startCard">
+    <h2 data-i18n="start.q">이 물건, 어디서 사는 게 쌀까요?</h2>
     <div class="demobar" id="demoBar" style="display:none">
-      <span data-i18n="demo.body">👋 지금 보이는 건 <b>예시</b>예요 — Grayson 로프트 베드 · Crate &amp; Barrel · $1,699.
-        위에 URL을 붙여넣으면 바로 바뀌어요.</span>
+      <span data-i18n="demo.body">👋 지금 보이는 건 <b>예시</b>예요 — Grayson 로프트 베드 · Crate &amp; Barrel · $1,699.</span>
       <button class="mini" id="demoClear" type="button" data-i18n="demo.clear">예시 지우고 시작</button>
     </div>
-    <label data-i18n="start.paste.label">같은 상품을 파는 <b>여러 사이트의 URL</b>을 한 줄에 하나씩 (한 개만 넣어도 돼요)</label>
-    <textarea id="paste" rows="3" placeholder="https://www.amazon.com/dp/...
-https://www.walmart.com/ip/...
-https://www.target.com/p/...
-— 또는 상품 제목과 $가격을 통째로 붙여넣기" data-i18n-ph="start.paste.ph"></textarea>
-    <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
-      <button id="fillBtn" type="button" data-i18n="start.compare">비교 시작</button>
-      <span class="muted" id="pasteMsg"></span>
-    </div>
-    <p class="cpp-note" data-i18n="start.note">URL마다 <b>판매처 칸이 자동으로 만들어지고, 캐시백 %와 가격까지 채워져요</b>. 가격은 일부 사이트가 막아서 실패할 수 있는데, 그럴 땐 그 칸만 직접 넣으면 돼요. <b>카드는 없어도 계산돼요</b> — 어디서·어느 캐시백으로 사면 싼지는 그대로 나와요.<br>
-      🔒 가격을 대신 읽어오려면 <b>붙여넣은 상품 URL만</b> 조회 서버로 나가요(다른 입력은 이 브라우저 밖으로 나가지 않아요). 싫으면 URL 대신 가격을 직접 넣으면 돼요 — <a href="#disclosures" onclick="openDisclosures(event)">자세히</a>.</p>
-    <!-- 📷 사진으로 상품 찾기 (v0.31) — **1차 경로**.
-         근거: 리서치/사진-상품인식-조사.md 8장(MVP) · 7장(바코드 격하)
-         인식 본체(vision.js)는 이 파일에 없다. 버튼을 누른 사람만 같은 출처에서 1회 받는다.
-         ⚠️ 스캐너와 달리 **157KB 라이브러리가 필요 없다** — 사진 경로가 바코드보다 오히려 가볍다.
-         ⚠️ 워커에 비전 API 키가 안 꽂혀 있으면 아래 글루가 이 줄을 **아예 안 켠다**.
-            눌러서 실패하게 두지 않는다. -->
-    <div id="visionRow" style="display:none;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">
-      <label class="mini" id="visionBtn" for="visionFile" style="cursor:pointer" data-i18n="vision.btn">📷 사진으로 상품 찾기</label>
-      <input type="file" id="visionFile" accept="image/*" capture="environment" hidden>
-      <span class="muted" data-i18n="vision.btn.note">바코드가 없어도 돼요 · <b>찍은 사진은 기기 밖으로 나가요</b> — <a href="#disclosures" onclick="openDisclosures(event)">어디로 가는지 보기</a></span>
-    </div>
-    <div id="visionPanel"></div>
 
-    <!-- 📊 매장 바코드 스캔 (v0.29) — **보조 경로로 격하**(조사 7장). 지우지 않는다:
-         ① 포장 상품엔 더 정확하고 실패가 이진적이라 "그럴듯한 오답"이 없다
-         ② **사진이 기기 밖으로 안 나가는 실제 탈출구**다 — 제거하면 되찾을 수 없는 자산이다
-         ③ 이미 만들어져 있고 지연 로딩이라 안 쓰는 사용자에겐 0바이트다
-         스캐너 본체(scanner.js + quagga2 157KB)는 이 파일에 없다. 버튼을 누른 사람만
-         같은 출처에서 1회 받는다(리서치/바코드-매장스캔-조사.md 8-D).
-         file:// 에서는 동적 import 가 막히므로 아래 글루가 이 줄을 아예 안 켠다. -->
-    <div id="scanRow" style="display:none;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">
-      <label class="mini" id="scanBtn" for="scanFile" style="cursor:pointer" data-i18n="scan.btn">📊 바코드 찍기</label>
+    <!-- 입력 수단 3개. 설명문을 각자 달지 않는다 — 고른 뒤에 해당 패널에서 말한다.
+         📷·📊 는 조건이 맞을 때만 켜진다(아래 글루). ⌨️ 는 항상 있다 — 폴백이라서. -->
+    <div class="pickrow" id="pickRow">
+      <label class="pick" id="visionBtn" for="visionFile" hidden data-i18n="pick.photo">📷 사진 찍기</label>
+      <input type="file" id="visionFile" accept="image/*" capture="environment" hidden>
+      <label class="pick" id="scanBtn" for="scanFile" hidden data-i18n="pick.barcode">📊 바코드</label>
       <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
-      <span class="muted" data-i18n="scan.btn.note">포장에 바코드가 있을 때 · <b>이쪽은 사진이 기기 밖으로 나가지 않아요</b> — 주방·소형가전·완구·화장품엔 잘 통하고, <b>TV·대형가전·코스트코 물건엔 잘 안 통해요</b>.</span>
+      <button class="pick" id="typeBtn" type="button" data-i18n="pick.type">⌨️ 직접 넣기</button>
     </div>
+
+    <div id="visionPanel"></div>
     <div id="scanPanel"></div>
+
+    <!-- ⌨️ 직접 넣기 — 눌러야 펼쳐진다. 예전엔 이게 첫 화면을 통째로 먹고 있었다.
+         ⚠️ details 가 아니라 hidden 토글이다. 하니스가 textContent 로 읽는 자리가 아니고,
+            details 로 감싸면 접힘 상태에서 innerText 가 빈 문자열이 되는 함정이 있다. -->
+    <div id="typePanel" hidden>
+      <label data-i18n="start.paste.label">파는 곳 <b>URL</b>을 한 줄에 하나씩 (하나만 넣어도 돼요)</label>
+      <textarea id="paste" rows="3" placeholder="https://www.amazon.com/dp/...
+https://www.walmart.com/ip/...
+— 또는 상품 제목과 $가격을 통째로 붙여넣기" data-i18n-ph="start.paste.ph"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+        <button id="fillBtn" type="button" data-i18n="start.compare">비교 시작</button>
+        <span class="muted" id="pasteMsg"></span>
+      </div>
+      <p class="cpp-note" data-i18n="start.note">URL마다 <b>판매처 칸이 자동으로 만들어지고 캐시백 %도 채워져요</b>. <b>카드는 없어도 계산돼요</b>.<br>
+        🔒 가격을 대신 읽어오려면 <b>붙여넣은 상품 URL만</b> 조회 서버로 나가요 — <a href="#disclosures" onclick="openDisclosures(event)">자세히</a>.</p>
+    </div>
   </div>
 
   <!-- 상품 정보 — 구 1번 카드. 붙여넣기가 자동으로 채우므로 접어둔다.
@@ -533,6 +490,57 @@ https://www.target.com/p/...
 
   <!-- v0.28 카드사 오퍼 붙여넣기 — 어디까지나 옵션이다.
        안 써도 도구는 그대로 작동하고(프라이버시 원칙 P1), 그래서 접힌 채로 아래에 둔다. -->
+  <!-- 👛 내 카드 — v0.32 에서 **판매처 입력 아래로** 내렸다.
+       처음엔 결론 바로 뒤에 뒀는데, 그러면 사진 인식 직후 **결론과 가격 입력칸 사이**에
+       지갑이 끼어든다(폰에서 677px vs 984px). 카드는 선택 사항이고 가격 입력이 다음 행동이라
+       순서가 거꾸로였다. → 판매처·카드상세 다음, 선택 항목 무리로 옮겼다. -->
+  <!-- 👛 내 카드 — v0.32 에서 결론 아래로 내렸다.
+       카드는 **선택 사항**이고(카드 없이도 답이 나온다), 첫 화면에서 175px 를 먹고 있었다. -->
+  <!-- 0. 내 카드 (온보딩) — 접은 상태로 시작한다.
+       "선택 사항"이라고 써놓고 카탈로그 25행이 첫 화면을 독점하던 문제(진단 §1). -->
+  <div class="card foldcard walletcard" id="walletCard">
+   <details id="walletPanel">
+    <summary><span data-i18n="wallet.title">👛 내 카드</span> <span class="wsum" id="walletSummary">안 골라도 계산은 돼요 — 고르면 더 정확해져요</span></summary>
+    <div class="foldbody">
+    <div id="walletWelcome" style="display:none">
+      <div class="welcome">
+        <div class="wtitle" data-i18n="wallet.welcome.title">💳 카드는 선택 사항이에요</div>
+        <p data-i18n="wallet.welcome.body"><b>안 골라도 돼요.</b> 어디서 사면 제일 싼지, 어느 캐시백 링크로 들어갈지는 카드 없이도 그대로 계산돼요.<br>
+        카드를 골라두면 <b>거기서 얼마나 더 줄어드는지</b>까지 같이 보여드려요.</p>
+        <button class="mini" id="walletExample" type="button" data-i18n="wallet.example">🔎 인기 카드로 예시 보기</button>
+        <span class="muted" style="margin-left:8px" data-i18n="wallet.example.note">— 나중에 바꿀 수 있어요</span>
+      </div>
+    </div>
+    <input id="walletSearch" data-i18n-ph="wallet.search.ph" placeholder="카드 검색 (예: Sapphire, Gold, Double Cash, Venture)" style="margin-bottom:12px">
+    <div id="walletCatalog" class="walletcat"></div>
+    <details id="ccPanel" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
+      <summary data-i18n="cc.title">➕ 목록에 없는 카드 직접 추가 <span class="muted" style="font-weight:600">— 이름·적립률만 넣으면 계산에 합류</span></summary>
+      <div class="grid g2" style="margin-top:10px">
+        <div><label data-i18n="cc.name">카드 이름</label><input id="ccName" data-i18n-ph="cc.name.ph" placeholder="예: US Bank Cash+, 회사 법인카드"></div>
+        <div><label data-i18n="cc.cur">적립 종류</label><select id="ccCur"></select></div>
+      </div>
+      <div style="margin-top:10px"><label data-i18n="cc.base">기본 적립률 <span class="muted" style="font-weight:600">— 모든 카테고리에 적용 (현금이면 %, 포인트면 배수)</span></label>
+        <input id="ccBase" type="number" step="0.5" min="0" value="1" style="max-width:160px"></div>
+      <details id="ccCatDetails" style="margin-top:8px">
+        <summary data-i18n="cc.percat">카테고리별로 다르게 <span class="muted" style="font-weight:600">— 예: 외식만 3</span></summary>
+        <div class="grid g4" style="margin-top:8px" id="ccCatGrid"></div>
+      </details>
+      <div style="display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap">
+        <button class="mini" id="ccSave" type="button" style="background:var(--accent);color:#fff" data-i18n="cc.save">＋ 카드 추가</button>
+        <button class="mini" id="ccCancel" type="button" style="display:none" data-i18n="cc.cancel">편집 취소</button>
+        <span class="muted" id="ccMsg"></span>
+      </div>
+      <p class="cpp-note" data-i18n="cc.note">추가한 카드는 <b>직접 추가</b> 그룹에 나타나고 ✎ 수정 · ✕ 삭제할 수 있어요. 이 브라우저에 저장되고, 🔗 지갑 링크에도 포함돼서 받은 사람에게 그대로 전달돼요.</p>
+    </details>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:8px">
+      <span class="muted"><span class="wcount" id="walletCount">0장</span> <span data-i18n="wallet.count.suffix">선택됨 · 지갑이 아래 계산 전체에 반영돼요</span></span>
+      <span style="display:flex;gap:8px"><button class="mini" id="walletShare" type="button" data-i18n-title="wallet.share.title" title="내 카드 구성을 URL로 복사 — 받은 사람은 같은 지갑으로 시작" data-i18n="wallet.share">🔗 내 지갑 링크 복사</button><button class="mini del" id="walletClear" type="button" data-i18n="wallet.clear">비우기</button></span>
+    </div>
+    <p class="cpp-note" data-i18n="wallet.share.note">🔗 <b>내 지갑 링크 복사</b> = 내가 고른 카드 구성을 링크 하나로 — 폰↔PC 이동하거나, 카드 구성이 같은 가족에게 보내면 <b>같은 지갑으로 시작</b>해요. · 적립률은 2026년 대표값이에요(참고용 — 실제 약관·한도와 다를 수 있어요).</p>
+    </div><!-- /.foldbody -->
+   </details>
+  </div>
+
   <div class="card foldcard" id="offerPasteCard">
    <details id="offerPastePanel">
     <summary><span data-i18n="ofp.title">🎁 카드사 오퍼 붙여넣기</span> <span class="wsum" id="ofpSummary" data-i18n="ofp.sum.none">선택 — 안 써도 계산은 그대로 돼요</span></summary>
@@ -568,7 +576,7 @@ https://www.target.com/p/...
   </div>
 
   <p class="muted" style="text-align:center" data-i18n="footer.note">
-    v0.31 — 입력은 이 브라우저에 자동 저장돼요. 지갑은 <b>🔗 링크 복사</b>로 다른 기기·다른 사람에게 넘길 수 있어요.<br>
+    v0.32 — 입력은 이 브라우저에 자동 저장돼요. 지갑은 <b>🔗 링크 복사</b>로 다른 기기·다른 사람에게 넘길 수 있어요.<br>
     📱 폰에서는 브라우저 메뉴 → <b>"홈 화면에 추가"</b>하면 앱처럼 설치돼요 (오프라인에서도 열려요).
   </p>
 
@@ -752,7 +760,7 @@ Object.assign(STRINGS.en, {
 
   // ── 브랜드 · 메타 ────────────────────────────────────────────────
   'brand.titleSuffix': 'what a purchase actually costs, after cashback, card rewards, and offers',
-  'brand.tagline': '<b>The price after everything.</b> Compare every seller of the same item by <b>net cost</b> — portal cashback, card earnings, and card offers included. Cards make the answer sharper, and <b>you still get an answer without them.</b>',
+  'brand.tagline': '<b>The price after everything.</b> Compare by <b>net cost</b> — cashback and card earnings taken off.',
   'meta.desc': 'Free calculator that compares the real net cost of a purchase across sellers — portal cashback, card earnings, offers, coupons. No account, no bank login.',
   'lang.toggle.title': 'Switch language',
 
@@ -803,13 +811,18 @@ Object.assign(STRINGS.en, {
   // ── 1. 시작 ──────────────────────────────────────────────────────
   'start.title': 'Start here',
   'start.sub': 'Paste a few seller URLs and they get compared automatically',
-  'demo.body': '👋 What you’re looking at is an <b>example</b> — Grayson loft bed · Crate &amp; Barrel · $1,699. Paste your own URLs above and it switches over.',
+  'demo.body': '👋 What you’re looking at is an <b>example</b> — Grayson loft bed · Crate &amp; Barrel · $1,699.',
+  // v0.32 — 입력 수단 3개를 한 줄에
+  'start.q': 'Where is this cheapest?',
+  'pick.photo': '📷 Take a photo',
+  'pick.barcode': '📊 Barcode',
+  'pick.type': '⌨️ Type it',
   'demo.clear': 'Clear the example',
   'demo.pname': 'Grayson loft bed',
-  'start.paste.label': '<b>URLs from the sellers</b> carrying the same item, one per line (one is enough)',
+  'start.paste.label': 'Seller <b>URLs</b>, one per line (one is enough)',
   'start.paste.ph': 'https://www.amazon.com/dp/...\nhttps://www.walmart.com/ip/...\nhttps://www.target.com/p/...\n— or paste the product title and $price as-is',
   'start.compare': 'Compare',
-  'start.note': 'Each URL <b>becomes a seller row, with the cashback % and the price filled in</b>. Some sites block price reads; when that happens, type that one price yourself. <b>Cards are not required</b> — which seller and which cashback route is cheapest comes out either way.<br>🔒 To read a price for you, <b>only the product URL you pasted</b> goes to our fetcher (nothing else leaves this browser). Don’t want that? Type the price instead of the URL — <a href="#disclosures" onclick="openDisclosures(event)">details</a>.',
+  'start.note': 'Each URL <b>becomes a seller row with the cashback % filled in</b>. <b>Cards are not required.</b><br>🔒 To read a price for you, <b>only the product URL you pasted</b> goes to our fetcher — <a href="#disclosures" onclick="openDisclosures(event)">details</a>.',
   'scan.btn': '📊 Scan a barcode',
   'scan.btn.note': 'When the package has a barcode · <b>this one never sends the photo off your device</b> — works well on kitchenware, small appliances, toys and cosmetics, and <b>does not work on TVs, large appliances, or Costco items</b>.',
 
@@ -1241,7 +1254,7 @@ Object.assign(STRINGS.en, {
   'share.prompt': 'Copy this link to share it:',
 
   // ── 푸터 · 고지 ──────────────────────────────────────────────────
-  'footer.note': 'v0.31 — your inputs save automatically in this browser. Hand your wallet to another device or another person with <b>🔗 Copy link</b>.<br>📱 On a phone, browser menu → <b>"Add to Home Screen"</b> installs it like an app (it opens offline too).',
+  'footer.note': 'v0.32 — your inputs save automatically in this browser. Hand your wallet to another device or another person with <b>🔗 Copy link</b>.<br>📱 On a phone, browser menu → <b>"Add to Home Screen"</b> installs it like an app (it opens offline too).',
   'disc.data.title': '<b>🔒 Where does my data go</b> — everything that leaves is listed here',
   'disc.data.p1': '<b>No account, no login.</b> Your card wallet, point valuations, prices, coupons and results live <b>only in this browser</b> (localStorage) and are never sent to a server. The math runs on this page. There is not one ad, analytics or tracking script on it (no third-party scripts or fonts either).',
   'disc.data.offers': '<b>🎁 Pasting your card offers sends nothing out either.</b> Paste an entire Amex or Chase screen and it is read <b>on this page only</b>, and only the <b>merchant, benefit and expiry</b> are stored in this browser. <b>The pasted text itself is not saved</b> (it has card last-4s and account state mixed into it). Not one network request goes out, and it never rides along in the 🔗 wallet link.',
@@ -1324,6 +1337,17 @@ Object.assign(STRINGS.en, {
   'vision.err.read': 'We couldn’t read that photo. Please take another.',
   'vision.err.generic': 'Not working right now. Try again in a moment.',
   'vision.loadfail': 'Couldn’t download the recognition code — check your connection and press it again.',
+  'vision.handoff': 'Made {n} seller rows below',
+  'vision.handoff.note': 'Open <b>See the price</b> on each seller, then just type the price and the ranking appears. If the query is wrong, take another photo.',
+
+  // ── v0.32 인식 → 판매처 비교 ────────────────────────────────────
+  'reco.upTo': 'up to ',
+  'reco.seePrice': '🔎 See the price at {store}',
+  'reco.thenType': 'then type what you saw into the box above',
+  'reco.made': 'made {n} sellers',
+  'reco.topRate': 'Today the highest <b>cashback</b> is <b>{store}</b> at <b>{rate}</b>.',
+  // ⭐ "캐시백 1등"과 "최저가"를 절대 같은 말로 쓰지 마라 — 가격을 모르면 순위를 못 매긴다.
+  'reco.needPrice': '<b>We don’t know which is actually cheaper yet</b> — a high cashback rate on a higher list price still costs you more. Check <b>See the price</b> below, type the prices, and the ranking appears.',
 
 });
 // ===== 포인트 통화 =====
@@ -2054,6 +2078,7 @@ function buildScenarioCard(sc){
           <div><label>${t('sc.coupon','쿠폰·프로모 할인 ($)')}</label><input class="s-coupon" type="number" min="0" step="1" data-sid="${sc.id}" value="${sc.coupon||0}"></div>
         </div>
         <p class="muted" id="shint-${sc.id}" style="margin:4px 0 0"></p>
+        <p class="muted" id="slink-${sc.id}" style="margin:4px 0 0"></p>
       </div>
       <div style="text-align:right">
         <div class="winbadge" id="badge-${sc.id}" style="display:none">${t('sc.cheapest','최저가')}</div>
@@ -2325,6 +2350,91 @@ function bestCardLabel(r){
     // 영어 렌더에 '현금'이 그대로 남았다(__fuzz.runDomEn 이 잡아냈다).
     : `${r.best.c.short} <span class="pill ${TYPE[r.best.type].cls}">${curLabel(r.best.type)}</span>`;
 }
+// ===== v0.32 — 인식 결과를 **판매처 비교로 바로** 잇는다 =====
+// 사용자: "사이트 비교가 먼저고 그리고 나서 캐시백으로 가장 저렴한 곳을 알려줘야 하는 거 아냐?"
+// 지금까지 사진 경로는 **검색 링크 4개에서 멈췄다** — 매장에 서서 판매처를 열고 URL을 복사해
+// 붙여넣을 사람은 없다. 그래서 인식 즉시 판매처 칸을 만들고 캐시백 %까지 채운다.
+//
+// ⚠️ 후보 풀은 **검색 딥링크가 실측 검증된 4곳으로 한정**한다.
+//    슬러그 자동 생성으로 죽은 링크가 대량으로 났던 전례가 있다.
+//    **여기에 판매처를 그냥 추가하지 마라** — 풀 확대는 판매처별 링크 검증이 선행돼야 한다.
+const RECO_STORES=[
+  {store:'Amazon',   key:'amazon',  url:q=>'https://www.amazon.com/s?k='+encodeURIComponent(q)},
+  {store:'Best Buy', key:'bestbuy', url:q=>'https://www.bestbuy.com/site/searchpage.jsp?st='+encodeURIComponent(q)},
+  {store:'Walmart',  key:'walmart', url:q=>'https://www.walmart.com/search?q='+encodeURIComponent(q)},
+  {store:'Target',   key:'target',  url:q=>'https://www.target.com/s?searchTerm='+encodeURIComponent(q)},
+];
+const RECO_TOP_N=3;
+let lastRecognition=null;   // {query, top, n} — 결론 카드가 이걸 보고 ②를 그린다
+
+// 오늘 기준 그 판매처의 최고 캐시백.
+// ⚠️ upTo(= "최대 N%")를 **버리지 않는다.** 최대치를 확정치처럼 쓰면 그게 곧 거짓말이 된다.
+function bestRateFor(key){
+  const b=baselineFor(key); let best={pct:0,upTo:false,flat:0,portal:''};
+  if(!b) return best;
+  [['rk','Rakuten'],['cap','Capital One Shopping'],['tcb','TopCashback']].forEach(([k,name])=>{
+    const e=b[k]; if(!e||e.listed===false) return;
+    const pct=+e.pct||0, flat=+e.flat||0;
+    if(pct>best.pct) best={pct:pct,upTo:!!e.upTo,flat:0,portal:name};
+    else if(best.pct===0 && flat>best.flat) best={pct:0,upTo:false,flat:flat,portal:name};
+  });
+  return best;
+}
+const recoEsc=x=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function recoRateText(t0){
+  if(t0.pct>0) return (t0.upTo?t('reco.upTo','최대 '):'')+t0.pct+'%';
+  if(t0.flat>0) return '$'+t0.flat;
+  return null;
+}
+
+// 사진·바코드가 상품을 알아냈을 때 부르는 진입점.
+// 반환: {ok, n, top} — 부른 쪽이 자기 화면에 요약을 그릴 수 있게.
+function applyRecognizedProduct(query, opts){
+  const q=String(query||'').trim(); if(!q) return {ok:false};
+  opts=opts||{};
+
+  // ② 예시(데모)와 이전 결과를 **즉시** 치운다. 사용자: "바로 바뀌어야 한다"
+  const pn=document.getElementById('pname'); if(pn) pn.value=(opts.name||q).slice(0,80);
+  const db=document.getElementById('demoBar'); if(db) db.style.display='none';
+  const pm=document.getElementById('pasteMsg'); if(pm) pm.innerHTML='';
+
+  // ③ 오늘 캐시백 높은 순 3곳
+  const ranked=RECO_STORES.map(x=>Object.assign({},x,{rate:bestRateFor(x.key)}))
+    .sort((a,b)=>(b.rate.pct-a.rate.pct)||(b.rate.flat-a.rate.flat))
+    .slice(0,RECO_TOP_N);
+
+  scenarios=ranked.map(x=>blankScenario({store:x.store}));
+  buildAll();
+  scenarios.forEach((sc,i)=>{
+    recognizeStore(sc,false);
+    updatePortalLinks(sc);          // ← 여기서 캐시백 %가 자동으로 채워진다
+    const a=document.getElementById('slink-'+sc.id);
+    if(a) a.innerHTML='<a href="'+recoEsc(ranked[i].url(q))+'" target="_blank" rel="noopener noreferrer">'+
+      t('reco.seePrice','🔎 {store}에서 가격 보기',{store:recoEsc(ranked[i].store)})+'</a> '+
+      '<span class="tag">'+t('reco.thenType','보고 온 가격을 위 칸에 넣어 주세요')+'</span>';
+  });
+
+  lastRecognition={query:q, top:ranked[0]?ranked[0].rate:null, topStore:ranked[0]?ranked[0].store:'', n:scenarios.length};
+  recompute();
+  const box=document.getElementById('answerCard');
+  if(box) box.scrollIntoView({behavior:'smooth', block:'start'});
+  return {ok:true, n:scenarios.length, top:lastRecognition.topStore};
+}
+window.applyRecognizedProduct=applyRecognizedProduct;
+
+// ④ ⭐ "캐시백이 제일 높은 곳" ≠ "가장 저렴한 곳".
+//    Best Buy 가 15%여도 정가가 20% 비싸면 더 비싸게 사는 것이다. **가격을 모르면 순위를 못 매긴다.**
+//    지금 말할 수 있는 것과 가격이 들어와야 말할 수 있는 것을 화면에서 갈라 놓는다.
+//    ('0%가 아니라 모름'과 같은 계열의 원칙이다.)
+function recoPendingHTML(){
+  const r=lastRecognition, rate=r.top?recoRateText(r.top):null;
+  return '<b>'+recoEsc(r.query)+'</b> <span class="tag">'+t('reco.made','판매처 {n}곳 만들었어요',{n:r.n})+'</span><br>'+
+    (rate? t('reco.topRate','오늘 <b>캐시백</b>은 <b>{store}</b>가 <b>{rate}</b>로 제일 높아요.',{store:recoEsc(r.topStore),rate:rate})+'<br>' : '')+
+    '<span style="color:var(--warn)">'+t('reco.needPrice',
+      '<b>어디가 실제로 싼지는 아직 몰라요</b> — 캐시백이 높아도 정가가 비싸면 더 비싸게 사는 거예요. '+
+      '아래에서 <b>가격 보기</b>로 확인하고 가격만 넣으면 바로 순위가 나와요.')+'</span>';
+}
+
 function recompute(){
   const cat=v('cat');
   taxPct=+v('taxPct')||0;
@@ -2374,7 +2484,12 @@ function recompute(){
   });
 
   const fc=document.getElementById('finalConclusion');
-  if(ranked.length===0){ fc.innerHTML=t('concl.needPrice','판매처에 가격을 넣으면 비교가 시작돼요.'); }
+  if(ranked.length===0){
+    // ② 사진으로 상품을 찾았으면 **결론이 그 상품 기준으로 즉시 바뀌어야 한다.**
+    //    이전 예시가 남아 있으면 안 된다(사용자 지적). 아직 순위를 못 매기면 그렇게 말한다.
+    fc.innerHTML = lastRecognition ? recoPendingHTML()
+                                   : t('concl.needPrice','판매처에 가격을 넣으면 비교가 시작돼요.');
+  }
   else {
     const w=ranked[0];
     const noCard=(w.best.c.id===NO_CARD.id);
@@ -3446,6 +3561,28 @@ function openDisclosures(e){
   box.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
+// ===== ⌨️ 직접 넣기 토글 (v0.32) =====
+// 붙여넣기 칸은 예전엔 첫 화면을 통째로 먹고 있었다. 이제 눌러야 펼쳐진다.
+// ⚠️ 📷·📊 가 둘 다 없으면(파일 프로토콜·키 미설정·구형 브라우저) 이 페이지는
+//    입력 수단이 하나도 없는 막다른 길이 된다 → 그때는 **자동으로 펼친다.**
+//    셋 다 없는 화면을 만들지 않는 것이 이 몇 줄의 존재 이유다.
+(function(){
+  const btn=document.getElementById('typeBtn'), panel=document.getElementById('typePanel');
+  if(!btn||!panel) return;
+  const open=(on)=>{ panel.hidden=!on; btn.classList.toggle('on',on); };
+  btn.addEventListener('click',()=>{
+    const willOpen=panel.hidden;
+    open(willOpen);
+    if(willOpen){ const t=document.getElementById('paste'); if(t) t.focus(); }
+  });
+  // 다른 수단이 켜졌는지는 글루가 비동기로 정하므로(능력 확인) 조금 뒤에 본다.
+  setTimeout(()=>{
+    const v=document.getElementById('visionBtn'), b=document.getElementById('scanBtn');
+    const noneElse=(!v||v.hidden)&&(!b||b.hidden);
+    if(noneElse && panel.hidden) open(true);
+  },2500);
+})();
+
 // ===== 📷 사진으로 상품 찾기 (v0.31) =====
 // 여기 있는 건 버튼 하나와 지연 로딩 글루뿐이다. 축소·프리체크·인식·UI·문구는 전부 vision.js 에 있고,
 // 그 파일은 **버튼을 누른 순간에만** 같은 출처에서 받는다 — 안 누르면 0바이트.
@@ -3463,11 +3600,11 @@ function openDisclosures(e){
 //    ⚠️ 이 계약은 하니스가 못 박는다(fuzz-worker.mjs 의 /vision 능력확인 검사).
 // ⚠️ file:// 에서는 동적 import 가 CORS 로 막힌다 → 로컬 사본에는 이 기능이 안 뜬다(바코드와 같은 예외).
 (function(){
-  const row=document.getElementById('visionRow'), inp=document.getElementById('visionFile');
-  if(!row||!inp||location.protocol==='file:'||!PRICE_API) return;
+  const btn=document.getElementById('visionBtn'), inp=document.getElementById('visionFile');
+  if(!btn||!inp||location.protocol==='file:'||!PRICE_API) return;
 
   const CAP='pa_vision_on';
-  const show=()=>{ row.style.display='flex'; };
+  const show=()=>{ btn.hidden=false; };
   let cached=null; try{ cached=sessionStorage.getItem(CAP); }catch(e){}
   if(cached==='1') show();
   else if(cached!=='0'){
@@ -3483,7 +3620,7 @@ function openDisclosures(e){
   let mod=null; const load=()=>mod||(mod=import('./vision.js'));
   // 사진 찍는 동안 미리 받아둔다. 라벨 클릭은 OS 파일 선택기를 그대로 열기 때문에
   // 여기서 사용자 제스처를 소비하지 않는다(iOS 에서 이게 중요하다).
-  row.addEventListener('click', load);
+  btn.addEventListener('click', load);
   inp.addEventListener('change', ()=>{
     const f=inp.files&&inp.files[0]; inp.value='';   // 같은 사진을 다시 고를 수 있게 비운다
     if(!f) return;
@@ -3501,13 +3638,13 @@ function openDisclosures(e){
 // ⚠️ file:// 에서는 동적 import 가 CORS 로 막힌다 → 눌러서 실패하느니 버튼을 안 켠다.
 //    그래서 로컬 사본(purchase-optimizer.html)에는 이 기능이 안 뜬다. 의도된 예외다.
 (function(){
-  const row=document.getElementById('scanRow'), inp=document.getElementById('scanFile');
-  if(!row||!inp||location.protocol==='file:') return;
-  row.style.display='flex';
+  const btn=document.getElementById('scanBtn'), inp=document.getElementById('scanFile');
+  if(!btn||!inp||location.protocol==='file:') return;
+  btn.hidden=false;
   let mod=null; const load=()=>mod||(mod=import('./scanner.js'));
   // 사진 찍는 동안 미리 받아둔다. 라벨 클릭은 OS 파일 선택기를 그대로 열기 때문에
   // 여기서 사용자 제스처를 소비하지 않는다(iOS 에서 이게 중요하다).
-  row.addEventListener('click', load);
+  btn.addEventListener('click', load);
   inp.addEventListener('change', ()=>{
     const f=inp.files&&inp.files[0]; inp.value='';   // 같은 사진을 다시 고를 수 있게 비운다
     if(!f) return;
