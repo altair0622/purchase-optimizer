@@ -177,6 +177,19 @@ const manifest = JSON.parse(readFileSync(join(IMG, 'manifest.json'), 'utf8'));
 const base = ENDPOINT.replace(/\/+$/, '');
 const REPEAT = Math.max(1, +((process.argv.find(a => a.startsWith('--repeat=')) || '').split('=')[1] || 1));
 
+// --model=<모델 ID> — 모델 급 비교용.
+// ⚠️ 워커의 모델 지정은 **잠겨 있다**(공개 엔드포인트라 아무나 비싼 모델을 부르면 잔액이 털린다).
+//    비밀은 환경변수로 받는다 — **파일에 적지 않는다.**
+//      Windows PowerShell:  $env:VISION_MODEL_KEY="..."
+//      bash:                export VISION_MODEL_KEY=...
+const MODEL = (process.argv.find(a => a.startsWith('--model=')) || '').split('=')[1] || '';
+const MODEL_KEY = process.env.VISION_MODEL_KEY || '';
+if (MODEL && !MODEL_KEY) {
+  console.error('--model 을 쓰려면 VISION_MODEL_KEY 환경변수가 필요하다 (워커의 시크릿과 같은 값).');
+  console.error('  워커 쪽:  npx wrangler secret put VISION_MODEL_KEY');
+  process.exit(2);
+}
+
 // 오답이 원본과 몇 글자 차이인가 — "흐릿하게 잘못 읽음"과 "없는 걸 만들어냄"을 가른다.
 function editDistance(a, b) {
   const m = a.length, n = b.length;
@@ -217,6 +230,7 @@ let calls = 0, msTotal = 0, hardFail = 0, errored = 0, confFail = 0;
 
 console.log('\n' + '─'.repeat(78));
 console.log('정직성 게이트 — ' + base + '/vision');
+console.log('모델: ' + (MODEL || '(워커 기본값)'));
 console.log('이미지 ' + manifest.length + '장 × ' + REPEAT + '회 = ' + (manifest.length * REPEAT) + '콜'
   + '  ·  ' + IMG_DIR + (manifest[0] && manifest[0].longEdge ? ' (긴 변 ' + manifest[0].longEdge + 'px)' : ''));
 console.log('─'.repeat(78));
@@ -231,7 +245,8 @@ for (let round = 1; round <= REPEAT; round++) {
       const res = await fetch(base + '/vision', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ images: [b64], lang: 'ko' }),
+        body: JSON.stringify(Object.assign({ images: [b64], lang: 'ko' },
+          MODEL ? { model: MODEL, modelKey: MODEL_KEY } : {})),
       });
       j = await res.json();
     } catch (e) {

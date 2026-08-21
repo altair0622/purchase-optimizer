@@ -106,6 +106,34 @@ opt-in 이 맞다. 이 계약은 하니스가 못 박는다(`images:[] → bad-r
 | `VISION_PROVIDER` | `anthropic` | `anthropic` \| `gemini` |
 | `VISION_MODEL` | `claude-haiku-4-5` / `gemini-2.5-flash-lite` | 모델 덮어쓰기 |
 | `VISION_GEMINI_PAID_TIER` | (없음) | Gemini 를 쓰려면 `confirmed` 여야 한다 (아래) |
+| `VISION_MODEL_KEY` | (없음) | **secret.** 요청 단위 모델 지정을 여는 열쇠 (아래) |
+
+### 요청 단위 모델 지정 — 측정용이고 **기본은 잠겨 있다**
+
+모델 급을 비교하려면 급마다 재배포해야 했다. 이제 본문에 `model` 을 실을 수 있다 —
+**단 ⚠️ `/vision` 은 공개 엔드포인트라 아무나 비싼 급을 부르면 잔액이 남의 손에 털린다.**
+그래서 세 겹으로 막는다:
+
+1. **허용목록** — `claude-haiku-4-5` · `claude-sonnet-5` · `claude-opus-5` 만. 그 밖은 `bad-model`(400)
+2. **공유 비밀** — `VISION_MODEL_KEY` 가 **설정돼 있고** 본문 `modelKey` 와 맞아야 한다.
+   비밀이 없으면 오버라이드 자체가 꺼진다(**fail closed**) → `model-forbidden`(403).
+   **측정이 끝나면 시크릿을 지우면 다시 완전히 잠긴다**
+3. **브라우저는 이 값을 안 보낸다** — 계산기(`vision.js`)는 `model` 을 싣지 않는다.
+   측정은 Node 게이트에서만 하므로 비밀이 브라우저로 나갈 일이 없다
+
+⚠️ **헤더가 아니라 본문으로 받는다.** 헤더면 `headers.get` 이 하나 늘어
+**P-2("headers.get 을 부르는 곳은 Origin 한 곳뿐")가 깨진다.** 본문은 이미 읽고 있다.
+
+⚠️ **잘못된 지정은 조용히 무시하지 않고 거부한다.** 무시하면 게이트가 opus 를 보냈다고 믿는데
+실제로는 haiku 가 돌아 **"급 차이가 없다"는 틀린 결론**이 나온다.
+**측정 도구에서 조용한 폴백은 오답 생성기다.**
+
+```bash
+npx wrangler secret put VISION_MODEL_KEY     # 측정 시작할 때
+# 게이트 쪽
+$env:VISION_MODEL_KEY="<같은 값>"            # PowerShell
+node run.mjs <워커주소> --img=img-1568 --model=claude-opus-5 --repeat=3
+```
 | `VISION_BASE_URL` | 제공자 공식 주소 | AI Gateway 등으로 우회할 때 |
 
 **왜 Anthropic 이 기본인가** (조사 4-B):

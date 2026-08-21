@@ -927,6 +927,56 @@ async function callVision(body, opts = {}) {
   vstats.n += 2;
 }
 
+// --- 6g) ⭐ 요청 단위 모델 지정 — 공개 엔드포인트에서 비싼 모델을 못 부르게 ---
+//
+// ⚠️ 이 검사가 없으면 아무나 opus 를 불러 **사용자 잔액을 털 수 있다.**
+//    그리고 "조용히 무시"도 똑같이 나쁘다 — 게이트가 opus 를 보냈다고 믿는데 haiku 가 돌면
+//    **"급 차이가 없다"는 틀린 결론**이 나온다. 그래서 거부되는지·실제로 어느 모델이
+//    제공자에게 나갔는지를 **둘 다** 본다.
+{
+  const KEYED = { ...VKEY, VISION_MODEL_KEY: 'measure-secret-0123456789' };
+  // 제공자로 나간 요청 본문에서 model 을 꺼낸다
+  let sentModel = null;
+  const capture = () => (u, opt) => {
+    try { sentModel = JSON.parse(opt.body).model; } catch (e) { sentModel = '(파싱실패)'; }
+    return anthropicResponder({ category: 'x', candidates: [{ query: 'q', why: 'w' }],
+      read: ['x'], guessed: [], confirm: [], ask: { reason: 'none' } })();
+  };
+  const cases = [
+    ['지정 없음 → 기본 haiku (지금까지와 동일)',
+      { images: [B64] }, KEYED, j => j.ok === true, 'claude-haiku-4-5'],
+    ['★ 비밀 없이 opus 지정 → 거부 (잔액 방어)',
+      { images: [B64], model: 'claude-opus-5' }, KEYED, j => j.errorCode === 'model-forbidden', null],
+    ['★ 비밀이 틀리면 거부',
+      { images: [B64], model: 'claude-opus-5', modelKey: 'wrong' }, KEYED, j => j.errorCode === 'model-forbidden', null],
+    ['★ 워커에 비밀이 아예 없으면 거부 (fail closed)',
+      { images: [B64], model: 'claude-opus-5', modelKey: 'anything' }, VKEY, j => j.errorCode === 'model-forbidden', null],
+    ['★ 허용목록 밖 모델은 비밀이 맞아도 거부',
+      { images: [B64], model: 'claude-fable-5', modelKey: 'measure-secret-0123456789' }, KEYED,
+      j => j.errorCode === 'bad-model', null],
+    ['비밀이 맞으면 sonnet 으로 나간다',
+      { images: [B64], model: 'claude-sonnet-5', modelKey: 'measure-secret-0123456789' }, KEYED,
+      j => j.ok === true, 'claude-sonnet-5'],
+    ['비밀이 맞으면 opus 로 나간다',
+      { images: [B64], model: 'claude-opus-5', modelKey: 'measure-secret-0123456789' }, KEYED,
+      j => j.ok === true, 'claude-opus-5'],
+  ];
+  for (const [label, body, env, ok, wantModel] of cases) {
+    sentModel = null;
+    const p = await callVision(body, { env, responder: capture() });
+    const j = p.j || {};
+    if (!ok(j)) add('/vision 모델 지정 게이트가 기대와 다르다', { 케이스: label, 응답: JSON.stringify(j).slice(0, 160) });
+    if (wantModel === null && p.sent.length) {
+      add('★ /vision 이 거절해야 할 모델 지정인데 제공자로 나갔다 (잔액이 샌다)', { 케이스: label });
+    }
+    if (wantModel && sentModel !== wantModel) {
+      add('★ /vision 이 다른 모델로 나갔다 (측정이 거짓말이 된다)', { 케이스: label, 나간모델: sentModel, 기대: wantModel });
+    }
+    visionTable.push({ 케이스: label, errorCode: j.errorCode || '—', 나간모델: sentModel || '—', 외부요청: p.sent.length });
+    vstats.n++;
+  }
+}
+
 // ===== 7) ⭐ 운영 도메인 CORS — 조용히 깨지는 자리 =====
 //
 // 2026-08-14 커스텀 도메인(priceafter.com)을 붙였는데 워커의 ALLOW_ORIGINS 가 따라오지 않았다.

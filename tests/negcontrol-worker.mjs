@@ -113,6 +113,19 @@ const MUTANTS = [
     '    confirm,',
     ''],
 
+  // ★ 공개 엔드포인트에서 비싼 모델을 부를 수 있게 되면 잔액이 남의 손에 털린다.
+  ['★ 모델 허용목록을 꺼버림 (임의 모델 문자열이 제공자로 나간다)',
+    '    if (!VISION_MODEL_ALLOW.includes(want)) {',
+    '    if (false) {'],
+
+  ['★ 모델 지정 비밀 검사를 꺼버림 (아무나 opus 를 부른다)',
+    "    if (!gate || String((body && body.modelKey) || '') !== gate) {",
+    '    if (false) {'],
+
+  ['★ 잘못된 모델 지정을 조용히 무시 (측정이 거짓말이 된다)',
+    "      return visionErr('model-forbidden', '모델 지정은 잠겨 있어', cors, 403);",
+    '      model = model;'],
+
   ['★ 망가진 키 가드를 끔 (Ctrl+V 로 들어간 제어문자가 그대로 제공자에 나감)',
     "  if (key.length < 20 || /[^\x21-\x7e]/.test(key)) {",
     '  if (false) {'],

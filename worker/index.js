@@ -347,6 +347,27 @@ const VISION_MAX_TOKENS = 700;          // ⚠️ 짧게 유지한다 — 실측
 // (b)"다시 찍어 주세요" 같은 뭉뚱그린 문장이 나온다(조사 9장 #5가 금지한 것).
 const VISION_ASK_REASONS = ['none', 'no-brand', 'no-model', 'packaging', 'too-far', 'multiple', 'none-recognized'];
 
+// ===== 요청 단위 모델 지정 — **측정용이고, 기본은 잠겨 있다** =====
+//
+// 왜 필요한가: 모델 급을 비교하려면 급마다 재배포해야 했다(env.VISION_MODEL).
+// 왜 위험한가: ⚠️ **`/vision` 은 공개 엔드포인트다.** 아무나 model 을 넣어 비싼 급을 부르면
+//   **사용자 잔액이 남의 손에 털린다.** 그래서 세 겹으로 막는다:
+//
+//   ① **허용목록** — 이 셋 밖은 무조건 거부. 임의 문자열이 제공자로 나가지 않는다
+//   ② **공유 비밀** — env.VISION_MODEL_KEY 가 **설정돼 있고** 요청의 modelKey 와 맞아야 한다.
+//      비밀이 없으면 오버라이드 자체가 꺼진다(fail closed). 측정이 끝나면 시크릿을 지우면 된다
+//   ③ **브라우저는 이 값을 보내지 않는다** — 계산기(vision.js)는 model 을 안 싣는다.
+//      측정은 Node 게이트에서만 하므로 비밀이 브라우저로 나갈 일이 없다
+//
+// ⚠️ **헤더가 아니라 본문으로 받는다.** 헤더로 받으면 headers.get 이 하나 늘어
+//    P-2("headers.get 을 부르는 곳은 Origin 한 곳뿐")가 깨진다. 본문은 이미 읽고 있다.
+//
+// ⚠️ **잘못된 지정은 조용히 무시하지 않고 거부한다.** 무시하면 게이트가 opus 를 보냈다고
+//    믿는데 실제로는 haiku 가 돌아서 **"급 차이가 없다"는 틀린 결론**이 나온다.
+//    측정 도구에서 조용한 폴백은 오답 생성기다.
+const VISION_MODEL_ALLOW = ['claude-haiku-4-5', 'claude-sonnet-5', 'claude-opus-5'];
+const VISION_DEFAULT_MODEL = { anthropic: 'claude-haiku-4-5', gemini: 'gemini-2.5-flash-lite' };
+
 // 모델에게 주는 스키마. 도구 호출(Anthropic)·responseSchema(Gemini) 양쪽에 그대로 쓴다.
 // 형식을 강제로 못 박으면 "JSON 으로 답해줘" 보다 훨씬 안정적이다.
 // ⚠️ null 을 안 쓴다 — 두 제공자의 스키마 방언에서 nullable 처리가 갈린다.
@@ -485,7 +506,23 @@ async function handleVision(request, env, cors) {
   if (total > VISION_MAX_B64) return visionErr('too-large', '사진이 너무 커 — 더 작게 줄여서 보내줘', cors, 413);
 
   const lang = body && body.lang === 'en' ? 'en' : 'ko';
-  const model = String(env.VISION_MODEL || (provider === 'gemini' ? 'gemini-2.5-flash-lite' : 'claude-haiku-4-5'));
+
+  // 기본 모델 — 지정이 없으면 지금까지와 **완전히 동일**하게 동작한다.
+  let model = String(env.VISION_MODEL || VISION_DEFAULT_MODEL[provider] || VISION_DEFAULT_MODEL.anthropic);
+  const wanted = body && body.model;
+  if (wanted != null && wanted !== '') {
+    const want = String(wanted);
+    if (!VISION_MODEL_ALLOW.includes(want)) {
+      return visionErr('bad-model', '허용되지 않은 모델이야', cors, 400);
+    }
+    const gate = String((env && env.VISION_MODEL_KEY) || '');
+    if (!gate || String((body && body.modelKey) || '') !== gate) {
+      // 비밀이 없거나 안 맞으면 **거부한다.** 조용히 기본 모델로 돌리면
+      // 측정 결과가 거짓말이 된다(위 주석 참조).
+      return visionErr('model-forbidden', '모델 지정은 잠겨 있어', cors, 403);
+    }
+    model = want;
+  }
   const call = provider === 'gemini' ? callGeminiVision : callAnthropicVision;
 
   let raw;
