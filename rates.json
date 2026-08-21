@@ -1,5 +1,5 @@
 {
- "asOf": "2026-08-20",
+ "asOf": "2026-08-21",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -164,7 +164,7 @@
   },
   "acehardware": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -250,7 +250,7 @@
   },
   "samsclub": {
    "rk": {
-    "pct": 4,
+    "pct": 12,
     "listed": true,
     "upTo": true
    },
@@ -279,7 +279,7 @@
   },
   "macys": {
    "rk": {
-    "pct": 8,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -379,9 +379,8 @@
   },
   "neimanmarcus": {
    "rk": {
-    "pct": 15,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": null,
@@ -394,7 +393,7 @@
   },
   "gap": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -402,7 +401,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    }
   },
@@ -416,13 +415,13 @@
     "listed": true
    },
    "tcb": {
-    "pct": 4,
+    "pct": 10,
     "listed": true
    }
   },
   "bananarepublic": {
    "rk": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -444,7 +443,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 3,
+    "pct": 0,
     "listed": true
    }
   },
@@ -720,7 +719,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 6,
+    "pct": 8,
     "listed": true
    },
    "cap": {
@@ -734,7 +733,7 @@
   },
   "adidas": {
    "rk": {
-    "pct": 4,
+    "pct": 6,
     "listed": true,
     "upTo": true
    },
@@ -807,7 +806,7 @@
   },
   "footlocker": {
    "rk": {
-    "pct": 25,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -816,8 +815,7 @@
    },
    "tcb": {
     "pct": 10,
-    "listed": true,
-    "upTo": true
+    "listed": true
    }
   },
   "finishline": {
@@ -851,7 +849,7 @@
   },
   "zappos": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -893,7 +891,7 @@
   },
   "athleta": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -949,7 +947,7 @@
   },
   "patagonia": {
    "rk": {
-    "pct": 2,
+    "pct": 5,
     "listed": true
    },
    "cap": {
@@ -1235,7 +1233,7 @@
   },
   "sephora": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1313,15 +1311,16 @@
     "listed": true
    },
    "tcb": {
-    "pct": 3,
+    "pct": 8,
     "listed": true,
     "upTo": true
    }
   },
   "walgreens": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 6,
+    "listed": true,
+    "upTo": true
    },
    "cap": {
     "pct": null,
@@ -1363,7 +1362,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1400,7 +1399,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   },
@@ -1434,9 +1433,8 @@
   },
   "staples": {
    "rk": {
-    "pct": 4,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": null,
@@ -1449,9 +1447,8 @@
   },
   "officedepot": {
    "rk": {
-    "pct": 4,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": null,
@@ -1552,7 +1549,7 @@
   },
   "expedia": {
    "rk": {
-    "pct": 8,
+    "pct": 6,
     "listed": true,
     "upTo": true
    },
@@ -1584,7 +1581,7 @@
   },
   "booking": {
    "rk": {
-    "pct": 5,
+    "pct": 4,
     "listed": true,
     "upTo": true
    },
@@ -1599,7 +1596,7 @@
   },
   "priceline": {
    "rk": {
-    "pct": 8,
+    "pct": 4,
     "listed": true,
     "upTo": true
    },
