@@ -372,8 +372,44 @@ const VISION_DEFAULT_MODEL = { anthropic: 'claude-haiku-4-5', gemini: 'gemini-2.
 // 형식을 강제로 못 박으면 "JSON 으로 답해줘" 보다 훨씬 안정적이다.
 // ⚠️ null 을 안 쓴다 — 두 제공자의 스키마 방언에서 nullable 처리가 갈린다.
 //    "되묻지 않음"은 ask.reason = 'none' 으로 표현하고, 정규화에서 null 로 바꾼다.
-function visionSchema() {
+// lean = **승격(promote) 경로 전용** 축소 스키마.
+//
+// 왜: 실측에서 **출력 길이가 지연을 지배**했다(짧은 출력 0.6~1.6초 vs 구조화 JSON 10.2초).
+// 승격 경로는 **글자가 안 보여서** 큰 모델로 올린 것이므로 `read` 가 애초에 나올 수 없다 —
+// 빈 배열을 받으려고 토큰을 쓸 이유가 없다. 후보도 2개면 충분하다(1순위 + 넓게).
+//
+// ⚠️ **`confirm` 은 절대 빼지 않는다.** 큰 모델을 쓰는 값어치가 정확히 거기 있다
+//    (실측: Opus 가 글자 없는 사진에서 confirm 3개를 냈고 전부 실재했다).
+// ⚠️ `read` 가 없으면 auditGuessed 가 검색어의 모델번호를 전부 UNVERIFIED 로 끌어낸다 —
+//    **그게 맞다.** 글자를 못 읽었으니 그 모델번호는 정의상 짐작이다.
+function visionSchema(lean) {
   const str = d => ({ type: 'string', description: d });
+  if (lean) {
+    return {
+      type: 'object',
+      properties: {
+        category: str('What kind of product this is, in the requested language. Empty string if unknown.'),
+        candidates: {
+          type: 'array',
+          description: 'Up to 2 search queries: the most specific one you can justify, and a broader fallback. Empty if you cannot identify the product.',
+          items: {
+            type: 'object',
+            properties: {
+              query: str('An English search query for a US retailer.'),
+              why: str('A few words, in the requested language, on what this is based on.'),
+            },
+            required: ['query', 'why'],
+          },
+        },
+        confirm: {
+          type: 'array',
+          description: 'Up to 3 SHORT phrases telling the shopper WHERE TO LOOK on the item in their hand to check this is the right product. Each is a place plus what is there. Empty array if nothing specific enough to point at.',
+          items: { type: 'string' },
+        },
+      },
+      required: ['category', 'candidates', 'confirm'],
+    };
+  }
   return {
     type: 'object',
     properties: {
@@ -420,8 +456,18 @@ function visionSchema() {
 
 // 프롬프트. **"확신하냐"고 묻지 않는다 — "무엇을 보았냐"고 묻는다**(조사 6-B 근거 1).
 // 모델이 잘하는 과제(사실 보고·나열)만 시키고, 못하는 과제(확률 보정)는 안 시킨다.
-function visionPrompt(lang, nImages) {
+function visionPrompt(lang, nImages, lean) {
   const langName = lang === 'en' ? 'English' : 'Korean';
+  if (lean) {
+    // 승격 경로: 글자가 안 보이는 사진이다. **형태로 좁히고, 어디를 보면 확정되는지 짚는다.**
+    return [
+      'A shopper photographed a product. There is little or no readable text on it. Identify it from its SHAPE and DESIGN and produce SEARCH QUERIES for US retail sites.',
+      'Name the most specific model you can genuinely justify from the design. If you are only confident about the category, say that instead of inventing a model.',
+      '"confirm" = up to 3 SHORT phrases pointing at WHERE ON THE ITEM the shopper can check you got it right (e.g. "sticker on the underside: the model number"). Only things you can actually see, or a place worth looking that would settle it. Keep each to a few words.',
+      'Search queries ("query") must be in English. Write "category", "why" and "confirm" in ' + langName + '.',
+      'Be brief. Do not explain your reasoning.',
+    ].join('\n');
+  }
   return [
     'A shopper is standing in a store and photographed a product. Your job is to produce SEARCH QUERIES they can use to find this exact product on US retail sites. You are not asked to find a price.',
     nImages > 1 ? 'There are ' + nImages + ' photos OF THE SAME PRODUCT. Use them together - one may show the shape, another may show the label.' : '',
@@ -506,6 +552,8 @@ async function handleVision(request, env, cors) {
   if (total > VISION_MAX_B64) return visionErr('too-large', '사진이 너무 커 — 더 작게 줄여서 보내줘', cors, 413);
 
   const lang = body && body.lang === 'en' ? 'en' : 'ko';
+  // lean 은 비용·지연을 **낮추기만** 하므로 열쇠로 막지 않는다(모델 지정과 다르다).
+  const lean = !!(body && body.lean);
 
   // 기본 모델 — 지정이 없으면 지금까지와 **완전히 동일**하게 동작한다.
   let model = String(env.VISION_MODEL || VISION_DEFAULT_MODEL[provider] || VISION_DEFAULT_MODEL.anthropic);
@@ -527,7 +575,7 @@ async function handleVision(request, env, cors) {
 
   let raw;
   try {
-    raw = await call({ key, model, images, prompt: visionPrompt(lang, images.length), env });
+    raw = await call({ key, model, images, prompt: visionPrompt(lang, images.length, lean), env, lean });
   } catch (e) {
     // 실패는 실패라고 말한다. **추측한 검색어를 대신 내놓지 않는다**
     // (조사 8장 "조용히 틀리지 않는 구조" 마지막 줄).
@@ -669,7 +717,7 @@ async function visionFetch(url, init) {
   finally { clearTimeout(timer); }
 }
 
-async function callAnthropicVision({ key, model, images, prompt, env }) {
+async function callAnthropicVision({ key, model, images, prompt, env, lean }) {
   const base = String(env.VISION_BASE_URL || 'https://api.anthropic.com').replace(/\/+$/, '');
   const content = images.map(data => ({
     type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data },
@@ -690,7 +738,7 @@ async function callAnthropicVision({ key, model, images, prompt, env }) {
       tools: [{
         name: 'report_product',
         description: 'Report what you can and cannot read on the product in the photo.',
-        input_schema: visionSchema(),
+        input_schema: visionSchema(lean),
       }],
       tool_choice: { type: 'tool', name: 'report_product' },
       messages: [{ role: 'user', content }],
@@ -702,7 +750,7 @@ async function callAnthropicVision({ key, model, images, prompt, env }) {
   return tu ? tu.input : null;
 }
 
-async function callGeminiVision({ key, model, images, prompt, env }) {
+async function callGeminiVision({ key, model, images, prompt, env, lean }) {
   const base = String(env.VISION_BASE_URL || 'https://generativelanguage.googleapis.com').replace(/\/+$/, '');
   const parts = images.map(data => ({ inline_data: { mime_type: 'image/jpeg', data } }));
   parts.push({ text: prompt });
@@ -715,7 +763,7 @@ async function callGeminiVision({ key, model, images, prompt, env }) {
       generationConfig: {
         maxOutputTokens: VISION_MAX_TOKENS,
         responseMimeType: 'application/json',
-        responseSchema: visionSchema(),
+        responseSchema: visionSchema(lean),
       },
     }),
   });

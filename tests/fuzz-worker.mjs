@@ -977,6 +977,48 @@ async function callVision(body, opts = {}) {
   }
 }
 
+// --- 6h) ⭐ lean 스키마 — 승격 경로 전용 축소 ---
+//
+// 출력 길이가 지연을 지배하므로(짧은 출력 0.6~1.6초 vs 구조화 JSON 10.2초) 승격 경로는
+// read 를 빼고 후보를 2개로 줄인다. **confirm 은 절대 빼지 않는다 — 큰 모델을 쓰는 이유가 그거다.**
+{
+  let sentSchema = null;
+  const capture = () => (u, opt) => {
+    try { sentSchema = JSON.parse(opt.body).tools[0].input_schema; } catch (e) { sentSchema = null; }
+    return anthropicResponder({ category: '마우스',
+      candidates: [{ query: 'logitech g305', why: '형태' }, { query: 'wireless gaming mouse', why: '넓게' }],
+      confirm: ['바닥면 스티커: 모델명'] })();
+  };
+  // 전체 스키마
+  sentSchema = null;
+  await callVision({ images: [B64] }, { responder: capture() });
+  const full = sentSchema || {};
+  // lean 스키마
+  sentSchema = null;
+  const p = await callVision({ images: [B64], lean: true }, { responder: capture() });
+  const lean = sentSchema || {};
+  const fullProps = Object.keys((full.properties) || {});
+  const leanProps = Object.keys((lean.properties) || {});
+
+  if (!fullProps.includes('read')) add('전체 스키마에 read 가 없다', { 있는것: fullProps.join(',') });
+  if (leanProps.includes('read')) add('★ lean 스키마인데 read 가 남아 있다 (축소가 안 먹었다)', { 있는것: leanProps.join(',') });
+  if (!leanProps.includes('confirm')) add('★ lean 스키마에서 confirm 이 빠졌다 — 큰 모델을 쓰는 값어치가 사라진다', { 있는것: leanProps.join(',') });
+  if (!leanProps.includes('candidates')) add('lean 스키마에 candidates 가 없다', { 있는것: leanProps.join(',') });
+  // lean 응답에도 정규화가 안전하게 돈다 (read/guessed/ask 가 없어도 터지지 않는다)
+  const j = p.j || {};
+  if (j.ok !== true) add('lean 응답 정규화가 실패했다', { 받은값: JSON.stringify(j).slice(0, 160) });
+  if (!Array.isArray(j.read) || j.read.length !== 0) add('lean 인데 read 가 빈 배열이 아니다', { read: JSON.stringify(j.read) });
+  if (!j.confirm || !j.confirm.length) add('lean 응답에서 confirm 이 사라졌다', { 받은값: JSON.stringify(j).slice(0, 160) });
+  // ⭐ read 가 없으니 검색어의 모델번호는 전부 짐작으로 표시돼야 한다 — 그게 맞다
+  if (!(j.guessed || []).some(x => /UNVERIFIED/.test(x))) {
+    add('★ lean 인데 검색어의 모델번호가 짐작으로 표시되지 않았다 (읽은 글자가 없는데 확정처럼 보인다)',
+        { guessed: JSON.stringify(j.guessed) });
+  }
+  visionTable.push({ 케이스: 'lean 스키마 (read 빠짐 · confirm 유지 · 모델번호는 짐작)',
+                     전체: fullProps.join('/'), lean: leanProps.join('/'), guessed: JSON.stringify(j.guessed || []).slice(0, 80) });
+  vstats.n += 7;
+}
+
 // ===== 7) ⭐ 운영 도메인 CORS — 조용히 깨지는 자리 =====
 //
 // 2026-08-14 커스텀 도메인(priceafter.com)을 붙였는데 워커의 ALLOW_ORIGINS 가 따라오지 않았다.

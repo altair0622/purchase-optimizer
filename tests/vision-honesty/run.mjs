@@ -190,6 +190,8 @@ const REPEAT = Math.max(1, +((process.argv.find(a => a.startsWith('--repeat=')) 
 //      bash:                export VISION_MODEL_KEY=...
 const MODEL = (process.argv.find(a => a.startsWith('--model=')) || '').split('=')[1] || '';
 const MODEL_KEY = process.env.VISION_MODEL_KEY || '';
+// --lean — 승격 경로 전용 축소 스키마(read 없음 · 후보 2개). 지연·비용을 낮추기만 하므로 잠겨 있지 않다.
+const LEAN = process.argv.includes('--lean');
 if (MODEL && !MODEL_KEY) {
   console.error('--model 을 쓰려면 VISION_MODEL_KEY 환경변수가 필요하다 (워커의 시크릿과 같은 값).');
   console.error('  워커 쪽:  npx wrangler secret put VISION_MODEL_KEY');
@@ -236,7 +238,7 @@ let calls = 0, msTotal = 0, hardFail = 0, errored = 0, confFail = 0;
 
 console.log('\n' + '─'.repeat(78));
 console.log('정직성 게이트 — ' + base + '/vision');
-console.log('모델: ' + (MODEL || '(워커 기본값)'));
+console.log('모델: ' + (MODEL || '(워커 기본값)') + (LEAN ? '  ·  스키마: lean(축소)' : '  ·  스키마: 전체'));
 console.log('이미지 ' + manifest.length + '장 × ' + REPEAT + '회 = ' + (manifest.length * REPEAT) + '콜'
   + '  ·  ' + IMG_DIR + (manifest[0] && manifest[0].longEdge ? ' (긴 변 ' + manifest[0].longEdge + 'px)' : ''));
 console.log('─'.repeat(78));
@@ -252,7 +254,8 @@ for (let round = 1; round <= REPEAT; round++) {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(Object.assign({ images: [b64], lang: 'ko' },
-          MODEL ? { model: MODEL, modelKey: MODEL_KEY } : {})),
+          MODEL ? { model: MODEL, modelKey: MODEL_KEY } : {},
+          LEAN ? { lean: true } : {})),
       });
       j = await res.json();
     } catch (e) {
