@@ -108,6 +108,26 @@ opt-in 이 맞다. 이 계약은 하니스가 못 박는다(`images:[] → bad-r
 | `VISION_GEMINI_PAID_TIER` | (없음) | Gemini 를 쓰려면 `confirmed` 여야 한다 (아래) |
 | `VISION_MODEL_KEY` | (없음) | **secret.** 요청 단위 모델 지정을 여는 열쇠 (아래) |
 
+### ⚠️ 스크립트로 워커를 찌를 땐 **User-Agent 를 명시해라**
+
+워커 **앞단의 Cloudflare 봇 검사**가 `Python-urllib` UA 를 **403 · `error code: 1010`** 으로 막는다.
+**curl 과 브라우저는 통과한다.** 같은 요청·같은 본문인데 UA 한 줄로 갈린다(2026-08-21 재현):
+
+```
+Python-urllib/3.11 (기본)  → 403 · error code: 1010
+브라우저 UA 로 바꾸면        → 200
+curl (기본 UA)             → 200
+```
+
+```python
+req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) …')
+```
+
+**이게 왜 시간을 잡아먹나: 403 이 워커 코드가 아니라 앞단에서 난다.**
+`index.js` 를 아무리 뒤져도 그 403 을 낼 자리가 없다. 침묵이 아니라서 잡히긴 하는데
+**엉뚱한 데를 파게 된다** — "워커가 죽었다"·"배포가 깨졌다"로 오진하기 딱 좋다.
+`site/tests/vision-honesty/run.mjs` 는 Node `fetch` 라 해당 없다.
+
 ### 요청 단위 모델 지정 — 측정용이고 **기본은 잠겨 있다**
 
 모델 급을 비교하려면 급마다 재배포해야 했다. 이제 본문에 `model` 을 실을 수 있다 —
