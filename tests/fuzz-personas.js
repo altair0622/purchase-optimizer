@@ -1130,6 +1130,79 @@ window.__fuzz = (function () {
     checks++;
     if (!(V.JPEG_QUALITY > 0.5 && V.JPEG_QUALITY <= 0.9)) bad.push('JPEG 품질이 범위 밖이다: ' + V.JPEG_QUALITY);
 
+    // --- 9. ⭐ 승격 상한 안내 — **조용한 누락 금지** (흐름 검사) --------------
+    //
+    // 이 검사가 없으면: 상한에 걸렸을 때 화면엔 1차 결과만 남고 사용자는 승격이
+    // 안 일어난 걸 모른다. **"더 찾아봤는데 이게 최선"과 "아예 안 찾아봤다"가
+    // 화면에서 구분이 안 된다.** 실물 20장 측정에서는 그게 곧 오염된 데이터가 된다.
+    //
+    // ⚠️ 순수 로직이 아니라 **실제 DOM 흐름**을 태운다 — 안내가 "코드에 있다"가 아니라
+    //    "화면에 뜬다"를 봐야 하기 때문이다. fetch 를 갈아끼워 밖으로는 안 나간다.
+    // ⚠️ 접힘·숨김이 섞이므로 **textContent** 로 읽는다(innerText 아님).
+    if (typeof document !== 'undefined' && typeof V.handleFile === 'function'
+        && typeof window !== 'undefined' && window.localStorage) {
+      const store = window.localStorage;
+      const today = V.todayStr();
+      const savedPromote = store.getItem('pa_vision_promote_day');
+      const savedDay = store.getItem('pa_vision_day');
+      const realFetch = window.fetch;
+      try {
+        // 오늘 승격을 이미 다 쓴 상태로 만든다. 사진 상한은 비워 둔다(그건 다른 검사다).
+        store.setItem('pa_vision_promote_day', JSON.stringify({ d: today, n: V.PROMOTE_DAILY_CAP }));
+        store.removeItem('pa_vision_day');
+
+        let promoteWentOut = false;
+        window.fetch = async (u, o) => {
+          if (!String(u).includes('/vision')) return realFetch(u, o);
+          const body = JSON.parse(o.body);
+          if (body.promote) promoteWentOut = true;
+          // read 를 비워 **승격 대상**으로 만든다(= 되묻기 화면이 1차 결과가 된다)
+          return new Response(JSON.stringify({ ok: true, promoted: false, category: '마우스',
+            candidates: [{ query: 'black mouse', why: '형태' }], read: [], confirm: [], guessed: [], ask: null }),
+            { status: 200, headers: { 'content-type': 'application/json' } });
+        };
+
+        // 질감 있는 이미지 — 흐림 프리체크에 걸리지 않게
+        const cv = document.createElement('canvas'); cv.width = 900; cv.height = 700;
+        const cx = cv.getContext('2d'); cx.fillStyle = '#eee'; cx.fillRect(0, 0, 900, 700);
+        for (let i = 0; i < 300; i++) { cx.fillStyle = 'hsl(' + (i * 13 % 360) + ',60%,50%)'; cx.fillRect((i * 31) % 860, (i * 47) % 660, 26, 26); }
+        const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.9));
+
+        V.resetVision();
+        await V.handleFile(new File([blob], 't.jpg', { type: 'image/jpeg' }));
+        await new Promise(r => setTimeout(r, 400));
+
+        const p = document.getElementById('visionPanel');
+        const txt = p ? p.textContent : '';
+
+        // ① 상한에 걸렸으면 **화면에 말해야 한다**
+        checks++;
+        if (!p || !p.querySelector('.vcapped')) {
+          bad.push('★ 승격 상한에 걸렸는데 화면에 아무 안내가 없다 (조용한 누락 — 사용자가 1차 결과인 줄 모른다)');
+        }
+
+        // ② 안내를 띄우면서 **1차 결과를 지우면 안 된다** (덧붙이기만)
+        //    이 경로의 1차 결과는 되묻기 화면이다(read 가 비어야 승격하므로 항상 되묻는다).
+        checks++;
+        const askMark = V.askText('no-brand');
+        if (!txt || txt.indexOf(askMark.replace(/<[^>]+>/g, '')) < 0) {
+          bad.push('★ 상한 안내를 띄우면서 1차 결과를 지웠다 (안내는 덧붙이기만 해야 한다)');
+        }
+
+        // ③ 상한을 넘겼으면 승격 요청이 **나가면 안 된다** (비용)
+        checks++;
+        if (promoteWentOut) bad.push('★ 상한을 넘겼는데 승격 요청이 제공자로 나갔다 (비용이 샌다)');
+      } catch (e) {
+        checks++;
+        bad.push('승격 상한 흐름 검사가 예외로 끝났다: ' + (e && e.message));
+      } finally {
+        window.fetch = realFetch;
+        if (savedPromote == null) store.removeItem('pa_vision_promote_day'); else store.setItem('pa_vision_promote_day', savedPromote);
+        if (savedDay == null) store.removeItem('pa_vision_day'); else store.setItem('pa_vision_day', savedDay);
+        try { V.resetVision(); } catch (e) { /* 무시 */ }
+      }
+    }
+
     return { mode: 'vision', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 40) };
   }
 

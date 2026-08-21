@@ -33,6 +33,8 @@ window.__negVision = function () {
                      'DAILY_CAP', 'dayCount', 'bumpDay', 'todayStr',
                      'shouldPromote', 'queryIsGrounded', 'PROMOTE_DAILY_CAP', 'promoteCount', 'bumpPromote',
                      'PROMOTE_LONG_EDGE',
+                     // 승격 상한 흐름 검사가 실제 DOM 경로를 태우려면 이 둘이 필요하다
+                     'handleFile', 'resetVision',
                      'LONG_EDGE', 'JPEG_QUALITY'];
 
     function build(src) {
@@ -48,6 +50,13 @@ window.__negVision = function () {
 
     const MUT = [
       // ★ 이 기능의 존재 이유 — "조용히 그럴듯하게 틀리지 않는다"
+      ['★ 상한에 걸렸을 때 안내를 안 띄움 (조용한 누락 — 1차 결과인 줄 모른다)',
+        s => s.replace('{ renderPromoteCapped(); return; }', '{ return; }')],
+
+      ['★ 상한 안내가 1차 결과를 지움 (덧붙이기가 아니라 갈아끼움)',
+        // ⚠️ appendChild 는 showSeeking 에도 있다 — 주석까지 포함해 **유일한 줄**을 찍는다
+        s => s.replace('  box.appendChild(el);   // ← 1차 결과를 지우거나 바꾸지 않는다. 덧붙이기만 한다.', '  box.innerHTML = String(); box.appendChild(el);')],
+
       ['★ 승격 해상도를 1차와 같게 (12.4초로 되돌아간다)',
         s => s.replace('const PROMOTE_LONG_EDGE = 768;', 'const PROMOTE_LONG_EDGE = 1568;')],
 
@@ -59,7 +68,7 @@ window.__negVision = function () {
                        '  return true;')],
 
       ['★ 승격 하루 상한을 0으로 (승격이 영영 안 일어난다)',
-        s => s.replace('const PROMOTE_DAILY_CAP = 10;', 'const PROMOTE_DAILY_CAP = 0;')],
+        s => s.replace('const PROMOTE_DAILY_CAP = 40;', 'const PROMOTE_DAILY_CAP = 0;')],
 
       ['★ 승격 판단을 꺼버림 — 글자 없는 사진에서 영영 답을 못 낸다',
         // ⚠️ PRISTINE 은 export 를 이미 걷어낸 뒤다 — 붙이면 변형이 안 먹는다(전에 한 번 당했다)
