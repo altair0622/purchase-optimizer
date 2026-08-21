@@ -1070,6 +1070,37 @@ window.__fuzz = (function () {
     }
     eq(V.todayStr(new Date(2026, 7, 5)), '2026-08-05', '날짜 문자열이 0채움이 안 됐다');
 
+    // --- 7b. ⭐ 승격 판단 — 언제 큰 모델로 올리나 -----------------------------
+    // 실측: 글자 없는 사진에서 Haiku 브랜드 0/3, Opus 3/3. **글자가 없을 때만 값어치가 있다.**
+    {
+      const R = o => Object.assign({ ok: true, read: ['acer'], candidates: [{ query: 'q', why: 'w' }],
+                                     guessed: [], confirm: [], ask: null, promoted: false }, o);
+      eq(() => V.shouldPromote(R({})), false, '★ 글자를 읽었는데 승격했다 (비용만 5배 든다)');
+      eq(() => V.shouldPromote(R({ read: [] })), true, '★ 읽은 글자가 없는데 승격 안 했다 (큰 모델만 답을 낸다)');
+      eq(() => V.shouldPromote(R({ read: [], promoted: true })), false, '★ 승격된 결과를 또 승격했다 (무한 루프)');
+      eq(() => V.shouldPromote({ ok: false }), false, '오류를 승격했다');
+      eq(() => V.shouldPromote(null), false, '빈 값에서 승격이 켜졌다');
+      // ⚠️ ask 만으로 판단하지 않는다 — Opus 도 맞히면서 no-brand 를 냈다
+      eq(() => V.shouldPromote(R({ read: ['acer'], ask: { reason: 'no-brand' } })), false,
+         '★ ask=no-brand 만 보고 승격했다 (모델 자기평가는 못 믿는다 — 읽은 글자가 있으면 안 올린다)');
+    }
+    // 승격 하루 상한 — 날짜가 바뀌면 리셋된다
+    {
+      const mem = (() => { const m = {}; return { getItem: k => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); } }; })();
+      eq(() => V.promoteCount(mem, '2026-08-21'), 0, '승격 카운트 초기값이 0이 아니다');
+      V.bumpPromote(mem, '2026-08-21');
+      eq(() => V.promoteCount(mem, '2026-08-21'), 1, '승격 카운트가 안 늘었다');
+      eq(() => V.promoteCount(mem, '2026-08-22'), 0, '★ 날짜가 바뀌었는데 승격 카운트가 안 리셋됐다');
+      checks++;
+      if (!(V.PROMOTE_DAILY_CAP > 0 && V.PROMOTE_DAILY_CAP <= V.DAILY_CAP)) {
+        bad.push('PROMOTE_DAILY_CAP 이 이상하다 (사진 상한보다 크면 의미가 없다): ' + V.PROMOTE_DAILY_CAP);
+      }
+      checks++;
+      const broken = { getItem: () => '{{{', setItem: () => { throw new Error('quota'); } };
+      try { if (V.promoteCount(broken, '2026-08-21') !== 0) bad.push('깨진 저장소에서 승격 카운트가 0이 아니다'); }
+      catch (e) { bad.push('깨진 저장소에서 예외가 새어나왔다: ' + e.message); }
+    }
+
     // --- 8. 업로드 규격 — 비용·지연이 여기 달려 있다 ------------------------
     // ⚠️ 이 값은 **실측으로 정해졌다**(부록 C). 1024 로 되돌리면 12px 구간 실패율이
     //    0% → 100% 로 돌아간다. 비용(면적 비례)만 보고 낮추지 마라.

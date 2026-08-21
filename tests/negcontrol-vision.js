@@ -31,6 +31,7 @@ window.__negVision = function () {
                      'needsReask', 'reaskReason', 'guessedLine', 'shapeResult',
                      'MIN_LONG_EDGE', 'MIN_LAPLACIAN_VAR', 'laplacianVar', 'precheck',
                      'DAILY_CAP', 'dayCount', 'bumpDay', 'todayStr',
+                     'shouldPromote', 'PROMOTE_DAILY_CAP', 'promoteCount', 'bumpPromote',
                      'LONG_EDGE', 'JPEG_QUALITY'];
 
     function build(src) {
@@ -46,6 +47,17 @@ window.__negVision = function () {
 
     const MUT = [
       // ★ 이 기능의 존재 이유 — "조용히 그럴듯하게 틀리지 않는다"
+      ['★ 글자를 읽었는데도 승격함 — 비용이 5배로 튄다',
+        s => s.replace('  return !result.read || !result.read.length;     // ← 읽은 글자가 없으면 = 짐작뿐이면',
+                       '  return true;')],
+
+      ['★ 승격 하루 상한을 0으로 (승격이 영영 안 일어난다)',
+        s => s.replace('const PROMOTE_DAILY_CAP = 10;', 'const PROMOTE_DAILY_CAP = 0;')],
+
+      ['★ 승격 판단을 꺼버림 — 글자 없는 사진에서 영영 답을 못 낸다',
+        // ⚠️ PRISTINE 은 export 를 이미 걷어낸 뒤다 — 붙이면 변형이 안 먹는다(전에 한 번 당했다)
+        s => s.replace('function shouldPromote(result) {',
+                       'function shouldPromote(result) { return false;')],
       ['★ read 가 비어도 안 되묻음 — 짐작뿐인 검색어를 확신처럼 내놓는다',
         s => s.replace('  if (!result.read || !result.read.length) return true;    // ← 급소',
                        '  if (false) return true;')],

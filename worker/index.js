@@ -553,10 +553,33 @@ async function handleVision(request, env, cors) {
 
   const lang = body && body.lang === 'en' ? 'en' : 'ko';
   // lean 은 비용·지연을 **낮추기만** 하므로 열쇠로 막지 않는다(모델 지정과 다르다).
-  const lean = !!(body && body.lean);
+  let lean = !!(body && body.lean);
+
+  // ===== 승격(promote) — 작은 모델이 실패했을 때만 큰 모델로 =====
+  //
+  // 왜 클라이언트가 모델 이름을 못 고르나: 모델 지정은 **열쇠로 잠겨 있고**(공개
+  // 엔드포인트라 잔액이 털린다), 그 열쇠를 브라우저에 둘 수는 없다.
+  // → 클라이언트는 `promote: true` 라는 **의도**만 보내고, **어느 모델인지는 워커가 정한다.**
+  //
+  // ⚠️ **기본은 꺼져 있다(fail closed).** `VISION_PROMOTE_MODEL` 이 설정돼 있을 때만 승격한다.
+  //    배포만으로 비용이 조용히 5배가 되면 안 된다 — 운영자가 명시적으로 켜는 것이다.
+  //    끄려면 시크릿/변수를 지우면 되고, 그러면 클라이언트는 `promoted:false` 를 보고
+  //    "더 찾는 중" 표시를 조용히 거둔다(사용자에게 실패로 보이지 않는다).
+  //
+  // ⚠️ 승격 모델도 **허용목록을 통과해야 한다.** 오타 하나로 엉뚱한 모델에 과금되지 않게.
+  let promoted = false;
+  if (body && body.promote) {
+    const pm = String((env && env.VISION_PROMOTE_MODEL) || '');
+    if (pm && VISION_MODEL_ALLOW.includes(pm)) {
+      promoted = true;
+      lean = true;   // 승격 경로는 항상 축소 스키마 — 출력 길이가 지연을 지배한다
+    }
+  }
 
   // 기본 모델 — 지정이 없으면 지금까지와 **완전히 동일**하게 동작한다.
-  let model = String(env.VISION_MODEL || VISION_DEFAULT_MODEL[provider] || VISION_DEFAULT_MODEL.anthropic);
+  let model = promoted
+    ? String(env.VISION_PROMOTE_MODEL)
+    : String(env.VISION_MODEL || VISION_DEFAULT_MODEL[provider] || VISION_DEFAULT_MODEL.anthropic);
   const wanted = body && body.model;
   if (wanted != null && wanted !== '') {
     const want = String(wanted);
@@ -583,7 +606,7 @@ async function handleVision(request, env, cors) {
   }
   if (!raw || typeof raw !== 'object') return visionErr('provider-refused', '인식 결과를 받지 못했어', cors, 200);
 
-  return json({ ok: true, ...normalizeVision(raw) }, 200, cors);
+  return json({ ok: true, promoted, ...normalizeVision(raw) }, 200, cors);
 }
 
 const visionErr = (code, why, cors, status) =>

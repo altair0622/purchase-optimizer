@@ -131,6 +131,55 @@ export function guessedLine(s) {
 }
 
 // ---------------------------------------------------------------------------
+// ⭐ 승격(promote) — 작은 모델이 실패했을 때만 큰 모델로 한 번 더
+// ---------------------------------------------------------------------------
+// 실측(작업 B): 글자가 안 보이는 마우스 사진에서
+//   Haiku 4.5 → 브랜드 0/3 · 모델 0/3 · 4.5초
+//   Opus 5    → 브랜드 3/3 · 모델 3/3 (Logitech G305) · confirm 3개 · 12.4초
+// **글자가 없으면 큰 모델만 답을 낸다.** 다만 12.4초를 매번 기다리게 할 수는 없다.
+// → 싼 모델을 먼저 보여주고, **실패했을 때만** 큰 모델을 뒤에서 부른다.
+//
+// ⭐ 무엇을 "실패"로 볼 것인가 — **`read` 가 비었는지**로 본다.
+//
+// 후보에 브랜드명이 없는지로 판단하는 방법도 있었는데 **버렸다.** 브랜드를 알아보려면
+// 사전이나 고유명사 휴리스틱이 필요한데, 언어마다 깨지고 흔한 대문자 단어에 오작동한다.
+// 반면 `read` 가 비었다는 건 **"읽은 글자가 하나도 없다"는 기계적 사실**이고,
+// 이 설계가 이미 되묻기 판단에 쓰는 바로 그 신호다(6-A). 한 신호로 두 결정을 하는 게
+// 일관되고, 실측과도 맞는다 — 모니터(성공)는 read 가 찼고, 마우스(실패)는 3/3 비었다.
+//
+// ⚠️ `ask === 'no-brand'` 만으로는 판단하지 않는다. **Opus 도 맞히면서 no-brand 를 냈다** —
+//    모델의 자기평가는 여기서도 신뢰할 수 없다(6-A 와 같은 이유).
+export function shouldPromote(result) {
+  if (!result || !result.ok) return false;
+  if (result.promoted) return false;              // 이미 승격된 결과는 다시 안 올린다
+  return !result.read || !result.read.length;     // ← 읽은 글자가 없으면 = 짐작뿐이면
+}
+
+// 하루 승격 횟수 상한.
+// ⚠️ **이것도 방어가 아니다**(localStorage 라 지우면 그만). 진짜 방어선은 엣지 레이트리밋과
+//    제공자 월 예산 상한이다. 여기서 막는 건 "정직한 사용자가 하루에 폭주하는 것"뿐이다.
+// 숫자 근거: 승격 1회 ≈ $0.012(Opus). 10회면 기기당 하루 $0.12 이고, 사진 상한 20장의
+// Haiku 비용($0.06)까지 더해도 하루 $0.18 이다. 하루에 **알아볼 수 없는 물건을 10개** 찍는
+// 건 정상 사용에서 드물어서, 정직한 사용자는 이 선에 닿지 않는다.
+// ⚠️ 이 값은 **비용 감각으로 정한 것이지 측정된 값이 아니다.** 실사용 로그가 없다.
+export const PROMOTE_DAILY_CAP = 10;
+const PROMOTE_DAY_KEY = 'pa_vision_promote_day';
+
+export function promoteCount(store, today) {
+  try {
+    const raw = store.getItem(PROMOTE_DAY_KEY);
+    if (!raw) return 0;
+    const j = JSON.parse(raw);
+    return (j && j.d === today) ? (+j.n || 0) : 0;
+  } catch (e) { return 0; }
+}
+export function bumpPromote(store, today) {
+  const n = promoteCount(store, today) + 1;
+  try { store.setItem(PROMOTE_DAY_KEY, JSON.stringify({ d: today, n })); } catch (e) { /* 무시 */ }
+  return n;
+}
+
+// ---------------------------------------------------------------------------
 // 하루 사용 상한 — **방어가 아니다**
 // ---------------------------------------------------------------------------
 // 조사 5-C: 진짜 방어선은 ① Cloudflare 엣지 레이트리밋 ② 제공자 콘솔의 월 예산 상한이다.
@@ -214,6 +263,7 @@ export function shapeResult(j) {
     .slice(0, 3);
   return {
     ok: true,
+    promoted: !!j.promoted,
     category: typeof j.category === 'string' ? j.category.trim() : '',
     candidates,
     read: arr(j.read),
@@ -309,7 +359,7 @@ function workerBase() {
   return '';
 }
 
-export async function askVision(b64list) {
+export async function askVision(b64list, opts) {
   const base = workerBase();
   if (!base) return { ok: false, errorCode: 'no-worker', error: '조회 서버 주소가 없어' };
   let res;
@@ -317,7 +367,8 @@ export async function askVision(b64list) {
     res = await fetch(base + '/vision', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ images: b64list, lang: curLang() }),
+      body: JSON.stringify(Object.assign({ images: b64list, lang: curLang() },
+        (opts && opts.promote) ? { promote: true } : {})),
     });
   } catch (e) {
     return { ok: false, errorCode: 'network', error: (e && e.message) || String(e) };
@@ -355,6 +406,11 @@ function injectStyle() {
     '#visionPanel .vlinks a.unk{background:var(--card);color:var(--fg);border:1px solid var(--line)}',
     '#visionPanel .vbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}',
     '#visionPanel .vconfirm{margin:2px 0 10px;font-size:var(--t-small);line-height:1.7}',
+    '#visionPanel .vseek{margin-top:10px;font-size:var(--t-small);color:var(--muted)}',
+    '#visionPanel .vspin{display:inline-block;width:10px;height:10px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:vspin 0.8s linear infinite;vertical-align:-1px}',
+    '@keyframes vspin{to{transform:rotate(360deg)}}',
+    // 갱신됐다는 걸 **알 수 있어야 한다.** 조용히 바뀌면 방금 읽은 것과 화면이 어긋난다.
+    '#visionPanel .vupgraded{margin:0 0 8px;padding:7px 10px;border-radius:9px;background:var(--accent);color:#fff;font-weight:800;font-size:var(--t-small)}',
     '#visionPanel .vfold{margin-top:8px}',
     '#visionPanel .vfold>summary{cursor:pointer;font-size:var(--t-small);color:var(--muted);font-weight:700}',
     '#visionPanel .vfold[open]>summary{margin-bottom:6px}',
@@ -412,7 +468,7 @@ function renderBusy(n) {
 // → 화면에 남기는 건 **행동을 바꾸는 것**뿐: 편집 가능한 검색어 한 줄 + 누를 버튼.
 //   나머지는 **접는다. 지우지는 않는다** — 모델이 1~3글자 틀리게 읽어도 우리가 못 잡으므로
 //   "왜 이렇게 나왔지?"를 확인할 경로는 남아야 한다(실측 부록 C-1).
-function renderResult(r) {
+function renderResult(r, opts) {
   const first = r.candidates[0];
   const alts = r.candidates.slice(1);
 
@@ -450,6 +506,9 @@ function renderResult(r) {
     : '';
 
   panel().innerHTML = '<div class="vbox">' +
+    // ③ 조용히 바꾸지 않는다 — 바뀐 걸 사용자가 알아야 방금 읽은 것과 어긋나지 않는다.
+    ((opts && opts.upgraded)
+      ? '<div class="vupgraded">✨ ' + T('vision.upgraded', '더 자세히 찾았어요 — 아래가 새 결과예요') + '</div>' : '') +
     '<div class="vhead">' + (r.category ? '🔍 ' + esc(r.category) : '🔍 ' + T('vision.found', '이렇게 보여요')) + '</div>' +
     confirmHtml +
     '<div class="vq"><input id="visionQ" type="text" value="' + esc(first.query) + '" ' +
@@ -534,6 +593,20 @@ function renderBlurry(onSend) {
   if (b) b.addEventListener('click', onSend);
 }
 
+// ③ 1차 결과 아래에 붙는 한 줄. **화면을 가리지 않는다** — 이미 답은 떠 있다.
+function showSeeking() {
+  const box = panel().querySelector('.vbox');
+  if (!box || box.querySelector('.vseek')) return;
+  const el = document.createElement('div');
+  el.className = 'vseek';
+  el.innerHTML = '<span class="vspin"></span> ' + T('vision.seeking', '더 자세히 찾아보는 중…');
+  box.appendChild(el);
+}
+function clearSeeking() {
+  const el = panel().querySelector('.vseek');
+  if (el) el.remove();
+}
+
 function renderLinks(query) {
   const box = document.getElementById('visionLinks');
   if (!box) return;
@@ -582,10 +655,13 @@ function wire() {
   const go = document.getElementById('visionGo');
   // ⭐ 검색을 자동 실행하지 않는다 — 누를 때만 링크가 생긴다(조사 9장 #2).
   // ⭐ 검색을 자동 실행하지 않는다 — 누를 때만 넘어간다(조사 9장 #2). 그건 그대로다.
-  if (go && q) go.addEventListener('click', () => runSearch(q.value));
-  if (q) q.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runSearch(q.value); } });
+  if (go && q) go.addEventListener('click', () => { userTouched = true; runSearch(q.value); });
+  if (q) q.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); userTouched = true; runSearch(q.value); } });
+  // 한 글자라도 고치면 그때부터 화면은 사용자 것이다.
+  if (q) q.addEventListener('input', () => { userTouched = true; });
   panel().querySelectorAll('input[name="vAlt"]').forEach(el => {
     el.addEventListener('change', () => {
+      userTouched = true;
       const box = document.getElementById('visionQ');
       if (box) { box.value = el.getAttribute('data-q') || ''; box.focus(); }
       const links = document.getElementById('visionLinks');
@@ -603,9 +679,23 @@ function wire() {
 let held = [];        // base64 목록
 let attempts = 0;     // 0 → 첫 장, 1 → 되묻기 후 둘째 장. 2 에서 끝낸다.
 
-export function resetVision() { held = []; attempts = 0; }
+// ⭐ 승격 결과가 **사용자 작업 위를 덮지 않게** 하는 두 값.
+//   userTouched: 검색어를 고쳤거나 버튼을 눌렀다 → 그 순간부터 화면은 사용자 것이다.
+//   viewToken  : 새 사진을 찍으면 올라간다 → 늦게 도착한 승격 결과가 옛 화면을 되살리지 않게.
+// 입력 중에 판매처 칸을 재정렬하지 않기로 한 것과 같은 원칙이다 — **발밑에서 움직이지 않는다.**
+let userTouched = false;
+let viewToken = 0;
+
+export function resetVision() { held = []; attempts = 0; userTouched = false; viewToken++; }
 
 async function send(list) {
+  // ⚠️ **새 요청이 시작되면 이전 승격 결과는 버린다.**
+  //    승격은 항상 되묻기 화면 위에서 도는데(읽은 글자가 없어야 승격하므로), 그 화면에서
+  //    사용자가 할 수 있는 행동이 바로 **두 번째 사진 찍기**다. 그때 늦게 도착한 이전 승격이
+  //    새 결과를 덮으면 사용자가 방금 찍은 사진과 화면이 어긋난다.
+  //    (처음엔 resetVision 에서만 올렸는데, 두 번째 사진 경로는 resetVision 을 안 거친다 —
+  //     실제로 테스트에서 이 구멍이 드러났다.)
+  viewToken++;
   renderBusy(list.length);
   const r = await askVision(list);
   if (!r.ok) { renderError(r.errorCode, r.error); return; }
@@ -613,10 +703,43 @@ async function send(list) {
   if (needsReask(r)) {
     if (attempts >= 2) { renderGiveUp(); resetVision(); return; }   // 세 번은 없다
     renderAsk(r, reaskReason(r));
+    // ⭐ 되묻는 순간이 승격이 **가장 값어치 있는** 때다 — 읽은 글자가 없어서 되묻는 것이므로.
+    //    사용자가 두 번째 사진을 찍는 동안 뒤에서 큰 모델이 답을 낼 수도 있다.
+    //    새 사진이 오면 viewToken 이 올라가 이 결과는 버려진다.
+    if (shouldPromote(r)) promote(list, viewToken);
     return;
   }
   renderResult(r);
-  resetVision();
+  // ⭐ 1차 결과를 **먼저 보여준 뒤** 승격을 건다. 사용자는 4.5초만 기다리고,
+  //    그다음엔 화면을 읽는 중이며 그러는 동안 좋아진다 → 체감 지연이 거의 없다.
+  const token = viewToken;
+  if (shouldPromote(r)) promote(list, token);
+  held = []; attempts = 0;   // resetVision() 을 안 쓴다 — viewToken 이 올라가면 위 승격이 버려진다
+}
+
+// ⭐ 승격 실행 — 1차 화면은 이미 떠 있고, 이건 **뒤에서** 돈다.
+//
+// 지키는 것 세 가지:
+//   ① 사용자가 손댔으면(검색어 수정·버튼 클릭) **덮지 않는다.** 그냥 버린다 —
+//      더 나은 답이라도 사용자의 작업을 밀어내지 않는다. 다시 물어보지도 않는다
+//      (후보 고르기에서 "어떻게 선택해야 하는지 모르겠다"는 지적을 받은 바로 그 패턴이다).
+//   ② 승격이 실패하거나 꺼져 있으면 **1차 결과를 그대로 둔다.** 퇴화 금지.
+//   ③ 바꿀 때는 **바뀌었다고 말한다.**
+async function promote(list, token) {
+  const store = (() => { try { return window.localStorage; } catch (e) { return null; } })();
+  if (store && promoteCount(store, todayStr()) >= PROMOTE_DAILY_CAP) return;
+  showSeeking();
+  let r = null;
+  try { r = await askVision(list, { promote: true }); }
+  catch (e) { r = null; }
+  clearSeeking();
+  // 늦게 도착했는데 화면이 이미 바뀌었거나 사용자가 손댔으면 **아무것도 안 한다**
+  if (token !== viewToken || userTouched) return;
+  if (!r || !r.ok) return;                       // 실패 → 1차 결과 유지(퇴화 금지)
+  if (!r.promoted) return;                       // 워커에서 승격이 꺼져 있음 → 조용히 종료
+  if (!r.candidates || !r.candidates.length) return;
+  if (store) bumpPromote(store, todayStr());
+  renderResult(r, { upgraded: true });
 }
 
 export async function handleFile(file) {
