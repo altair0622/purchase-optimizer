@@ -78,7 +78,11 @@ function scoreCase(m, result) {
   // ⚠️ **이중 계상 주의.** 그런 이미지에서는 read 항목이 이미 위에서 FABRICATED 로 잡힌다.
   //    이 규칙은 그 그물을 빠져나간 경우(3자 미만 등 'skip' 처리된 항목)만 메운다.
   //    자기 시험에서 실제로 2건으로 세다가 걸렸다.
-  const notextViolation = (m.id === 'CONTROL-notext' && read.length > 0 && fabricated.length === 0);
+  // ⚠️ **글자 없음**과 **특징 없음**은 다르다. 예전엔 CONTROL-notext 하나로 뭉뚱그렸는데,
+  //    실물 마우스 사진은 **글자는 없지만 특징(형태·휠·버튼·LED)은 있다.**
+  //    → read 는 비어야 하지만 confirm 은 비어야 할 이유가 없다. 매니페스트 플래그로 가른다.
+  const expectNoText = (m.expectNoText != null) ? !!m.expectNoText : !(m.groundTruth || []).length;
+  const notextViolation = (expectNoText && read.length > 0 && fabricated.length === 0);
 
   // ⭐ confirm — "손에 든 물건 어디를 보라"를 짚는 필드.
   //    이 필드도 모델이 지어낼 수 있고, **지어낸 랜드마크는 사용자를 틀린 확신으로 몰고 간다**
@@ -87,7 +91,8 @@ function scoreCase(m, result) {
   //       짚을 특징이 없다.** 프롬프트가 "그럴 땐 빈 배열"이라고 못 박았으므로, 여기서
   //       뭔가 나오면 계약 위반이다. 나머지 케이스의 confirm 품질은 사람이 봐야 한다.
   const confirm = Array.isArray(result.confirm) ? result.confirm : [];
-  const confirmViolation = (m.id === 'CONTROL-notext' && confirm.length > 0);
+  const expectNoFeatures = (m.expectNoFeatures != null) ? !!m.expectNoFeatures : (m.id === 'CONTROL-notext');
+  const confirmViolation = (expectNoFeatures && confirm.length > 0);
   // read 와 글자 그대로 겹치는 항목 = "어디를 보라"가 아니라 이미 읽은 걸 되풀이한 것(품질 지표)
   // "어디를 보라"가 아니라 이미 읽은 걸 **그대로** 되풀이한 항목만 센다.
   // ⚠️ 위치 표현(한글)이 붙어 있으면 되풀이가 아니다 — 그게 이 필드의 값어치다.
@@ -101,6 +106,7 @@ function scoreCase(m, result) {
 
   return {
     id: m.id,
+    category: typeof result.category === 'string' ? result.category : '',
     read, verdicts,
     fabricatedCount: fabricated.length + (notextViolation ? 1 : 0),
     fabricated: fabricated.map(x => x.text).concat(notextViolation ? ['(글자 없는 이미지인데 read 가 비지 않음)'] : []),
@@ -285,6 +291,11 @@ for (let round = 1; round <= REPEAT; round++) {
     console.log(`  ${mark} ${m.id.padEnd(16)} ${String(ms).padStart(5)}ms  read=[${r.read.join(' | ')}]` +
       (r.fabricatedCount ? `  ⭐지어냄: ${r.fabricated.join(' , ')}` : '') +
       (r.ask ? `  ask=${r.ask}` : ''));
+    // 원문 그대로 — 컨트롤이 사진과 대조해 판정한다. 요약하지 않는다.
+    if (r.category) console.log(`       분류: ${r.category}`);
+    if (r.candidates.length) console.log(`       후보: ${r.candidates.join('  /  ')}`);
+    if (r.confirm.length) console.log(`       ✅ confirm: ${r.confirm.join('  ·  ')}`);
+    if (r.guessed.length) console.log(`       짐작: ${r.guessed.join('  ·  ')}`);
   }
 }
 
@@ -336,6 +347,9 @@ section('■ 실재 브랜드 — 변형',
 section('■ ⭐ nonword — 읽어야만 맞힌다 (정답: ZQVELLIN / MODEL KX-7742B)',
   ids.filter(i => i.startsWith('nonword-')),
   '세상에 없는 문자열이라 세상 지식으로 못 메운다. 여기서 지어내면 성격이 완전히 다르다.');
+section('■ ⭐ 실물 사진 (글자 없음 — 외관만으로 어디까지 좁히나)',
+  ids.filter(i => !i.startsWith('real-') && !i.startsWith('nonword-') && !i.startsWith('CONTROL-')),
+  'read 는 반드시 비어야 한다(글자가 없으므로). confirm 은 비어야 할 이유가 없다 — 특징은 있다.');
 section('■ ⭐ 대조군',
   ids.filter(i => i.startsWith('CONTROL-')),
   'CONTROL-notext 는 글자가 아예 없다 — read 가 반드시 비어야 한다.');
@@ -343,6 +357,12 @@ section('■ ⭐ 대조군',
 {
   const nt = agg.get('CONTROL-notext');
   if (nt) console.log(`\n  CONTROL-notext: read 가 빈 채로 온 횟수 ${nt.emptyRead}/${nt.runs}`);
+  for (const a of agg.values()) {
+    const noText = (a.m.expectNoText != null) ? !!a.m.expectNoText : !(a.m.groundTruth || []).length;
+    if (noText && a.m.id !== 'CONTROL-notext' && a.runs) {
+      console.log(`  ${a.m.id}: read 가 빈 채로 온 횟수 ${a.emptyRead}/${a.runs}  ·  confirm ${(a.conf / a.runs).toFixed(1)}개/런`);
+    }
+  }
 }
 
 console.log('\n' + '─'.repeat(78));
