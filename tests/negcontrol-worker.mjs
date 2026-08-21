@@ -95,6 +95,15 @@ const MUTANTS = [
     "    return visionErr('provider-error', (e && e.message) || String(e), cors, 200);",
     "    return json({ ok: true, category: '', candidates: [{ query: 'nike air max 90', why: 'x' }], read: [], guessed: [], ask: null }, 200, cors);"],
 
+  // ★ 2026-08-14~20 실제로 6일간 조용히 깨져 있던 자리. 커스텀 도메인을 붙였는데
+  //   ALLOW_ORIGINS 가 안 따라와서 브라우저가 워커 응답을 통째로 버렸다.
+  ['★ 운영 도메인(priceafter.com)을 CORS 허용목록에서 뺌 — 라이브가 조용히 죽는다',
+    "  'https://priceafter.com',",
+    ''],
+  ['★ 운영 도메인 www 를 뺌',
+    "  'https://www.priceafter.com',",
+    ''],
+
   ['★ 망가진 키 가드를 끔 (Ctrl+V 로 들어간 제어문자가 그대로 제공자에 나감)',
     "  if (key.length < 20 || /[^\x21-\x7e]/.test(key)) {",
     '  if (false) {'],

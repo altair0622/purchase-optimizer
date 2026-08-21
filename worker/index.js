@@ -63,8 +63,18 @@
 // 로컬 포트는 흔한 개발 서버 포트를 '명시적으로' 나열한다 — 정규식으로 반사하면
 // 허용목록 밖의 값이 Access-Control-Allow-Origin 에 실려나가므로 그렇게 하지 않는다.
 const LOCAL_PORTS = [3000, 4173, 5000, 5173, 8000, 8080, 8081, 8888];
+// ⚠️ **운영 도메인을 여기 안 넣으면 조용히 깨진다.** 2026-08-14 커스텀 도메인(priceafter.com)을
+//    연결했는데 이 목록이 따라오지 않아, 브라우저가 워커 응답을 통째로 버렸다.
+//    증상이 눈에 안 띈 이유: 계산기의 fetchPrice 가 실패를 조용히 삼키고 공개 프록시로
+//    넘어간다 — 값은 나오지만 **신뢰도 low 라 자동입력이 안 되고**, 무엇보다
+//    **상품 URL 이 우리 워커 대신 제3자(r.jina.ai)로 100% 나갔다.**
+//    /vision 은 폴백이 없어서 버튼이 아예 안 떴다(그래서 이번에 발견됐다).
+//    → **도메인을 또 바꾸면 여기부터 고쳐라.** 하니스가 이 목록을 검사한다
+//       (tests/fuzz-worker.mjs 의 '운영 도메인 CORS' 검사).
 const ALLOW_ORIGINS = [
-  'https://altair0622.github.io',
+  'https://priceafter.com',
+  'https://www.priceafter.com',
+  'https://altair0622.github.io',   // 옛 주소 — 301 로 넘어가지만 남겨 둔다
   'null',
   ...LOCAL_PORTS.flatMap(p => [`http://localhost:${p}`, `http://127.0.0.1:${p}`]),
 ];

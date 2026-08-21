@@ -157,8 +157,16 @@ const BODIES = [
   ['큰 HTML(5MB)', '<html>' + 'x'.repeat(5_000_000) + '$19.99</html>', 'text/html'],
 ];
 
-const ORIGINS = [
+// 워커가 Access-Control-Allow-Origin 으로 **돌려줘도 되는** 값들.
+// 허용목록 밖 오리진에는 워커가 ALLOW_ORIGINS[0] 을 기본값으로 돌려주므로 그것도 여기 들어간다.
+// ⚠️ 예전엔 `ORIGINS.slice(0, 3)` 으로 세고 있었는데, 운영 도메인을 추가해 기본값이 바뀌자
+//    228건이 한꺼번에 실패했다. 위치로 세지 말고 **이름으로 적는다.**
+const LEGIT_ORIGINS = [
+  'https://priceafter.com', 'https://www.priceafter.com',
   'https://altair0622.github.io', 'null', 'http://localhost:8080',
+];
+const ORIGINS = [
+  'https://priceafter.com', 'https://altair0622.github.io', 'null', 'http://localhost:8080',
   'https://evil.example.com', 'https://altair0622.github.io.evil.com', '', 'javascript:alert(1)',
 ];
 const METHODS = ['GET', 'GET', 'GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'];
@@ -282,7 +290,7 @@ for (let i = 0; i < 600; i++) {
 
   // 불변식 3: CORS 반사 금지
   const ao = res.headers.get('Access-Control-Allow-Origin');
-  if (!ORIGINS.slice(0, 3).includes(ao)) add('CORS Allow-Origin 이 허용 목록 밖', { origin, allowOrigin: ao });
+  if (!LEGIT_ORIGINS.includes(ao)) add('CORS Allow-Origin 이 허용 목록 밖', { origin, allowOrigin: ao });
 
   // 불변식 4: JSON 파싱 가능 + price 형태
   const text = await res.text();
@@ -424,7 +432,7 @@ for (const s of EVIL_SLUGS) {
   }
   // 불변식 4 — CORS 반사 금지
   const ao = res.headers.get('Access-Control-Allow-Origin');
-  if (!ORIGINS.slice(0, 3).includes(ao)) add('/rate CORS Allow-Origin 이 허용 목록 밖', { allowOrigin: ao });
+  if (!LEGIT_ORIGINS.includes(ao)) add('/rate CORS Allow-Origin 이 허용 목록 밖', { allowOrigin: ao });
 
   if (res.status === 200) rstats.accepted++; else rstats.rejected++;
   rstats.egress += sent.length;
@@ -887,6 +895,67 @@ async function callVision(body, opts = {}) {
   vstats.n += 2;
 }
 
+// ===== 7) ⭐ 운영 도메인 CORS — 조용히 깨지는 자리 =====
+//
+// 2026-08-14 커스텀 도메인(priceafter.com)을 붙였는데 워커의 ALLOW_ORIGINS 가 따라오지 않았다.
+// 브라우저는 Access-Control-Allow-Origin 이 안 맞으면 **응답을 통째로 버린다.**
+//
+// ⚠️ 이게 6일간 안 들킨 이유가 이 검사의 존재 이유다:
+//   · 계산기의 fetchPrice 는 실패를 `catch(e){}` 로 **조용히 삼키고** 공개 프록시로 넘어간다.
+//     값은 나오니까 "되는 것처럼" 보인다 — 다만 신뢰도 low 라 자동입력이 안 되고,
+//     무엇보다 **상품 URL 이 우리 워커 대신 제3자(r.jina.ai)로 100% 나갔다.**
+//     프라이버시가 이 제품의 셀링포인트인데 고지문("①우리 워커 → 실패 시 ②제3자")이
+//     실질적으로 뒤집혀 있었다.
+//   · /vision 은 폴백이 없어서 버튼이 아예 안 떴고, **그래서 비로소 발견됐다.**
+//
+// → 도메인은 또 바뀐다. 바뀌면 **시끄럽게 실패해야 한다.**
+//
+// ⚠️ 기대 목록을 워커의 ALLOW_ORIGINS 에서 읽어오지 않는다 — 읽어오면 워커가 틀려도
+//    하니스가 같이 틀리는 **동어반복**이 된다(tests/README.md 다섯째 사례).
+//    아래는 손으로 적은 계약이다. 운영 도메인이 바뀌면 여기도 같이 고쳐야 한다.
+const PROD_ORIGINS = ['https://priceafter.com', 'https://www.priceafter.com'];
+const corsTable = [];
+{
+  // 세 경로가 같은 corsHeaders() 를 공유하므로 전부 본다 — 하나만 보면 나머지가 사각지대다.
+  const paths = [
+    ['/?url=', o => new Request('https://w.dev/?url=' + encodeURIComponent('https://shop.example.com/x'), { headers: { Origin: o } })],
+    ['/rate',  o => new Request('https://w.dev/rate?store=nike', { headers: { Origin: o } })],
+    ['/vision', o => new Request('https://w.dev/vision', {
+      method: 'POST', headers: { Origin: o, 'content-type': 'application/json' }, body: '{"images":[]}' })],
+    ['OPTIONS(프리플라이트)', o => new Request('https://w.dev/vision', { method: 'OPTIONS', headers: { Origin: o } })],
+  ];
+  for (const origin of PROD_ORIGINS) {
+    for (const [label, mk] of paths) {
+      fetchLog = [];
+      responder = portalResponder('<html><title>x</title></html>', '<html>x</html>');
+      const res = await withConsoleSpy(() => worker.fetch(mk(origin), VKEY, ctx));
+      const acao = res.headers.get('Access-Control-Allow-Origin');
+      const ok = acao === origin;
+      if (!ok) {
+        add('★ 운영 도메인에 CORS 가 안 열려 있다 — 브라우저가 응답을 버린다', {
+          오리진: origin, 경로: label, 돌려준값: acao,
+          영향: '이 오리진의 실사용자에게 이 경로가 통째로 실패한다 (계산기는 조용히 제3자 프록시로 넘어간다)',
+        });
+      }
+      corsTable.push({ 오리진: origin, 경로: label, ACAO: acao, 통과: ok });
+      stats.n++;
+    }
+  }
+  // 허용목록 밖 오리진은 **반사하면 안 된다** (기존 불변식 재확인 — 이번 수정으로 안 느슨해졌는지)
+  for (const evil of ['https://evil.example.com', 'http://priceafter.com', 'https://priceafter.com.evil.io']) {
+    fetchLog = [];
+    responder = portalResponder('<html><title>x</title></html>', '<html>x</html>');
+    const res = await withConsoleSpy(() => worker.fetch(
+      new Request('https://w.dev/rate?store=nike', { headers: { Origin: evil } }), VKEY, ctx));
+    const acao = res.headers.get('Access-Control-Allow-Origin');
+    if (acao === evil) {
+      add('★ 허용목록 밖 오리진을 그대로 반사했다 (CORS 우회)', { 오리진: evil, ACAO: acao });
+    }
+    corsTable.push({ 오리진: evil, 경로: '반사 금지', ACAO: acao, 통과: acao !== evil });
+    stats.n++;
+  }
+}
+
 console.log(JSON.stringify({
   검사수: stats.n,
   실패: fails.length,
@@ -903,6 +972,7 @@ console.log(JSON.stringify({
     캐시: cacheTable,
     로그남김: consoleCalls.length,
   },
+  운영도메인CORS: corsTable,
   vision검사수: vstats.n,
   vision: visionTable,
   실패목록: fails,
