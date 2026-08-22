@@ -1,5 +1,5 @@
 {
- "asOf": "2026-08-21",
+ "asOf": "2026-08-22",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -415,7 +415,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 10,
+    "pct": 8,
     "listed": true
    }
   },
@@ -600,9 +600,8 @@
     "listed": true
    },
    "tcb": {
-    "pct": 4,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    }
   },
   "ralphlauren": {
@@ -719,7 +718,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 8,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -727,7 +726,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 10,
+    "pct": 8,
     "listed": true
    }
   },
@@ -749,7 +748,7 @@
   },
   "newbalance": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -757,7 +756,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 5,
+    "pct": 8,
     "listed": true
    }
   },
@@ -800,7 +799,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 6,
+    "pct": 0,
     "listed": true
    }
   },
@@ -927,7 +926,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
+    "pct": 4,
     "listed": true
    }
   },
@@ -1199,7 +1198,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 6,
+    "pct": 4,
     "listed": true
    }
   },
@@ -1303,7 +1302,7 @@
   },
   "iherb": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1405,7 +1404,7 @@
   },
   "petco": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1528,7 +1527,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 39,
+    "pct": 34,
     "listed": true,
     "upTo": true
    }
@@ -1549,7 +1548,7 @@
   },
   "expedia": {
    "rk": {
-    "pct": 6,
+    "pct": 3,
     "listed": true,
     "upTo": true
    },
