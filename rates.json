@@ -1,5 +1,5 @@
 {
- "asOf": "2026-08-22",
+ "asOf": "2026-08-23",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -288,7 +288,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 8,
+    "pct": 7,
     "listed": true,
     "upTo": true
    }
@@ -379,8 +379,9 @@
   },
   "neimanmarcus": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 15,
+    "listed": true,
+    "upTo": true
    },
    "cap": {
     "pct": null,
@@ -429,7 +430,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 4,
+    "pct": 0,
     "listed": true
    }
   },
@@ -784,9 +785,8 @@
     "listed": true
    },
    "tcb": {
-    "pct": 8,
-    "listed": true,
-    "upTo": true
+    "pct": 0,
+    "listed": true
    }
   },
   "reebok": {
@@ -890,7 +890,7 @@
   },
   "athleta": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1218,7 +1218,7 @@
   },
   "dyson": {
    "rk": {
-    "pct": 1,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1226,7 +1226,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 2,
+    "pct": 0,
     "listed": true
    }
   },
