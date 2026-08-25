@@ -1416,6 +1416,73 @@ window.__fuzz = (function () {
     return { mode: 'scan', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
   }
 
+  // ⭐ 사진 인식 결론이 **자기가 본 범위를 말하는지** — P1 1단계
+  //
+  // 사고: 주방세제(Dawn) 사진 → "오늘은 Best Buy 가 최대 15%로 제일 유리해요".
+  // Best Buy 는 주방세제를 안 판다. 옛 문장은 "이 물건을 파는 모든 곳 중 1등"으로 읽혔는데
+  // 실제로 계산한 건 **RECO_STORES 4곳 중 1등**이었다.
+  //
+  // ⚠️ 이건 "가격이 같다면" 조건절로 못 막는다 — 조건절은 *값이 다를 수 있다*를 덮지
+  //    *대상이 아예 없다*를 덮지 않는다. 그래서 검사도 조건절이 아니라 **범위 표현**을 본다.
+  //
+  // 이 검사가 지키는 것:
+  //   ① 결론이 후보 풀이 우리가 고른 N곳이라고 말한다
+  //   ② 취급 여부를 확인하지 않았다고 말한다
+  //   ③ **KO/EN 양쪽** — 한쪽만 고치면 다른 언어판이 조용히 옛 주장을 계속한다
+  //   ④ RECO_STORES 가 실측 검증된 4곳 그대로다(풀이 조용히 늘어나면 죽은 링크가 난다)
+  function runRecoPool() {
+    const bad = []; let checks = 0;
+    const LITP = {
+      ko: { scope: /고른|중에서는/, carry: /파는지/,  n: '3' },
+      en: { scope: /we picked/i,    carry: /carry it/i, n: '3' },
+    };
+    const keep = { scen: scenarios.slice(), reco: (typeof lastRecognition !== 'undefined' ? lastRecognition : null) };
+    const langKeep = LANG;
+
+    // ④ 풀은 실측 검증된 4곳 그대로여야 한다 — 슬러그 자동생성으로 죽은 링크 80건이 났던 자리다
+    checks++;
+    const poolKeys = (typeof RECO_STORES !== 'undefined' ? RECO_STORES : []).map(x => x.key).sort().join(',');
+    if (poolKeys !== 'amazon,bestbuy,target,walmart')
+      bad.push('★ RECO_STORES 가 바뀌었다: "' + poolKeys + '" — 풀 확대는 판매처별 링크 실측이 선행이다');
+
+    try {
+      for (const lang of ['ko', 'en']) {
+        const L = LITP[lang];
+        setLangForTest(lang);
+        myWallet = ['wfactivecash']; CARDS = activeCards(); taxPct = 0; autoApplied = {};
+        const r = applyRecognizedProduct('Dawn dish soap');
+        checks++;
+        if (!r || !r.ok) { bad.push('[' + lang + '] applyRecognizedProduct 가 실패했다'); continue; }
+
+        // ⚠️ #finalConclusion 은 이 프로젝트에서 innerText 를 쓴다(접힌 details 규칙의 예외).
+        const concl = document.getElementById('finalConclusion').innerText;
+
+        checks++;
+        if (!L.scope.test(concl))
+          bad.push('[' + lang + '] ★ 결론이 후보 풀의 범위를 안 말한다 — "파는 모든 곳 중 1등"으로 읽힌다: ' + JSON.stringify(concl.slice(0, 160)));
+        checks++;
+        if (!L.carry.test(concl))
+          bad.push('[' + lang + '] ★ 취급 여부를 확인하지 않았다는 말이 없다: ' + JSON.stringify(concl.slice(0, 160)));
+        checks++;
+        // 범위를 말하되 **개수가 실제와 맞아야** 한다 — "4곳"이라 쓰고 3곳을 만들면 그것도 거짓이다
+        if (concl.indexOf(L.n) < 0)
+          bad.push('[' + lang + '] 결론에 실제 만든 판매처 수(' + L.n + ')가 없다: ' + JSON.stringify(concl.slice(0, 160)));
+
+        checks++;
+        // 조건절은 **여전히 있어야 한다** — 범위를 추가한 것이지 조건절을 대체한 게 아니다
+        if (!/가격이 같다면|prices match/i.test(concl))
+          bad.push('[' + lang + '] ★ "가격이 같다면" 조건절이 사라졌다 — 범위는 조건절의 대체품이 아니다');
+      }
+    } catch (e) {
+      bad.push('throw: ' + e.message);
+    } finally {
+      setLangForTest(langKeep);
+      scenarios = keep.scen; lastRecognition = keep.reco;
+      buildAll(); recompute();
+    }
+    return { mode: 'recoPool', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
+  }
+
   // 전부 한 번에
   function all(opt) {
     opt = opt || {};
@@ -1434,7 +1501,7 @@ window.__fuzz = (function () {
 
   // koLeak 은 대조군(negcontrol-i18n.js)이 단위로 검사한다 — '사용자 데이터는 미번역이 아니다'가
   // 이 함수 한 곳에 걸려 있어서, 여기가 조용히 느슨해지면 영어 검사 전체가 같이 무의미해진다.
-  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, all, koLeak,
+  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, all, koLeak,
            last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null, lastScan: null };
 })();
 'fuzz harness loaded';

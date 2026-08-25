@@ -28,6 +28,7 @@ window.__negI18n = function () {
 
   const EN = o => __fuzz.runDomEn(Object.assign({ n: 6, seed: 5 }, o));
   const KO = o => __fuzz.runDom(Object.assign({ n: 6, seed: 5 }, o));
+  const RECO = () => { const r = __fuzz.runRecoPool(); return { failed: r.실패, sample: r.상세.map(w => ({ why: w })) }; };
 
   // [이름, 망가뜨리기, 돌릴 것, 기대]
   // 기대 '실패' = 이 변형은 반드시 걸려야 한다 / '0' = 이건 걸리면 오탐이다
@@ -61,7 +62,32 @@ window.__negI18n = function () {
       () => drop('portal.needCheck', 'concl.portalUnknown'),
       () => { const r = __fuzz.runRecheck({ lang: 'ko' }); return { failed: r.실패, sample: r.상세.map(w => ({ why: w })) }; }, '0'],
 
+    // --- P1 1단계: 결론이 후보 풀의 범위를 말하는가 -------------------------
+    // 사고: 주방세제 사진 → "오늘은 Best Buy 가 제일 유리해요". Best Buy 는 주방세제를 안 판다.
+    // 고친 건 **문장의 범위**다(RECO_STORES 4곳 중 1등이라고 말한다). 그 문장은 카피 세션이
+    // 다듬을 예정이라 **가장 조용히 옛말로 돌아가기 쉬운 자리**다. 그래서 여기서 못 박는다.
+    // ⚠️ 한 언어만 돌리면 안 된다 — KO/EN 양쪽 키가 있고, 한쪽만 되돌아가면 그 언어판만
+    //    조용히 "파는 모든 곳 중 1등"을 계속 주장한다.
+    ['KO 결론을 옛 문구로 되돌림(범위 없음) — "파는 모든 곳 중 1등"으로 읽힌다',
+      () => { STRINGS.ko['reco.ifSame'] = '<b>가격이 같다면</b> 오늘은 <b>{store}</b>가 캐시백 <b>{rate}</b>로 제일 유리해요.'; },
+      RECO, '실패'],
+    ['EN 결론을 옛 문구로 되돌림 — 영어판만 조용히 옛 주장을 계속하는 경우',
+      () => { STRINGS.en['reco.ifSame'] = '<b>If the prices match</b>, today <b>{store}</b> comes out best at <b>{rate}</b> cashback.'; },
+      RECO, '실패'],
+    ['취급 미확인 고지를 지움(KO) — 안 파는 곳이 후보에 있다는 사실이 화면에서 사라진다',
+      () => { STRINGS.ko['reco.poolNote'] = '가격을 넣어 주세요.'; },
+      RECO, '실패'],
+    ['취급 미확인 고지의 영어 키만 삭제 — 한국어로 새어 나온다(범위 문장은 멀쩡한 채)',
+      () => drop('reco.poolNote'), RECO, '실패'],
+    ['조건절만 지움("가격이 같다면") — 범위는 조건절의 대체품이 아니다',
+      () => { STRINGS.ko['reco.ifSame'] = '<b>저희가 고른 이 {n}곳 중에서는</b> 오늘 <b>{store}</b>가 캐시백 <b>{rate}</b>로 제일 유리해요.';
+              STRINGS.en['reco.ifSame'] = '<b>Among the {n} sellers we picked</b>, today <b>{store}</b> comes out best at <b>{rate}</b> cashback.'; },
+      RECO, '실패'],
+
     // ↓ 여기부터는 **0이어야** 통과다
+    ['대조군 — 무관한 키(rcpt.net)를 지워도 결론 범위 검사는 안 흔들린다',
+      () => drop('rcpt.net'), RECO, '0'],
+    ['대조군 — 아무것도 안 망가뜨림 (결론 범위)', () => {}, RECO, '0'],
     ['koLeak 단위 — 사용자가 넣은 한국어 판매처명은 미번역이 아니다(오탐 감시)',
       () => {}, () => {
         // 오탐이 나면 검사가 시끄러워져 결국 꺼지고, 그러면 위 11줄이 통째로 죽는다.
@@ -82,9 +108,15 @@ window.__negI18n = function () {
   const out = [];
   for (const [name, mutate, run, expect] of MUT) {
     restore();
-    const before = JSON.stringify(Object.keys(STRINGS.en).length) + '/' + JSON.stringify(STRINGS.ko['rcpt.net']);
+    // ⚠️ 지문에 **바꾼 키가 안 들어 있으면 소스변경이 false 로 나오고**, 그러면 "변형이
+    //    적용됐는데 검사가 못 잡았다"와 "변형이 아예 안 먹었다"를 구분할 수 없다.
+    //    reco.* 를 추가할 때 이걸 같이 안 넓혀서 한 번 헛돌 뻔했다.
+    const fp = () => JSON.stringify(Object.keys(STRINGS.en).length) + '/' + JSON.stringify(STRINGS.ko['rcpt.net'])
+      + '/' + JSON.stringify(STRINGS.ko['reco.ifSame']) + '/' + JSON.stringify(STRINGS.ko['reco.poolNote'])
+      + '/' + JSON.stringify(STRINGS.en['reco.ifSame']);
+    const before = fp();
     mutate();
-    const 소스변경 = (JSON.stringify(Object.keys(STRINGS.en).length) + '/' + JSON.stringify(STRINGS.ko['rcpt.net'])) !== before;
+    const 소스변경 = fp() !== before;
     let r;
     try { r = run(); } catch (e) { r = { failed: 'throw: ' + e.message, sample: [] }; }
     const ok = (expect === '실패') ? (r.failed > 0) : (r.failed === 0);

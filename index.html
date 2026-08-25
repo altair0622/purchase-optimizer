@@ -1364,7 +1364,10 @@ Object.assign(STRINGS.en, {
   'reco.thenType': 'then type what you saw into the box above',
   'reco.made': 'made {n} sellers',
   // ⭐ 조건절이 핵심이다 — "가격이 같다면"을 떼면 그 순간 거짓말이 된다.
-  'reco.ifSame': '<b>If the prices match</b>, today <b>{store}</b> comes out best at <b>{rate}</b> cashback.',
+  // ⭐ 범위("저희가 고른 이 N곳 중에서는")도 마찬가지다 — 떼면 "파는 모든 곳 중 1등"으로 읽힌다.
+  //    ⚠️ KO/EN 양쪽 키를 **같이** 고쳐야 한다. 한쪽만 고치면 영어판만 조용히 옛 주장을 계속한다.
+  'reco.ifSame': '<b>Among the {n} sellers we picked</b> — if the prices match, today <b>{store}</b> comes out best at <b>{rate}</b> cashback.',
+  'reco.poolNote': 'We haven’t checked whether these {n} sellers carry it.',
   'reco.thenPrice': 'Type the prices and we’ll check the real net cost.',
   'reco.noRate': 'We don’t know today’s cashback for these sellers yet — check it along with the prices.',
   'sort.byRate': '↕️ Ordered by <b>today’s cashback</b>, highest first.',
@@ -1650,9 +1653,17 @@ const PORTAL_RATES = { asOf:"2026-07-31", capAsOf:"2026-07-31", stores:{
 //   `pct == null` 은 이 도구에서 이미 '모름'을 뜻한다(fmtBase → "직접 확인").
 //   이게 v0.20 부터 지켜온 "0%가 아니라 모름" 원칙 그대로다.
 //
-// 사용자가 직접 넣은 값이 있으면 그건 쓴다 — **언제 넣었는지(asOf)와 함께.**
+// ⛔ userPortalRates 는 **지금 아무도 안 쓴다. 붙일 UI 를 만들지 마라.**
+//
+// 한때 "CapOne 기본율을 넣는 칸"을 만들려고 깔아둔 배관이다. 안 만들기로 했다 —
+// 판매처 칸에 이미 `.s-portal`(이번에 쓸 경유처 %)이 있고, 여기에 칸을 하나 더 만들면
+// **같은 일을 하는 두 번째 입구**가 된다. 화면에 "CapOne 기본율 5%"와 "이번 루트 5%"가
+// 나란히 보이면 사용자는 왜 두 번 넣는지 묻는다. 사용자가 계속 요구해 온 건 단순화다.
+//
+// → 사용자가 직접 넣는 자리는 **`.s-portal` 하나뿐**이다. 그게 사용자가 말한 "다른 루트"다.
+// 이 배관은 다음에 요율·문구를 손댈 때 같이 걷어낸다(그것만으로 커밋을 하나 더 쓰지 않는다).
 const PORTAL_STALE_DAYS = 14;
-let userPortalRates = {};   // { [storeKey]: { pct, upTo, asOf } } — 붙여넣기/직접입력으로 들어온 CapOne 값
+let userPortalRates = {};   // ← 항상 비어 있다. baselineFor 가 읽지만 채우는 코드가 없다
 
 function baselineFor(key){
   const b = (key && PORTAL_RATES.stores && PORTAL_RATES.stores[key]) || null;
@@ -2492,14 +2503,30 @@ window.applyRecognizedProduct=applyRecognizedProduct;
 //
 // ⚠️ 가정이 깨지는 경우(세일·클리어런스·마켓플레이스 셀러·매장 PB)는 **나열하지 않는다.**
 //    "가격이 같다면"이라는 조건절이 이미 그걸 덮고, 예외를 늘어놓으면 다시 말이 많아진다.
+//
+// ⭐ 그런데 조건절이 **못 덮는 게 하나 있다: 그 판매처가 그 물건을 파는지.** (P1)
+//
+// 사용자가 주방세제(Dawn) 사진을 찍었더니 "오늘은 Best Buy 가 최대 15%로 제일 유리해요"가
+// 나왔다. **Best Buy 는 주방세제를 안 판다.**
+//
+// "가격이 같다면"으로는 이걸 못 막는다 — 조건절이 방어하는 건 *값이 다를 수 있다*이지
+// *대상이 아예 없다*가 아니다. **애초에 안 팔면 "가격이 같다"는 비교 자체가 성립하지 않는다.**
+// → 조건절을 더 강하게 써서 해결되는 문제가 아니다.
+//
+// 1단계로 **문장을 실제로 계산한 것에 맞춘다.** 옛 문장은 "이 물건을 파는 모든 곳 중 1등"으로
+// 읽혔는데 실제로 계산한 건 **RECO_STORES 4곳 중 1등**이다. 아는 것보다 많이 아는 척했다.
+// 단서를 붙이는 게 아니라 **범위를 정확히 말하는 것**이다.
+// (취급 여부로 실제로 거르는 건 2단계 — vision 의 category 를 쓰면 추가 호출 0으로 가능하다.)
 function recoPendingHTML(){
   const r=lastRecognition, rate=r.top?recoRateText(r.top):null;
   return '<b>'+recoEsc(r.query)+'</b> <span class="tag">'+t('reco.made','판매처 {n}곳 만들었어요',{n:r.n})+'</span><br>'+
     (rate
-      ? t('reco.ifSame','<b>가격이 같다면</b> 오늘은 <b>{store}</b>가 캐시백 <b>{rate}</b>로 제일 유리해요.',
-          {store:recoEsc(r.topStore),rate:rate})+'<br>'+
+      ? t('reco.ifSame','<b>저희가 고른 이 {n}곳 중에서는</b> — 가격이 같다면 오늘 <b>{store}</b>가 캐시백 <b>{rate}</b>로 제일 유리해요.',
+          {n:r.n,store:recoEsc(r.topStore),rate:rate})+'<br>'+
         '<span class="tag">'+t('reco.thenPrice','가격을 넣으면 실제 순비용으로 확인해 드려요.')+'</span>'
-      : '<span style="color:var(--warn)">'+t('reco.noRate','이 판매처들의 오늘 캐시백을 아직 몰라요 — 가격과 함께 확인해 주세요.')+'</span>');
+      : '<span style="color:var(--warn)">'+t('reco.noRate','이 판매처들의 오늘 캐시백을 아직 몰라요 — 가격과 함께 확인해 주세요.')+'</span>')+
+    // 요율을 알든 모르든 항상 붙는다 — 이건 요율에 대한 단서가 아니라 **후보 풀에 대한 사실**이다.
+    '<br><span class="tag">'+t('reco.poolNote','이 {n}곳이 그 물건을 파는지는 저희가 확인하지 않았어요.',{n:r.n})+'</span>';
 }
 
 // ⭐ 정렬 기준을 화면에 적는다.
