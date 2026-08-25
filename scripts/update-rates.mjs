@@ -15,37 +15,11 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 // ⚠️ 파싱 규칙은 **scripts/portal-parse.mjs 한 곳**에만 둔다.
 //    probe-rates.mjs 도 같은 걸 쓴다 — 복사하면 두 벌이 갈라진다.
-import { parseTitle, fetchTitle, fetchTcb } from './portal-parse.mjs';
+import { parseTitle, fetchTitle, fetchTcb, loadStores } from './portal-parse.mjs';
+const STORES = loadStores();
 
 const OUT = new URL('../rates.json', import.meta.url);
 
-// ⚠️ 판매처 목록은 **계산기의 STORE_LIST 하나만** 본다.
-// 예전엔 여기에 슬러그 표를 따로 들고 있었는데, 그 이중 관리가 곧바로 사고로 이어졌다:
-// dsw·lenovo 를 'TopCashback 미등재'로 적어두고 몇 주를 보냈는데 실제로는 슬러그가
-// -us 형태였을 뿐이었다(dsw-us ≤2% · lenovo-us ≤4%). 같은 사실을 두 군데 적으면
-// 반드시 갈라진다 → index.html 의 STORE_LIST 를 그대로 파싱해서 쓴다.
-// 슬러그는 scripts/check-links.mjs 로 실측 검증된 값이고, 명시적 null = 그 포털 미등재다.
-const SRC = new URL('../index.html', import.meta.url);
-const slug = s => (s || '').toLowerCase().replace(/&/g, 'and').replace(/'/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-const normStore = s => (s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
-
-function loadStores() {
-  const html = readFileSync(SRC, 'utf8');
-  const m = html.match(/const STORE_LIST\s*=\s*(\[[\s\S]*?\n\];)/);
-  if (!m) throw new Error('index.html 에서 STORE_LIST 를 못 찾았어 — 상수 이름이 바뀌었나?');
-  const seen = new Set(), out = [];
-  for (const e of eval(m[1].replace(/;\s*$/, ''))) {
-    const [name, , o = {}] = e;
-    const k = o.key || normStore(name);
-    if (seen.has(k)) continue;                       // 계산기와 동일한 중복 가드
-    seen.add(k);
-    const d = slug(name);
-    const pick = f => (f in o) ? o[f] : d;           // null 이면 null 그대로 (미등재)
-    out.push([k, pick('rk'), pick('tcb')]);
-  }
-  return out;
-}
-const STORES = loadStores();
 
 const prev = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')) : { stores: {} };
 const out = {

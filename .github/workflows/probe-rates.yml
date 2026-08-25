@@ -1,0 +1,51 @@
+name: Probe portal rate changes
+
+# 포털 요율이 **하루 중 언제** 바뀌는지 재는 **한시적 측정**이다. 제품 기능이 아니다.
+#
+# ⚠️ 기존 `update-rates.yml` 과 별개다. 그쪽은 매일 rates.json 을 갱신하는 **제품 데이터**고,
+#    이쪽은 rate-probe.jsonl 에 쌓기만 한다. **rates.json 을 절대 건드리지 않는다.**
+#
+# ⚠️ 종료는 **스크립트가 스스로 한다** — `probe-rates.mjs` 의 START +5일이 지나면
+#    아무것도 안 하고 끝난다. 이 워크플로를 지우는 걸 누가 잊어도 요청이 안 나간다.
+#    (부하가 이 작업의 유일한 실제 위험이라, 끄는 걸 사람 기억에 맡기지 않는다.)
+
+on:
+  schedule:
+    # 매시간 :07 — 정각을 피한다. GitHub Actions 는 정각에 예약 작업이 몰려 지연된다
+    # (update-rates.yml 이 :17 을 쓰는 것과 같은 이유). :17 과도 겹치지 않게 뒀다.
+    - cron: '7 * * * *'
+  workflow_dispatch: {}      # 수동 실행 버튼
+
+permissions:
+  contents: write
+
+# 앞 회차가 아직 도는데 다음 회차가 겹쳐 들어오면 포털에 요청이 두 배로 나간다.
+# 겹치면 새 회차를 버린다(취소하지 않고 기다리게 하면 결국 몰린다).
+concurrency:
+  group: probe-rates
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe portal rates
+        run: node scripts/probe-rates.mjs
+      - name: Commit if changed
+        run: |
+          if git diff --quiet rate-probe.jsonl; then
+            echo "no change"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add rate-probe.jsonl
+            git commit -m "chore: probe portal rates ($(date -u +%FT%H:%MZ))"
+            # 매시간 도는 데다 매일 14:17 update-rates 와 겹칠 수 있다 →
+            # 거절되면 리베이스로 따라잡는다(손 병합 금지).
+            git pull --rebase --autostash
+            git push
+          fi
