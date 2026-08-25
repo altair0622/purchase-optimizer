@@ -603,14 +603,16 @@ window.__fuzz = (function () {
   // "잘 작동한다"고 판단했다. **틀린 걸 눈치채지 못하는 종류**라 검사로 못박는다.
   // opt.lang: 'ko'(기본) | 'en'. **영어에서도 돌린다** — "0%가 아니라 모름"은 이 도구에서
   // 가장 비싼 보호 문구인데(빈 칸을 0%로 읽으면 계산기가 조용히 틀린 답을 낸다), 영어판에서만
-  // 그 문구가 빠져도 한국어 검사는 계속 초록불이다. 그래서 두 언어 모두에 못 박는다.
-  // ⭐ 기본 포털은 Rakuten·TopCashback 둘뿐이고 **CapOne 은 '모름'이다**(v0.36).
+  // 그 문구가 빠져도 한국어 검사는 계속 초록불이다. 그래서 두 언어 모두에 못 박는다.
+  // ⭐ 인용하는 요율은 **매일 자동 갱신되는 Rakuten·TopCashback 둘뿐**이다 (v0.36).
   //
-  // 이 검사가 지키는 것: **'모름'이 0% 로 취급되지 않는다.**
-  // CapOne 은 CAPTCHA 로 자동 수집이 안 돼 수동 스냅샷이었고, 그 값이 3주씩 묵은 채
-  // 어제 값과 동등한 무게로 순위에 들어가고 있었다. 기본에서 뺐는데 — **0% 로 빼면
-  // "CapOne 은 안 준다"는 거짓말이 되고, 지우면 그런 포털이 있는 줄도 모르게 된다.**
-  // pct==null(=모름) 이어야 하고, 화면엔 "직접 확인"으로 보여야 한다.
+  // CapOne 은 CAPTCHA 로 자동 수집이 안 된다. 한때 수동 스냅샷을 썼는데 3주씩 묵은 값이
+  // 어제 값과 동등한 무게로 순위에 들어가고 있었다 → 요율 비교에서 **행째로 뺐다.**
+  //
+  // 이 검사가 지키는 것 두 가지:
+  //   ① CapOne 이 요율 비교에 **다시 들어오지 않는다**
+  //   ② 뺄 때 **0% 로 뭉개지 않는다** — 없는 것과 0% 는 다르고,
+  //      0% 로 적으면 "CapOne 은 안 준다"는 거짓말이 된다
   function runPortalDefault() {
     const bad = []; let checks = 0;
     const keys = Object.keys(PORTAL_RATES.stores);
@@ -621,19 +623,14 @@ window.__fuzz = (function () {
 
     for (const k of withCap.slice(0, 12)) {
       const b = baselineFor(k);
+      if (!b) { checks++; bad.push('baselineFor 가 null 을 줬다: ' + k); continue; }
       checks++;
-      if (!b || !b.cap) { bad.push('baselineFor 가 cap 을 통째로 없앴다: ' + k); continue; }
+      // ★ 행 자체가 없어야 한다 — 0 이 들어가면 "CapOne 은 안 준다"는 거짓말이 된다
+      if ('cap' in b) bad.push('★ CapOne 이 아직 요율 비교에 들어 있다 (행 자체가 없어야 한다): ' + k + ' → ' + JSON.stringify(b.cap));
       checks++;
-      // ★ 0% 로 뭉개면 안 된다 — 그건 "안 준다"는 거짓말이다
-      if (b.cap.pct === 0) bad.push('★ CapOne 을 0% 로 뭉갰다 (= "안 준다"는 거짓말): ' + k);
+      if (b.cap && b.cap.pct === 0) bad.push('★ CapOne 을 0% 로 뭉갰다 (= "안 준다"는 거짓말): ' + k);
       checks++;
-      if (b.cap.pct !== null) bad.push('★ CapOne 이 기본 계산에 값으로 들어가 있다 (모름이어야 한다): ' + k + ' → ' + b.cap.pct);
-      checks++;
-      // 화면 표기가 '모름' 계열이어야 한다 (0% 로 보이면 안 된다)
-      const shown = fmtBase(b.cap);
-      if (/^0\s*%/.test(shown)) bad.push('★ CapOne 이 화면에 0% 로 보인다: ' + k + ' → ' + shown);
-      checks++;
-      // ★ 최고요율 계산에 CapOne 이 안 들어간다
+      // ★ 최고요율이 rk/tcb 를 넘지 않는다 = CapOne 이 계산에 안 들어간다
       const src = PORTAL_RATES.stores[k];
       const rk = (src.rk && src.rk.listed !== false && src.rk.pct) || 0;
       const tcb = (src.tcb && src.tcb.listed !== false && src.tcb.pct) || 0;
