@@ -1490,6 +1490,124 @@ window.__fuzz = (function () {
     return { mode: 'recoPool', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
   }
 
+  // ⭐ 취급 가능성으로 좁은 판매처를 내리는 판정 — P1 2단계
+  //
+  // ⚠️ **위험한 건 두 극단 사이다.** 처음 검사 초안은 `Dawn(세제) → 내림` /
+  //    `Dell 모니터 → 유지` 둘뿐이었는데, Best Buy 는 **진공청소기·압력솥·전동칫솔·
+  //    커피메이커·푸드프로세서**도 판다. 그것들을 "전자제품 근거 없음"으로 내리면
+  //    **파는 곳을 빼는 오류**가 난다 — Q4 에서 더 나쁘다고 판정한 바로 그 방향이다.
+  //    그래서 "판다고 알려진 애매한 것들"을 검사의 절반으로 넣는다.
+  //
+  // 이 검사가 지키는 것:
+  //   ① 명백히 안 파는 것(세제·옷·화장품·기저귀…)은 내려간다
+  //   ② **Best Buy 가 실제로 파는 애매한 것은 안 내려간다** (Dyson·Instant Pot 등)
+  //   ③ general 판매처(Amazon·Walmart·Target)는 **어떤 입력에도** 안 내려간다
+  //   ④ 뺐으면 화면에 **말한다**(조용한 누락 금지), 안 뺐으면 그 줄이 **없다**
+  const RECO_DOWN = ['Dawn Ultra dish soap', 'Nike Air Max 90 sneakers', 'Tide laundry detergent pods',
+    'Cheerios cereal 18oz', 'Dove body lotion', 'Pampers diapers size 4', 'Purina dog food 20lb'];
+  // ⚠️ Best Buy 가 **실제로 파는** 것들. 하나라도 걸리면 판정이 너무 좁은 것이다.
+  const RECO_KEEP = ['Dell U2723QE 27 inch monitor', 'Dyson V15 Detect cordless vacuum',
+    'Instant Pot Duo 6qt pressure cooker', 'Sony WH-1000XM5 headphones', 'Oral-B electric toothbrush',
+    'Ninja food processor', 'Keurig K-Elite coffee maker', 'Theragun massage gun',
+    'Braun electric razor', 'unknown thing 12345'];
+
+  function runRecoNarrow() {
+    const bad = []; let checks = 0;
+    const keep = { scen: scenarios.slice(), reco: lastRecognition };
+    const langKeep = LANG;
+    const GENERAL = RECO_STORES.filter(x => !x.narrow).map(x => x.store);
+    const sortText = () => document.getElementById('sortBasis').innerText;
+
+    try {
+      // ③ 사전조건 — narrow 가 붙은 곳이 있어야 이 검사가 무언가를 보고 있다
+      checks++;
+      const narrows = RECO_STORES.filter(x => x.narrow);
+      if (!narrows.length) bad.push('★ narrow 표시된 판매처가 하나도 없다 — 이 검사가 아무것도 안 보고 있다');
+      checks++;
+      if (!GENERAL.length) bad.push('★ general 판매처가 하나도 없다 — 규칙 ①(general 은 안 내림)이 무의미해진다');
+
+      myWallet = ['wfactivecash']; CARDS = activeCards(); taxPct = 0; autoApplied = {};
+
+      for (const q of RECO_DOWN) {
+        scenarios = []; lastRecognition = null;
+        applyRecognizedProduct(q);
+        const made = scenarios.map(x => x.store);
+        const dropped = (lastRecognition.dropped || []).map(x => x.store);
+        checks++;
+        if (made.indexOf('Best Buy') >= 0) bad.push('[내려야] "' + q + '" 인데 Best Buy 가 아직 목록에 있다: ' + made.join(','));
+        checks++;
+        if (dropped.indexOf('Best Buy') < 0) bad.push('[내려야] "' + q + '" 인데 뺐다는 기록이 없다');
+        checks++;
+        // ④ 뺐으면 화면에 말해야 한다 — 조용한 누락이 이 기능의 최대 위험이다
+        if (sortText().indexOf('Best Buy') < 0) bad.push('[내려야] "' + q + '" — 뺐는데 화면에 말하지 않았다: ' + JSON.stringify(sortText().slice(0, 90)));
+        checks++;
+        // ③ general 은 절대 안 빠진다
+        for (const g of GENERAL) if (made.indexOf(g) < 0) bad.push('★ [내려야] "' + q + '" 에서 general 판매처가 빠졌다: ' + g);
+      }
+
+      for (const q of RECO_KEEP) {
+        scenarios = []; lastRecognition = null;
+        applyRecognizedProduct(q);
+        const made = scenarios.map(x => x.store);
+        const dropped = (lastRecognition.dropped || []);
+        checks++;
+        if (made.indexOf('Best Buy') < 0) bad.push('★ [남겨야] "' + q + '" 인데 Best Buy 가 빠졌다 — 파는 곳을 뺀 것이다(조용한 누락): ' + made.join(','));
+        checks++;
+        if (dropped.length) bad.push('★ [남겨야] "' + q + '" 인데 뺐다고 기록됨: ' + JSON.stringify(dropped));
+        checks++;
+        // ④ 아무것도 안 뺐으면 그 줄이 아예 없어야 한다 (빈 자리만 차지하면 안 된다)
+        if (/전자제품 위주|mostly sells electronics/i.test(sortText()))
+          bad.push('[남겨야] "' + q + '" — 안 뺐는데 뺐다는 문구가 남아 있다: ' + JSON.stringify(sortText().slice(0, 90)));
+      }
+
+      // ⑤ ⭐ **자르기와 배제는 다른 것이다** — 그 인과를 여기 박아 둔다.
+      //
+      // 세제 결과에서 Amazon 이 보이는 이유는 `RECO_TOP_N` 을 늘려서가 아니라
+      // **Best Buy 가 강등돼 풀이 4곳→3곳이 되면서 자르기가 아예 발동하지 않아서**다.
+      // (캐시백 순위에서 밀려 잘리는 건 **고장이 아니다.** 순위가 하는 일 그대로다.
+      //  고장은 *안 파는 곳이 순위에 들어가 있는 것* 하나뿐이었다.)
+      //
+      // ⚠️ 이걸 안 박아 두면 나중에 누가 자르기를 건드려서 Amazon 이 보이게 만들어도
+      //    검사가 초록불이다 — **증상은 같고 원인은 다른** 상태가 통과해 버린다.
+      checks++;
+      if (RECO_TOP_N !== 3) bad.push('★ RECO_TOP_N 이 ' + RECO_TOP_N + ' 로 바뀌었다 — 세제에서 Amazon 이 보이는 이유가 강등이 아니라 자르기 변경이 된다');
+      checks++;
+      if (RECO_STORES.length !== 4) bad.push('★ 후보 풀이 ' + RECO_STORES.length + '곳이다 — 이 검사의 4→3 인과가 성립하지 않는다');
+      {
+        // 강등이 없을 때는 **자르기가 실제로 일어나야** 한다(자르기가 살아 있다는 증거)
+        scenarios = []; lastRecognition = null;
+        applyRecognizedProduct('Sony WH-1000XM5 headphones');
+        checks++;
+        if (scenarios.length !== RECO_TOP_N) bad.push('★ 강등이 없는데 자르기가 안 일어났다: ' + scenarios.length + '곳');
+        // 강등이 있을 때는 풀이 3곳이라 **자르기가 발동하지 않고 Amazon 이 살아남는다**
+        scenarios = []; lastRecognition = null;
+        applyRecognizedProduct('Dawn Ultra dish soap');
+        const made = scenarios.map(x => x.store);
+        checks++;
+        if (made.indexOf('Amazon') < 0) bad.push('★ 세제 결과에 Amazon 이 없다 — Best Buy 강등으로 풀이 3곳이 되면 자르기가 안 걸려야 한다: ' + made.join(','));
+        checks++;
+        if (made.indexOf('Best Buy') >= 0) bad.push('★ 세제 결과에 Best Buy 가 있다 (인과 검사)');
+      }
+
+      // ④-EN — 한쪽 언어만 고치면 다른 언어판이 조용히 아무 말도 안 한다
+      setLangForTest('en');
+      scenarios = []; lastRecognition = null;
+      applyRecognizedProduct('Dawn Ultra dish soap');
+      checks++;
+      if (sortText().indexOf('Best Buy') < 0) bad.push('[en] 뺐는데 영어 화면이 말하지 않는다: ' + JSON.stringify(sortText().slice(0, 90)));
+      checks++;
+      if (__fuzz.koLeak(sortText(), [])) bad.push('[en] 뺐다는 문구가 한국어로 남았다: ' + JSON.stringify(sortText().slice(0, 90)));
+      setLangForTest(langKeep);
+    } catch (e) {
+      bad.push('throw: ' + e.message);
+    } finally {
+      setLangForTest(langKeep);
+      scenarios = keep.scen; lastRecognition = keep.reco;
+      buildAll(); recompute();
+    }
+    return { mode: 'recoNarrow', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
+  }
+
   // 전부 한 번에
   function all(opt) {
     opt = opt || {};
@@ -1508,7 +1626,7 @@ window.__fuzz = (function () {
 
   // koLeak 은 대조군(negcontrol-i18n.js)이 단위로 검사한다 — '사용자 데이터는 미번역이 아니다'가
   // 이 함수 한 곳에 걸려 있어서, 여기가 조용히 느슨해지면 영어 검사 전체가 같이 무의미해진다.
-  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, all, koLeak,
+  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, all, koLeak,
            last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null, lastScan: null };
 })();
 'fuzz harness loaded';

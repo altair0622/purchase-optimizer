@@ -1369,6 +1369,7 @@ Object.assign(STRINGS.en, {
   'reco.thenPrice': 'Type the prices and we’ll check the real net cost.',
   'reco.noRate': 'We don’t know today’s cashback for these sellers yet — check it along with the prices.',
   'sort.byRate': '↕️ Ordered by <b>today’s cashback</b>, highest first.',
+  'sort.dropped': '{stores} mostly sells electronics, so we left it out — it may not carry this. If you know it does, check it with the search above.',
   'sort.byNet': '↕️ The <b>answer above</b> is now ranked by <b>net cost with prices included</b>. <span class="tag">The rows below stay in the order they were created</span>',
 
 });
@@ -2410,13 +2411,96 @@ function bestCardLabel(r){
 // ⚠️ 후보 풀은 **검색 딥링크가 실측 검증된 4곳으로 한정**한다.
 //    슬러그 자동 생성으로 죽은 링크가 대량으로 났던 전례가 있다.
 //    **여기에 판매처를 그냥 추가하지 마라** — 풀 확대는 판매처별 링크 검증이 선행돼야 한다.
+// ⭐ `narrow` = **취급 범위가 좁은 전문점.** (P1 2단계)
+//
+// ⚠️ STORE_LIST 의 둘째 필드(general/online/travel…)를 쓰면 안 된다 — 그건 **카드 적립
+//    분류**지 취급 분류가 아니다(114곳 중 77곳이 general). Best Buy 도 Costco 도 general 이다.
+//    그래서 **여기 4곳에만 손으로 적는다.** RECO_STORES 는 링크 실측 검증 때문에 어차피
+//    손으로 늘리는 목록이라 유지비가 늘지 않는다.
+// ⚠️ 판매처를 추가하면서 이 칸을 빠뜨리면 **general(= 절대 안 내려감)이 기본값**이다.
+//    빠뜨렸을 때 안전한 쪽으로 실패한다.
 const RECO_STORES=[
   {store:'Amazon',   key:'amazon',  url:q=>'https://www.amazon.com/s?k='+encodeURIComponent(q)},
-  {store:'Best Buy', key:'bestbuy', url:q=>'https://www.bestbuy.com/site/searchpage.jsp?st='+encodeURIComponent(q)},
+  {store:'Best Buy', key:'bestbuy', url:q=>'https://www.bestbuy.com/site/searchpage.jsp?st='+encodeURIComponent(q), narrow:'electronics'},
   {store:'Walmart',  key:'walmart', url:q=>'https://www.walmart.com/search?q='+encodeURIComponent(q)},
   {store:'Target',   key:'target',  url:q=>'https://www.target.com/s?searchTerm='+encodeURIComponent(q)},
 ];
+// ⚠️ 풀을 늘릴 때 다시 볼 것: 캐시백 순위에서 잘린 판매처는 **가격을 넣어볼 기회 자체가 없다.**
+//    결론이 "가격이 같다면"을 전제하니 지금은 일관되고, 풀이 4곳인 동안은
+//    실질적으로 안 걸린다(안 파는 곳 하나를 빼면 3곳이라 자르기가 안 발동한다).
+//    풀을 늘리는 순간 이 질문이 살아난다.
 const RECO_TOP_N=3;
+
+// ⭐⭐ **포함 목록이 아니라 제외 목록이다. 이 방향이 이 기능의 전부다.**
+//
+// "전자제품인가?"를 물으면(포함 목록) 목록에 없는 건 전부 내려간다 →
+// **파는 곳을 잘못 빼는 쪽**으로 실패한다. 그게 더 나쁜 방향이다:
+// 안 파는 곳이 남으면 사용자가 링크를 눌러 보고 "여긴 없네" 하고 **스스로 고친다.**
+// 파는 곳이 빠지면 **빠졌다는 것 자체를 못 본다.** 조용한 누락이다.
+//
+// 그래서 "**명백히 안 파는 종류인가?**"만 묻는다. 못 알아본 건 전부 남는다.
+//
+// ⚠️ 함정 — Best Buy 가 **실제로 파는데** 전자제품처럼 안 들리는 것들:
+//    진공청소기(Dyson) · 압력솥/에어프라이어(Instant Pot) · 전동칫솔 · 전기면도기 ·
+//    커피메이커 · 푸드프로세서 · 마사지건.
+//    → `food`(food processor) · `coffee`(coffee maker) · `razor`/`toothbrush`(전동)
+//      같은 단어는 **일부러 안 넣었다.** 넣으면 파는 걸 빼게 된다.
+//
+// ⚠️ 이 목록은 손으로 고른 것이고 완전하지 않다. 완전할 필요도 없다 —
+//    못 걸러도 예전과 같은 상태(다 남음)일 뿐이고, 잘못 걸러야 손해다.
+const NARROW_EXCLUDE = {
+  electronics: [
+    // 세제·청소용품
+    'detergent','soap','bleach','disinfectant','laundry','fabric softener',
+    'paper towel','toilet paper','trash bag','sponge','mop','broom',
+    // 식료품
+    'cereal','snack','candy','chocolate','soda','juice','yogurt','pasta',
+    'sauce','seasoning','spice','flour','sugar','oatmeal','granola',
+    // 의류·신발
+    'shirt','t-shirt','pants','jeans','dress','jacket','hoodie','sweater',
+    'sneaker','shoes','boots','socks','leggings','underwear','scarf',
+    // 화장품·미용
+    'shampoo','conditioner','lotion','moisturizer','sunscreen','lipstick',
+    'mascara','foundation','perfume','cologne','nail polish',
+    // 유아·반려동물·건강
+    'diaper','baby formula','wipes','dog food','cat food','cat litter','pet food',
+    'vitamin','supplement','ibuprofen','acetaminophen','bandage',
+  ],
+};
+
+// 이 판매처가 이 검색어를 **명백히 안 팔 것 같은가.** 맞으면 걸린 단어를 돌려준다.
+//
+// ⚠️ **검색어(query)만 본다.** 비전이 읽은 글자(read)나 category 는 안 쓴다:
+//   · `category` 는 사용자 언어로 온다("주방세제"/"dish soap") → 언어마다 깨진다
+//   · `query` 는 스키마상 **영어로 계약**돼 있다(미국 판매처 검색창에 넣을 값이라서)
+//   · 무엇보다 **query 는 사용자가 화면에서 고칠 수 있는 값**이다. 판단 근거가
+//     눈에 보이고 손댈 수 있어야 결과가 설명 가능해진다.
+//
+// ⚠️ query 가 영어인 건 **프롬프트 지시이지 보장이 아니다**(부록 D 에서 반대 방향
+//    이탈을 실제로 봤다 — 한국어를 요구한 필드가 영어로 왔다). 못 알아보면 못 걸러질 뿐
+//    잘못 거르지는 않는다. 그래서 보장 없이도 안전하다.
+// ⚠️ 복수형을 반드시 같이 본다. 처음엔 정확히 일치만 봤는데 `Nike ... sneakers` 가
+//    그냥 통과했다 — 목록엔 'sneaker' 가 있는데 검색어는 'sneakers' 였다.
+//    **제품 이름은 대개 복수로 온다.** 이걸 빠뜨리면 목록이 있으나 마나가 된다
+//    (틀리는 방향은 안전한 쪽이라 초록불인 채로 아무것도 안 걸렀을 것이다).
+function narrowMiss(store, query){
+  const kind = store && store.narrow; if(!kind) return null;      // general 은 절대 안 내려간다
+  const list = NARROW_EXCLUDE[kind]; if(!list) return null;
+  const norm = String(query||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  if(!norm) return null;
+  const sing = w => w.replace(/ies$/,'y').replace(/([^s])s$/,'$1');
+  const bag = new Set();
+  norm.split(' ').forEach(w=>{ bag.add(w); bag.add(sing(w)); });
+  const padded = ' '+norm+' ';
+  for(const w of list){
+    const t = w.replace(/[^a-z0-9]+/g,' ').trim();
+    if(t.indexOf(' ')>=0){
+      // 두 단어 이상('dish soap','dog food')은 통째로 찾는다. 끝의 복수 s 도 허용.
+      if(padded.indexOf(' '+t+' ')>=0 || padded.indexOf(' '+t+'s ')>=0) return w;
+    } else if(bag.has(t)) return w;   // 한 단어는 토큰 단위 — 'soap' 이 'soapstone' 에 안 걸린다
+  }
+  return null;
+}
 let lastRecognition=null;   // {query, top, n} — 결론 카드가 이걸 보고 ②를 그린다
 
 // 오늘 기준 그 판매처의 최고 캐시백.
@@ -2450,10 +2534,17 @@ function applyRecognizedProduct(query, opts){
   const db=document.getElementById('demoBar'); if(db) db.style.display='none';
   const pm=document.getElementById('pasteMsg'); if(pm) pm.innerHTML='';
 
-  // ③ 오늘 캐시백 높은 순 3곳
-  const ranked=RECO_STORES.map(x=>Object.assign({},x,{rate:bestRateFor(x.key)}))
-    .sort((a,b)=>(b.rate.pct-a.rate.pct)||(b.rate.flat-a.rate.flat))
-    .slice(0,RECO_TOP_N);
+  // ③ 오늘 캐시백 높은 순 3곳 — 다만 **안 팔 것 같은 전문점은 뒤로 내린다.**
+  const byRate=(a,b)=>(b.rate.pct-a.rate.pct)||(b.rate.flat-a.rate.flat);
+  const scored=RECO_STORES.map(x=>Object.assign({},x,{rate:bestRateFor(x.key),miss:narrowMiss(x,q)}));
+  const keep=scored.filter(x=>!x.miss).sort(byRate);
+  const down=scored.filter(x=>x.miss).sort(byRate);
+  // ⚠️ **넓은 판매처가 하나도 안 남으면 아무것도 안 내린다.** 전부 내려서 빈 목록을
+  //    주느니 예전처럼 전부 보여주는 게 낫다 — 사용자는 답을 못 받는 게 제일 나쁘다.
+  const ordered = keep.length ? keep.concat(down) : scored.slice().sort(byRate);
+  const ranked = ordered.slice(0,RECO_TOP_N);
+  // 내려간 끝에 **화면에서 아예 빠진** 곳 — 이건 반드시 말해야 한다(조용한 누락 금지).
+  const droppedOut = down.filter(d=>ranked.indexOf(d)<0);
 
   scenarios=ranked.map(x=>blankScenario({store:x.store}));
   buildAll();
@@ -2466,7 +2557,8 @@ function applyRecognizedProduct(query, opts){
       '<span class="tag">'+t('reco.thenType','보고 온 가격을 위 칸에 넣어 주세요')+'</span>';
   });
 
-  lastRecognition={query:q, top:ranked[0]?ranked[0].rate:null, topStore:ranked[0]?ranked[0].store:'', n:scenarios.length};
+  lastRecognition={query:q, top:ranked[0]?ranked[0].rate:null, topStore:ranked[0]?ranked[0].store:'', n:scenarios.length,
+    dropped: droppedOut.map(d=>({store:d.store, why:d.miss}))};
   recompute();
   const box=document.getElementById('answerCard');
   if(box) box.scrollIntoView({behavior:'smooth', block:'start'});
@@ -2521,9 +2613,18 @@ function recoPendingHTML(){
 function renderSortBasis(anyPrice){
   const el=document.getElementById('sortBasis'); if(!el) return;
   if(!lastRecognition){ el.innerHTML=''; return; }
-  el.innerHTML = anyPrice
+  const base = anyPrice
     ? t('sort.byNet','↕️ 위 <b>결론</b>은 이제 <b>가격까지 넣은 실제 부담 순</b>이에요. <span class="tag">아래 칸 순서는 처음 만든 대로예요</span>')
     : t('sort.byRate','↕️ 오늘 <b>캐시백 높은 순</b>으로 만들었어요.');
+  // ⭐ 뺐으면 **뺐다고 말한다.** 이게 규칙 ②의 전부다 —
+  //    오탐이 *조용한 누락*이 아니라 *보이는 판단*이 되어야 사용자가 뒤집을 수 있다.
+  //    ⚠️ 아무것도 안 뺐으면 이 줄은 아예 없다(빈 자리만 차지하면 안 된다).
+  const d = (lastRecognition.dropped||[]);
+  const note = d.length
+    ? '<br><span class="tag">'+t('sort.dropped','{stores}는 전자제품 위주라 뺐어요 — 이 물건은 안 팔 수 있어요. 판다고 아시면 위 검색으로 직접 확인해 주세요.',
+        {stores:d.map(x=>recoEsc(x.store)).join(' · ')})+'</span>'
+    : '';
+  el.innerHTML = base + note;
 }
 
 function recompute(){
