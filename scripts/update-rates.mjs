@@ -13,9 +13,11 @@
 // - Capital One Shopping은 CAPTCHA로 자동 수집을 막고 있어 여기선 갱신하지 않는다(수동/스킬 갱신).
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+// ⚠️ 파싱 규칙은 **scripts/portal-parse.mjs 한 곳**에만 둔다.
+//    probe-rates.mjs 도 같은 걸 쓴다 — 복사하면 두 벌이 갈라진다.
+import { parseTitle, fetchTitle, fetchTcb } from './portal-parse.mjs';
 
 const OUT = new URL('../rates.json', import.meta.url);
-const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
 // ⚠️ 판매처 목록은 **계산기의 STORE_LIST 하나만** 본다.
 // 예전엔 여기에 슬러그 표를 따로 들고 있었는데, 그 이중 관리가 곧바로 사고로 이어졌다:
@@ -44,53 +46,6 @@ function loadStores() {
   return out;
 }
 const STORES = loadStores();
-
-function parseTitle(title) {
-  if (!title) return null;
-  if (/^Rakuten:/i.test(title)) return null;                       // 상점 없음(홈으로 리다이렉트)
-  if (/No Cash Back|Coupons Only/i.test(title)) return { pct: 0, listed: true };
-  let m = title.match(/(Up to )?(\d+(?:\.\d+)?)%\s*Cash Back/i);
-  if (m) { const r = { pct: +m[2], listed: true }; if (m[1]) r.upTo = true; return r; }
-  m = title.match(/\$(\d+(?:\.\d+)?)\s*Cash Back/i);               // Amazon류 $ 고정
-  if (m) return { pct: null, flat: +m[1], listed: true };
-  return null;
-}
-
-async function fetchHtml(url, attempt = 1) {
-  try {
-    const ctrl = new AbortController();
-    const tm = setTimeout(() => ctrl.abort(), 20000);
-    const res = await fetch(url, {
-      headers: { 'user-agent': UA, 'accept-language': 'en-US,en;q=0.9' },
-      redirect: 'follow', signal: ctrl.signal,
-    });
-    clearTimeout(tm);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.text();
-  } catch (e) {
-    if (attempt < 2) { await new Promise(r => setTimeout(r, 3000)); return fetchHtml(url, attempt + 1); }
-    return null;
-  }
-}
-async function fetchTitle(slug) {
-  const html = await fetchHtml(`https://www.rakuten.com/shop/${slug}`);
-  if (!html) return null;
-  const m = html.match(/<title>([^<]+)<\/title>/i);
-  return m ? m[1].replace(/&amp;/g, '&').replace(/&#x27;/g, "'") : null;
-}
-// TopCashback: merch-offer__rate 요소 텍스트 → {pct,upTo}. 요소 없고 상점 h1 있으면 0%, 페이지 없으면 null(실패).
-async function fetchTcb(slug) {
-  const html = await fetchHtml(`https://www.topcashback.com/${slug}/`);
-  if (!html) return null;
-  const m = html.match(/merch-offer__rate[^>]*>([^<]+)</i);
-  if (m) {
-    const r = m[1].match(/(Up to )?(\d+(?:\.\d+)?)%/i);
-    if (r) { const o = { pct: +r[2], listed: true }; if (r[1]) o.upTo = true; return o; }
-  }
-  if (/Page not found/i.test(html)) return null;
-  if (/<h1[^>]*>[^<]*Cash Back Offers/i.test(html)) return { pct: 0, listed: true };
-  return null;
-}
 
 const prev = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')) : { stores: {} };
 const out = {
