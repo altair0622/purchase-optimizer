@@ -932,6 +932,9 @@ Object.assign(STRINGS.en, {
   'rate.checkSelf': 'check it yourself',
   'rate.upTo': 'up to ',
   'rate.stamp': 'Rakuten and TopCashback auto-updated {auto} · Capital One manual {manual}',
+  'rate.stamp2': 'Rakuten·TopCashback auto-updated {auto}',
+  'pr.fresh.today': 'entered today',
+  'pr.fresh.days': 'entered {n} days ago',
   'rate.old30': '· {d} days old — don’t trust it, check it',
   'rate.old14': '· {d} days old',
 
@@ -1635,14 +1638,49 @@ const PORTAL_RATES = { asOf:"2026-07-31", capAsOf:"2026-07-31", stores:{
   nordstrom:{rk:{pct:2,listed:true},         cap:{pct:0,listed:true},          tcb:{pct:0,listed:true}},
   ulta:{rk:{pct:2,listed:true},              cap:{pct:2,listed:true},          tcb:{pct:4,listed:true}},
 } };
-function baselineFor(key){ return (key && PORTAL_RATES.stores && PORTAL_RATES.stores[key]) || null; }
+// ⭐ 기본 포털은 **Rakuten·TopCashback 둘뿐이다** (v0.36).
+//
+// CapOne Shopping 은 CAPTCHA 로 자동 수집이 안 돼서 **수동 스냅샷**이었고, 그 값이 3주씩
+// 묵은 채로 **어제 자동 갱신된 값과 동등한 무게로** 순위에 들어가고 있었다.
+// 화면엔 날짜를 보여주면서 계산은 구분하지 않았다.
+//
+// → 기본 계산에서 뺀다. ⚠️ 다만 **지우지 않고 '모름'으로 남긴다**:
+//   · `0%` 로 두면 *"CapOne 은 안 준다"* 는 **거짓말**이 된다
+//   · 아예 지우면 **그런 포털이 있다는 것조차 안 보여** 옵션을 발견할 길이 사라진다
+//   `pct == null` 은 이 도구에서 이미 '모름'을 뜻한다(fmtBase → "직접 확인").
+//   이게 v0.20 부터 지켜온 "0%가 아니라 모름" 원칙 그대로다.
+//
+// 사용자가 직접 넣은 값이 있으면 그건 쓴다 — **언제 넣었는지(asOf)와 함께.**
+const PORTAL_STALE_DAYS = 14;
+let userPortalRates = {};   // { [storeKey]: { pct, upTo, asOf } } — 붙여넣기/직접입력으로 들어온 CapOne 값
+
+function baselineFor(key){
+  const b = (key && PORTAL_RATES.stores && PORTAL_RATES.stores[key]) || null;
+  if(!b) return null;
+  const u = userPortalRates[key];
+  const cap = (u && u.pct != null)
+    ? { pct:+u.pct, listed:true, upTo:!!u.upTo, user:true, asOf:u.asOf }
+    : { pct:null, listed:true, unknown:true };     // ← 0% 가 아니라 '모름'
+  return Object.assign({}, b, { cap });
+}
+// 사용자가 넣은 포털 값이 얼마나 묵었나 — 카드 오퍼(ofpFreshness)와 같은 규칙을 쓴다.
+function portalFreshness(asOf){
+  const d = daysSince(asOf);
+  if(d == null) return { days:null, stale:false, label:'' };
+  return { days:d, stale:d > PORTAL_STALE_DAYS,
+    label: d === 0 ? t('pr.fresh.today','오늘 넣은 값') : t('pr.fresh.days','{n}일 전에 넣은 값',{n:d}) };
+}
 function fmtBase(b){ if(!b) return "—"; if(b.listed===false) return t('rate.none','없음'); if(b.flat!=null) return t('rate.flat','${v} 고정',{v:b.flat}); if(b.pct==null) return t('rate.checkSelf','직접 확인'); return (b.upTo?t('rate.upTo','최대 '):"")+b.pct+"%"; }
-// Rakuten·TopCashback = 매일 자동 수집(asOf) · Capital One Shopping = CAPTCHA로 자동 불가, 수동(capAsOf)
-function ratesStamp(){ const a=PORTAL_RATES.asOf, c=PORTAL_RATES.capAsOf;
-  return (c&&c!==a) ? t('rate.stamp','Rakuten·TopCashback {auto} 자동갱신 · Capital One {manual} 수동',{auto:a,manual:c}) : a; }
+// Rakuten·TopCashback 만 매일 자동 수집한다(asOf).
+// ⚠️ CapOne 의 수동 날짜(capAsOf)를 여기 섞지 않는다 — **기본 계산에 안 들어가는 값**의
+//    날짜를 같이 보여주면 "이 숫자들이 그날 것"으로 읽힌다.
+function ratesStamp(){ return t('rate.stamp2','Rakuten·TopCashback {auto} 자동갱신',{auto:PORTAL_RATES.asOf}); }
 // 스냅샷이 오래되면 명시적으로 경고 — 캐시백률은 수시로 바뀌므로 오래된 값은 틀린 값에 가깝다
 function rateAgeWarn(){
-  const d=Math.max(daysSince(PORTAL_RATES.asOf)||0, daysSince(PORTAL_RATES.capAsOf)||0);
+  // ⚠️ capAsOf 를 더 이상 보지 않는다. CapOne 은 기본 계산에서 빠졌는데 그 수동 날짜가
+  //    max() 에 섞이는 바람에, **매일 갱신되는 rk/tcb 까지 '25일 전 값'으로 경고**가 떴다.
+  //    묵은 값 하나가 신선한 값의 표시까지 끌어내리고 있었다.
+  const d=daysSince(PORTAL_RATES.asOf)||0;
   if(d>=30) return ` <span class="nodata">${t('rate.old30','· {d}일 전 값 — 믿지 말고 직접 확인',{d:d})}</span>`;
   if(d>=14) return ` <span class="nodata">${t('rate.old14','· {d}일 전 값',{d:d})}</span>`;
   return '';

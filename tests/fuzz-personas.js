@@ -604,6 +604,54 @@ window.__fuzz = (function () {
   // opt.lang: 'ko'(기본) | 'en'. **영어에서도 돌린다** — "0%가 아니라 모름"은 이 도구에서
   // 가장 비싼 보호 문구인데(빈 칸을 0%로 읽으면 계산기가 조용히 틀린 답을 낸다), 영어판에서만
   // 그 문구가 빠져도 한국어 검사는 계속 초록불이다. 그래서 두 언어 모두에 못 박는다.
+  // ⭐ 기본 포털은 Rakuten·TopCashback 둘뿐이고 **CapOne 은 '모름'이다**(v0.36).
+  //
+  // 이 검사가 지키는 것: **'모름'이 0% 로 취급되지 않는다.**
+  // CapOne 은 CAPTCHA 로 자동 수집이 안 돼 수동 스냅샷이었고, 그 값이 3주씩 묵은 채
+  // 어제 값과 동등한 무게로 순위에 들어가고 있었다. 기본에서 뺐는데 — **0% 로 빼면
+  // "CapOne 은 안 준다"는 거짓말이 되고, 지우면 그런 포털이 있는 줄도 모르게 된다.**
+  // pct==null(=모름) 이어야 하고, 화면엔 "직접 확인"으로 보여야 한다.
+  function runPortalDefault() {
+    const bad = []; let checks = 0;
+    const keys = Object.keys(PORTAL_RATES.stores);
+    // rates.json 에 cap 값이 실제로 있는 곳을 고른다 — 없으면 이 검사가 헛돈다
+    const withCap = keys.filter(k => { const c = PORTAL_RATES.stores[k].cap; return c && c.pct != null && c.pct > 0; });
+    checks++;
+    if (!withCap.length) bad.push('★ rates.json 에 cap>0 인 판매처가 하나도 없다 — 이 검사가 아무것도 안 보고 있다');
+
+    for (const k of withCap.slice(0, 12)) {
+      const b = baselineFor(k);
+      checks++;
+      if (!b || !b.cap) { bad.push('baselineFor 가 cap 을 통째로 없앴다: ' + k); continue; }
+      checks++;
+      // ★ 0% 로 뭉개면 안 된다 — 그건 "안 준다"는 거짓말이다
+      if (b.cap.pct === 0) bad.push('★ CapOne 을 0% 로 뭉갰다 (= "안 준다"는 거짓말): ' + k);
+      checks++;
+      if (b.cap.pct !== null) bad.push('★ CapOne 이 기본 계산에 값으로 들어가 있다 (모름이어야 한다): ' + k + ' → ' + b.cap.pct);
+      checks++;
+      // 화면 표기가 '모름' 계열이어야 한다 (0% 로 보이면 안 된다)
+      const shown = fmtBase(b.cap);
+      if (/^0\s*%/.test(shown)) bad.push('★ CapOne 이 화면에 0% 로 보인다: ' + k + ' → ' + shown);
+      checks++;
+      // ★ 최고요율 계산에 CapOne 이 안 들어간다
+      const src = PORTAL_RATES.stores[k];
+      const rk = (src.rk && src.rk.listed !== false && src.rk.pct) || 0;
+      const tcb = (src.tcb && src.tcb.listed !== false && src.tcb.pct) || 0;
+      const best = bestRateFor(k);
+      if (best.pct > Math.max(rk, tcb)) {
+        bad.push('★ 최고요율이 rk/tcb 보다 높다 — CapOne 이 아직 계산에 들어간다: ' + k + ' → ' + best.pct + ' > max(' + rk + ',' + tcb + ')');
+      }
+      checks++;
+      if (best.portal === 'Capital One Shopping') bad.push('★ 최고요율 포털로 CapOne 이 뽑혔다: ' + k);
+    }
+    // 날짜 표기 — 기본에 안 들어가는 값의 날짜를 섞으면 "이 숫자들이 그날 것"으로 읽힌다
+    checks++;
+    if (String(ratesStamp()).includes(PORTAL_RATES.capAsOf) && PORTAL_RATES.capAsOf !== PORTAL_RATES.asOf) {
+      bad.push('★ 요율 날짜 표기에 CapOne 수동 날짜가 섞여 있다 (기본 계산에 안 들어가는 값이다)');
+    }
+    return { mode: 'portalDefault', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
+  }
+
   function runRecheck(opt) {
     opt = opt || {};
     const lang = opt.lang || 'ko';
@@ -1386,7 +1434,7 @@ window.__fuzz = (function () {
 
   // koLeak 은 대조군(negcontrol-i18n.js)이 단위로 검사한다 — '사용자 데이터는 미번역이 아니다'가
   // 이 함수 한 곳에 걸려 있어서, 여기가 조용히 느슨해지면 영어 검사 전체가 같이 무의미해진다.
-  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, all, koLeak,
+  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, all, koLeak,
            last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null, lastScan: null };
 })();
 'fuzz harness loaded';
