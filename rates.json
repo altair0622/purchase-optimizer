@@ -1,5 +1,5 @@
 {
- "asOf": "2026-08-24",
+ "asOf": "2026-08-25",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -250,7 +250,7 @@
   },
   "samsclub": {
    "rk": {
-    "pct": 10,
+    "pct": 4,
     "listed": true,
     "upTo": true
    },
@@ -279,7 +279,7 @@
   },
   "macys": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -733,7 +733,7 @@
   },
   "adidas": {
    "rk": {
-    "pct": 10,
+    "pct": 4,
     "listed": true,
     "upTo": true
    },
@@ -742,7 +742,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 11,
+    "pct": 5,
     "listed": true,
     "upTo": true
    }
@@ -771,7 +771,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 5,
+    "pct": 0,
     "listed": true
    }
   },
@@ -849,7 +849,7 @@
   },
   "zappos": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1191,7 +1191,7 @@
   },
   "logitech": {
    "rk": {
-    "pct": 4.5,
+    "pct": 3,
     "listed": true
    },
    "cap": {
@@ -1361,7 +1361,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1432,7 +1432,7 @@
   },
   "staples": {
    "rk": {
-    "pct": 10,
+    "pct": 4,
     "listed": true,
     "upTo": true
    },
@@ -1566,7 +1566,7 @@
   },
   "hotels": {
    "rk": {
-    "pct": 3,
+    "pct": 8,
     "listed": true,
     "upTo": true
    },
