@@ -94,3 +94,11 @@
 {"t":"2026-08-25T22:41:31.540Z","store":"adidas","rk":4,"tcb":5,"tcbUpTo":true}
 {"t":"2026-08-25T22:41:31.540Z","store":"logitech","rk":3,"tcb":4}
 {"t":"2026-08-25T22:41:31.540Z","store":"athleta","rk":2,"tcb":4}
+{"t":"2026-08-25T23:34:41.128Z","store":"booking","rk":8,"tcb":0,"rkUpTo":true}
+{"t":"2026-08-25T23:34:41.128Z","store":"expedia","rk":3,"tcb":10,"rkUpTo":true,"tcbUpTo":true}
+{"t":"2026-08-25T23:34:41.128Z","store":"gnc","rk":2,"tcb":8}
+{"t":"2026-08-25T23:34:41.128Z","store":"macys","rk":4,"tcb":7,"tcbUpTo":true}
+{"t":"2026-08-25T23:34:41.128Z","store":"nike","rk":4,"tcb":6}
+{"t":"2026-08-25T23:34:41.128Z","store":"adidas","rk":null,"tcb":5,"tcbUpTo":true,"rkFail":true}
+{"t":"2026-08-25T23:34:41.128Z","store":"logitech","rk":3,"tcb":4}
+{"t":"2026-08-25T23:34:41.128Z","store":"athleta","rk":2,"tcb":4}
