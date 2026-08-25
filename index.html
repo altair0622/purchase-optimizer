@@ -933,6 +933,8 @@ Object.assign(STRINGS.en, {
   'rate.upTo': 'up to ',
   'rate.stamp': 'Rakuten and TopCashback auto-updated {auto} · Capital One manual {manual}',
   'rate.stamp2': 'Rakuten·TopCashback auto-updated {auto}',
+  'pr.fresh.today': 'entered today',
+  'pr.fresh.days': 'entered {n} days ago',
   'rate.old30': '· {d} days old — don’t trust it, check it',
   'rate.old14': '· {d} days old',
 
@@ -1648,18 +1650,25 @@ const PORTAL_RATES = { asOf:"2026-07-31", capAsOf:"2026-07-31", stores:{
 //   `pct == null` 은 이 도구에서 이미 '모름'을 뜻한다(fmtBase → "직접 확인").
 //   이게 v0.20 부터 지켜온 "0%가 아니라 모름" 원칙 그대로다.
 //
-// ⚠️ 한때 '모름(pct:null)'으로 남겼다가 **그것도 걷어냈다.**
-//    '모름'을 남긴 이유는 *"붙여넣기 옵션을 발견하게 하려고"* 였는데 **그 옵션이 취소됐다.**
-//    사용자가 할 수 있는 게 없는 `?` 는 그냥 노이즈다 → 행 자체를 없앤다.
-//
-// ⚠️ **그래도 `0%` 는 아니다.** 없는 것과 0% 는 다르고, CapOne 을 0% 로 적으면
-//    *"CapOne 은 안 준다"* 는 거짓말이 된다. **키가 없어야지 0 이 들어가면 안 된다.**
-//    (하니스 runPortalDefault 가 이걸 못 박는다.)
+// 사용자가 직접 넣은 값이 있으면 그건 쓴다 — **언제 넣었는지(asOf)와 함께.**
+const PORTAL_STALE_DAYS = 14;
+let userPortalRates = {};   // { [storeKey]: { pct, upTo, asOf } } — 붙여넣기/직접입력으로 들어온 CapOne 값
+
 function baselineFor(key){
   const b = (key && PORTAL_RATES.stores && PORTAL_RATES.stores[key]) || null;
   if(!b) return null;
-  const { cap, ...rest } = b;      // ← cap 을 통째로 뺀다. 0 으로 바꾸지 않는다
-  return rest;
+  const u = userPortalRates[key];
+  const cap = (u && u.pct != null)
+    ? { pct:+u.pct, listed:true, upTo:!!u.upTo, user:true, asOf:u.asOf }
+    : { pct:null, listed:true, unknown:true };     // ← 0% 가 아니라 '모름'
+  return Object.assign({}, b, { cap });
+}
+// 사용자가 넣은 포털 값이 얼마나 묵었나 — 카드 오퍼(ofpFreshness)와 같은 규칙을 쓴다.
+function portalFreshness(asOf){
+  const d = daysSince(asOf);
+  if(d == null) return { days:null, stale:false, label:'' };
+  return { days:d, stale:d > PORTAL_STALE_DAYS,
+    label: d === 0 ? t('pr.fresh.today','오늘 넣은 값') : t('pr.fresh.days','{n}일 전에 넣은 값',{n:d}) };
 }
 function fmtBase(b){ if(!b) return "—"; if(b.listed===false) return t('rate.none','없음'); if(b.flat!=null) return t('rate.flat','${v} 고정',{v:b.flat}); if(b.pct==null) return t('rate.checkSelf','직접 확인'); return (b.upTo?t('rate.upTo','최대 '):"")+b.pct+"%"; }
 // Rakuten·TopCashback 만 매일 자동 수집한다(asOf).
@@ -2271,19 +2280,17 @@ function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id)
     if(!sc.portalUnknown && !autoApplied['sc'+sc.id+':'+hit.key] && (+sc.portalPct||0)===0){
       autoApplied['sc'+sc.id+':'+hit.key]=true;
       const rkp=(base.rk&&base.rk.listed!==false&&base.rk.pct)||0;
+      const cpp2=(base.cap&&base.cap.listed!==false&&base.cap.pct)||0;
       const tcbp=(base.tcb&&base.tcb.listed!==false&&base.tcb.pct)||0;
-      const bestP=Math.max(rkp,tcbp);     // ⚠️ CapOne 은 자동 수집이 안 되므로 후보가 아니다
+      const bestP=Math.max(rkp,cpp2,tcbp);
       if(bestP>0){ sc.portalPct=bestP;
-        sc.portalName=(tcbp===bestP?'TopCashback':'Rakuten')+t('portal.baseSuffix',' (기본율)');
+        sc.portalName=(tcbp===bestP?'TopCashback':(rkp===bestP?'Rakuten':'Capital One Shopping'))+t('portal.baseSuffix',' (기본율)');
         const card=document.getElementById('scard-'+sc.id);
         if(card){ card.querySelector('.s-portal').value=bestP; card.querySelector('.s-portalname').value=sc.portalName; }
       }
     }
-    const bestBase=Math.max((base.rk&&base.rk.listed!==false&&base.rk.pct)||0,(base.tcb&&base.tcb.listed!==false&&base.tcb.pct)||0);
-    // ⚠️ 인용하는 요율은 **매일 자동 갱신되는 두 곳뿐**이다. CapOne 은 자동 수집이 안 돼서 뺐다.
-    //    (포털 가입 안내 블록의 CapOne 링크는 그대로 둔다 — 그건 "어느 포털에 가입할까"지
-    //     "이 상품 요율이 얼마인가"가 아니다.)
-    extra=`<br>${t('portal.base','📊 기본율')} <span class="tag">${ratesStamp()}${rateAgeWarn()}</span>: Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b> <span class="tag">${sc.portalUnknown?'':t('portal.autoBest','— 높은 쪽 자동 반영')}</span>`+loginCtaHTML();
+    const bestBase=Math.max((base.rk&&base.rk.listed!==false&&base.rk.pct)||0,(base.cap&&base.cap.listed!==false&&base.cap.pct)||0,(base.tcb&&base.tcb.listed!==false&&base.tcb.pct)||0);
+    extra=`<br>${t('portal.base','📊 기본율')} <span class="tag">${ratesStamp()}${rateAgeWarn()}</span>: Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b> · Capital One <b>${fmtBase(base.cap)}</b> <span class="tag">${sc.portalUnknown?'':t('portal.autoBest','— 높은 쪽 자동 반영')}</span>`+loginCtaHTML();
     if(sc.portalUnknown){
       extra+=`<br><span class="nodata">${t('portal.needCheck','⚠️ <b>이 판매처는 캐시백 % 확인 필요</b> — 지금 빈 칸은 <b>"0%"가 아니라 "모름"이에요.</b> 캐시백이 없다는 뜻이 아니에요.')}</span>`+
         ` <span class="tag">${t('portal.needCheck.sub','위 링크에서 오늘 캐시백 %를 확인하고 직접 넣어 주세요.')}</span>`+
@@ -2307,8 +2314,8 @@ document.addEventListener('click',e=>{
   const pct=+b.dataset.pct||0; const base=(matchStore(sc.domain)||matchStore(sc.store));
   const r=base?baselineFor(base.key):null;
   sc.portalPct=pct; sc.portalUnknown=false;
-  if(r){ const rk=(r.rk&&r.rk.listed!==false&&r.rk.pct)||0, tc=(r.tcb&&r.tcb.listed!==false&&r.tcb.pct)||0;
-    sc.portalName=(tc===pct?'TopCashback':'Rakuten')+' (기본율)'; }
+  if(r){ const rk=(r.rk&&r.rk.listed!==false&&r.rk.pct)||0, cp=(r.cap&&r.cap.listed!==false&&r.cap.pct)||0, tc=(r.tcb&&r.tcb.listed!==false&&r.tcb.pct)||0;
+    sc.portalName=(tc===pct?'TopCashback':(rk===pct?'Rakuten':'Capital One Shopping'))+' (기본율)'; }
   const card=document.getElementById('scard-'+sc.id);
   if(card){ const p=card.querySelector('.s-portal'); if(p) p.value=pct;
             const pn=card.querySelector('.s-portalname'); if(pn) pn.value=sc.portalName||''; }
@@ -2729,11 +2736,12 @@ function computeSite(){
     const g=b=>(b&&b.listed!==false&&b.pct!=null)?b.pct:0;
     document.getElementById('rkPct').value = base?g(base.rk):0;
     document.getElementById('tcbPct').value = base?g(base.tcb):0;
-    document.getElementById('capPct').value = 0;   // ⚠️ 우리 스냅샷으로 CapOne 을 채우지 않는다(자동 수집 불가)
+    document.getElementById('capPct').value = base?g(base.cap):0;
     if(fz) autoApplied['site:'+fz.key]=true;
   }
   if(base && PORTAL_RATES.asOf && !autoApplied['site:'+fz.key]){
     autoApplied['site:'+fz.key]=true;
+    if(base.cap&&base.cap.pct!=null&&base.cap.listed!==false && (+v('capPct')||0)===0) document.getElementById('capPct').value=base.cap.pct;
     if(base.rk&&base.rk.pct!=null&&base.rk.listed!==false && (+v('rkPct')||0)===0) document.getElementById('rkPct').value=base.rk.pct;
     if(base.tcb&&base.tcb.pct!=null&&base.tcb.listed!==false && (+v('tcbPct')||0)===0) document.getElementById('tcbPct').value=base.tcb.pct;
   }
@@ -2811,13 +2819,15 @@ function computeSite(){
   // 기본율 표시 (+되돌리기)
   const bEl=document.getElementById('siteBaseline');
   if(base && PORTAL_RATES.asOf){
+    const capOk=base.cap&&base.cap.pct!=null&&base.cap.listed!==false;
     const rkOk=base.rk&&base.rk.pct!=null&&base.rk.listed!==false;
     const tcbOk=base.tcb&&base.tcb.pct!=null&&base.tcb.listed!==false;
-    bEl.innerHTML=`${t('portal.base','📊 기본율')} <span class="tag">${ratesStamp()}${rateAgeWarn()}</span> <b>${t('portal.autoFilled','자동 입력됨')}</b>: Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b>`+
-      ((rkOk||tcbOk)?` <button class="mini" type="button" id="fillBase">${t('portal.revert','↺ 기본율로 되돌리기')}</button>`:``)+
+    bEl.innerHTML=`${t('portal.base','📊 기본율')} <span class="tag">${ratesStamp()}${rateAgeWarn()}</span> <b>${t('portal.autoFilled','자동 입력됨')}</b>: Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b> · Capital One <b>${fmtBase(base.cap)}</b>`+
+      ((capOk||rkOk||tcbOk)?` <button class="mini" type="button" id="fillBase">${t('portal.revert','↺ 기본율로 되돌리기')}</button>`:``)+
       loginCtaHTML();
     const fb=document.getElementById('fillBase');
     if(fb) fb.addEventListener('click',()=>{
+      if(capOk) document.getElementById('capPct').value=base.cap.pct;
       if(rkOk) document.getElementById('rkPct').value=base.rk.pct;
       if(tcbOk) document.getElementById('tcbPct').value=base.tcb.pct;
       computeSite();
