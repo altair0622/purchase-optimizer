@@ -5,14 +5,26 @@ name: Probe portal rate changes
 # ⚠️ 기존 `update-rates.yml` 과 별개다. 그쪽은 매일 rates.json 을 갱신하는 **제품 데이터**고,
 #    이쪽은 rate-probe.jsonl 에 쌓기만 한다. **rates.json 을 절대 건드리지 않는다.**
 #
+# ⭐ **결과는 `probe-data` 브랜치에 커밋한다. `main` 에는 아무것도 안 쓴다.**
+#
+#    `main` 은 GitHub Pages 소스 브랜치다(`build_type: legacy` · `source.branch: main`).
+#    **main 커밋 하나 = 배포 하나**다. 이 워크플로가 매시간 main 에 커밋하던 동안
+#    **하루 24회 배포**를 일으키고 있었다 — 8/25 13:01Z·14:00Z 봇 커밋이 각각
+#    `pages-build-deployment` 실행을 만든 것을 실행 이력에서 확인했다.
+#    측정 데이터는 라이브 사이트가 읽지 않는다. main 에 있을 이유가 없었다.
+#
+#    Pages 는 **소스 브랜치에만** 반응하므로 다른 브랜치 커밋은 빌드를 안 일으킨다.
+#    (실측: probe-data 브랜치 최초 푸시로 pages 실행이 늘지 않는 것을 확인했다.)
+#
 # ⚠️ 종료는 **스크립트가 스스로 한다** — `probe-rates.mjs` 의 START +5일이 지나면
 #    아무것도 안 하고 끝난다. 이 워크플로를 지우는 걸 누가 잊어도 요청이 안 나간다.
 #    (부하가 이 작업의 유일한 실제 위험이라, 끄는 걸 사람 기억에 맡기지 않는다.)
 
 on:
   schedule:
-    # 매시간 :07 — 정각을 피한다. GitHub Actions 는 정각에 예약 작업이 몰려 지연된다
-    # (update-rates.yml 이 :17 을 쓰는 것과 같은 이유). :17 과도 겹치지 않게 뒀다.
+    # 매시간 :07 — 정각을 피하려는 의도였다(GitHub Actions 는 정각에 예약 작업이 몰려 지연된다).
+    # ⚠️ 다만 실측으로는 **이 분이 지켜지지 않는다** — 8/25 스케줄 실행이 14:00:01Z 에 잡혔다.
+    #    시간당 1회는 지켜지므로 측정에는 지장이 없어 그대로 둔다. 기록만 남긴다.
     - cron: '7 * * * *'
   workflow_dispatch: {}      # 수동 실행 버튼
 
@@ -29,23 +41,83 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      # ① 코드(main) — 스크립트와 STORE_LIST 를 여기서 읽는다
       - uses: actions/checkout@v4
+
+      # ② 데이터(probe-data) — 별도 디렉터리로 체크아웃한다.
+      #    ⚠️ 여기에 **이미 쌓인 회차가 들어 있어야** 이번 회차를 이어 붙일 수 있다.
+      #       main 을 체크아웃해서 append 하면 매번 옛 사본 위에 쌓여 이력이 갈라진다.
+      #    ⚠️ 서드파티 액션을 쓰지 않는다(공급망 위험). actions/checkout 은 퍼스트파티다.
+      - uses: actions/checkout@v4
+        with:
+          ref: probe-data
+          path: .probe-data
+
+      # ⭐ main 에만 있는 회차를 probe-data 로 끌어온다 — **회차 연속성이 이 작업의 핵심이다.**
+      #
+      # 전환 시점에 구멍이 생길 수 있다: 이 워크플로가 main 에 올라가기 전까지는
+      # 옛 동작(main 에 커밋)이 계속 돌아서, 그 사이 회차가 main 에만 쌓인다.
+      # 사람이 손으로 옮기기로 하면 **옮기기 직전에 한 회차가 더 들어오는 창**이 남는다.
+      # P3 는 "값이 언제 바뀌는가"를 재는 거라 잃은 시각은 다시 못 잰다 → 자동으로 합친다.
+      #
+      # 매 회차 돌아도 안전하다(중복 줄 제거라 멱등). main 사본이 지워지면 그냥 건너뛴다.
+      # ⚠️ 정렬하지 않는다 — 이어붙인 순서가 곧 시간순이고, 정렬하면 회차 안의
+      #    판매처 순서(측정 순서)가 알파벳순으로 뒤바뀐다.
+      - name: Carry over rounds that exist only on main
+        run: |
+          if [ -f rate-probe.jsonl ]; then
+            before=$(wc -l < .probe-data/rate-probe.jsonl)
+            cat .probe-data/rate-probe.jsonl rate-probe.jsonl | awk 'NF && !seen[$0]++' > /tmp/merged.jsonl
+            mv /tmp/merged.jsonl .probe-data/rate-probe.jsonl
+            after=$(wc -l < .probe-data/rate-probe.jsonl)
+            echo "probe-data $before 줄 → $after 줄 (main 에만 있던 회차 $((after-before))줄 흡수)"
+          else
+            echo "main 사본 없음 — 합칠 것 없다"
+          fi
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - name: Probe portal rates
+        id: probe
+        env:
+          PROBE_OUT: ${{ github.workspace }}/.probe-data/rate-probe.jsonl
         run: node scripts/probe-rates.mjs
-      - name: Commit if changed
+
+      # ③ 커밋·푸시는 **probe-data 체크아웃 안에서만** 한다.
+      #    working-directory 가 .probe-data 라서 `git push` 는 probe-data 로 간다.
+      #    main 워킹트리는 손대지 않는다 — 그래야 배포가 안 일어난다.
+      - name: Commit to probe-data
+        working-directory: .probe-data
         run: |
           if git diff --quiet rate-probe.jsonl; then
-            echo "no change"
+            # ⚠️ "변화 없음"을 통과로 넘기지 않는다.
+            #    측정 창이 끝나서 안 쓴 것(정상)과, 고장나서 못 쓴 것(회차 손실)은
+            #    파일만 보면 똑같아 보인다. 스크립트가 알려준 window 로 가른다.
+            if [ "${{ steps.probe.outputs.window }}" = "closed" ]; then
+              echo "측정 창 종료 — 정상적으로 아무것도 안 썼다"
+            else
+              echo "::error::창이 열려 있는데 이번 회차가 안 쌓였다 — 이 시각은 영영 못 잰다"
+              exit 1
+            fi
           else
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add rate-probe.jsonl
             git commit -m "chore: probe portal rates ($(date -u +%FT%H:%MZ))"
-            # 매시간 도는 데다 매일 14:17 update-rates 와 겹칠 수 있다 →
-            # 거절되면 리베이스로 따라잡는다(손 병합 금지).
+            # 매시간 도니 앞 회차와 겹칠 수 있다 → 거절되면 리베이스로 따라잡는다(손 병합 금지).
             git pull --rebase --autostash
             git push
           fi
+
+      # ④ ⚠️ 회차를 놓쳤는지 **로그에 남긴다.**
+      #    P3 는 "값이 언제 바뀌는가"를 재는 거라 구멍이 생기면 그 시간대는 영영 못 잰다.
+      #    조용히 비면 나중에 "그 시각엔 변동이 없었다"로 잘못 읽힌다.
+      #    (실패를 0% 로 안 뭉갠 것과 같은 이유다.)
+      - name: Round summary
+        if: always()
+        working-directory: .probe-data
+        run: |
+          echo "회차 종료 $(date -u +%FT%TZ) · 총 $(wc -l < rate-probe.jsonl) 줄"
+          echo "마지막 회차 시각: $(tail -1 rate-probe.jsonl | sed -n 's/.*"t":"\([^"]*\)".*/\1/p')"

@@ -8,13 +8,30 @@
 // ⚠️ 이 스크립트는 **rates.json 을 절대 건드리지 않는다.** 라이브가 그걸 읽는다.
 //    측정이 제품 데이터를 오염시키면 안 된다. 출력은 `rate-probe.jsonl` 한 곳뿐이다.
 //
+// ⭐ **진짜 데이터는 `probe-data` 브랜치에 있다.**
+//    `main` 은 GitHub Pages 소스 브랜치라(`build_type: legacy`, `source.branch: main`)
+//    **커밋 하나가 배포 하나**다. 매시간 커밋하면 하루 24회 배포가 일어난다 —
+//    8/25 13:01Z·14:00Z 봇 커밋이 실제로 Pages 배포를 트리거한 것을 실행 이력에서 봤다.
+//    측정 데이터는 라이브가 읽지 않으므로 main 에 있을 이유가 없다.
+//    ⚠️ `main` 에도 같은 이름의 사본이 남아 있는데 **8/25 전환 이전의 잔재**다.
+//       지우려면 main 에 커밋해야 하고 그것도 배포라서, **다음 정당한 배포 때 삭제한다.**
+//       그때까지 어느 쪽이 진짜인지 헷갈릴 자리다 — 진짜는 probe-data 다.
+//
 // 출력: 한 줄 = {"t":"<UTC ISO>","store":"nike","rk":8,"tcb":10}  (append only)
+//       기본은 repo 루트의 rate-probe.jsonl, `PROBE_OUT` 이 있으면 그 경로로.
 
 import { readFileSync, appendFileSync, existsSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 // ⚠️ 파싱 규칙은 update-rates.mjs 와 **같은 모듈**을 쓴다. 복사하면 두 벌이 갈라진다.
 import { parseTitle, fetchTitle, fetchTcb, loadStores } from './portal-parse.mjs';
 
-const OUT = new URL('../rate-probe.jsonl', import.meta.url);
+// 워크플로가 probe-data 브랜치를 따로 체크아웃해서 그 안의 파일을 가리킨다.
+// ⚠️ 로컬에서 그냥 돌리면 예전처럼 repo 루트에 쌓인다 — 그건 커밋하지 말 것.
+// ⚠️ 손으로 file:// URL 을 만들지 않는다 — 윈도우 경로의 역슬래시·공백 이스케이프를
+//    직접 다루면 반드시 틀린다(실제로 한 번 틀렸다). pathToFileURL 이 그 일을 한다.
+const OUT = process.env.PROBE_OUT
+  ? pathToFileURL(process.env.PROBE_OUT)
+  : new URL('../rate-probe.jsonl', import.meta.url);
 
 // ---------------------------------------------------------------------------
 // ⭐ 종료 조건 — **사람이 끄는 걸 기억해야 하는 구조로 만들지 않는다**
@@ -25,11 +42,21 @@ const OUT = new URL('../rate-probe.jsonl', import.meta.url);
 const START = '2026-08-25';        // 측정 시작일(UTC). 바꾸면 창이 통째로 옮겨간다
 const DAYS = 5;
 const deadline = new Date(START + 'T00:00:00Z').getTime() + DAYS * 86400_000;
+// ⚠️ 창이 끝나서 안 쓰는 것과, 고장나서 못 쓰는 것을 **워크플로가 구분할 수 있어야 한다.**
+//    둘 다 "파일에 변화 없음"으로 똑같이 보이는데, 앞은 정상이고 뒤는 회차를 잃은 거다.
+//    구분이 없으면 조용히 비고, 나중에 "그 시각엔 변동이 없었다"로 잘못 읽힌다.
+function signal(k, v) {
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `${k}=${v}
+`);
+}
+
 if (Date.now() > deadline) {
   console.log(`측정 창(${START} +${DAYS}일)이 끝났다 — 아무것도 하지 않고 종료.`);
   console.log('워크플로(.github/workflows/probe-rates.yml)를 지워도 된다.');
+  signal('window', 'closed');
   process.exit(0);
 }
+signal('window', 'open');
 
 // ---------------------------------------------------------------------------
 // 대상 8곳 — **감이 아니라 git 이력에서 실제 변동 횟수를 세서 골랐다**
@@ -102,7 +129,12 @@ for (const [key, rkSlug, tcbSlug] of STORES) {
   console.log(`  ${key}: RK ${rk ? (rk.flat != null ? '$' + rk.flat : rk.pct + '%') : 'FAIL'} · TCB ${tcb ? tcb.pct + '%' : 'FAIL'}`);
 }
 
-if (!rows.length) { console.error('한 줄도 못 얻었다 — 파일을 건드리지 않고 종료'); process.exit(1); }
+if (!rows.length) {
+  // ⚠️ 조용히 끝내지 않는다. 창이 열려 있는데 한 줄도 못 얻었으면 **그 회차는 잃은 것**이고,
+  //    P3 는 시각을 재는 측정이라 잃은 회차는 다시 못 잰다. 빨간 X 로 보여야 한다.
+  console.error('한 줄도 못 얻었다 — 파일을 건드리지 않고 종료. ⚠️ 이 회차는 구멍이다.');
+  process.exit(1);
+}
 
 appendFileSync(OUT, rows.map(r => JSON.stringify(r)).join('\n') + '\n');
 console.log(`\n${t} — ${rows.length}줄 기록${fails ? ` · 실패 ${fails}` : ''}${skipped ? ` · 건너뜀 ${skipped}` : ''}`);
