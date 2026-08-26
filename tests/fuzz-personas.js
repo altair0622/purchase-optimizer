@@ -1704,6 +1704,72 @@ window.__fuzz = (function () {
     return { mode: 'actionSteps', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
   }
 
+  // ⭐ 안심 문구 금지 목록 — P7
+  //
+  // 사용자: *"바코드를 찍으면 안 나간다는 말이 거슬려. **그럼 나가는 게 안 좋게 들리잖아.**"*
+  // 안심시키려던 문장이 **사진 경로가 나간다는 걸 부각시키고 나쁘게 들리게** 한다.
+  // 조사 결론과도 일치한다 — *"프라이버시를 전면에 내세우면 우려를 환기시켜 참여를 억누른다"*
+  // (John/Acquisti/Loewenstein 2011).
+  //
+  // ⚠️ **급소: 지우면 안 되는 것과 구분한다.**
+  //   · 화면 곳곳의 **안심 문구** → 없앤다 (이 검사가 재발을 막는다)
+  //   · `#disclosures` 의 **고지** → 남긴다 (이 검사가 삭제를 막는다)
+  //   "한곳에 정확히 적는 것"과 "곳곳에서 반복해 안심시키는 것"은 다르다.
+  //   문구는 카피 세션이 다듬어도 되지만 **이 경계가 무너지면 안 된다.**
+  const COPY_BANNED = [
+    '기기 밖으로 안 나가', '아무 데도 안 가', '기기 밖으로 나가고 있어요', '기기 밖으로 나가지 않',
+    'goes nowhere', 'never sends the photo', 'is leaving the device', 'never leaves this device',
+  ];
+  // #disclosures 가 반드시 계속 말해야 하는 사실들 (출시 블로커였던 고지를 닫은 자산이다)
+  const DISC_MUST = [
+    '이미지 인식 API로 전송',   // 사진이 어디로 가는지
+    '사진을 저장하지 않',        // 우리가 안 하는 것
+    'r.jina.ai',                 // 제3자 프록시 — 이게 빠지면 CORS 고지가 도로 열린다
+    '바코드',                    // 바코드 경로 설명
+  ];
+
+  async function runCopyBans() {
+    const bad = []; let checks = 0;
+    try {
+      // ① 소스 리터럴 — vision.js · scanner.js 에는 고지 카드가 없으므로 통째로 본다
+      for (const f of ['vision.js', 'scanner.js']) {
+        const src = await (await fetch('/' + f + '?cb=' + Date.now())).text();
+        // 주석에 적어 둔 "다시 넣지 마라" 설명까지 잡으면 오탐이다 → 주석 줄을 걷어낸다
+        const code = src.split('\n').filter(l => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
+        for (const w of COPY_BANNED) {
+          checks++;
+          if (code.indexOf(w) >= 0) bad.push('★ ' + f + ' 에 안심 문구가 다시 들어왔다: "' + w + '"');
+        }
+      }
+      // ② 번역 사전 — disc.* 를 뺀 나머지 키에 금지 문구가 있으면 안 된다
+      for (const dict of ['ko', 'en']) {
+        for (const k in STRINGS[dict]) {
+          if (k.indexOf('disc.') === 0) continue;      // 고지 카드는 예외 — 거기선 사실을 말해야 한다
+          const v = String(STRINGS[dict][k] || '');
+          for (const w of COPY_BANNED) {
+            if (v.indexOf(w) >= 0) bad.push('★ STRINGS.' + dict + '["' + k + '"] 에 안심 문구: "' + w + '"');
+          }
+        }
+      }
+      checks++;
+      // ③ #disclosures 는 그대로여야 한다 — 없애는 건 *안심시키는 말*이지 *정보*가 아니다
+      const disc = document.getElementById('disclosures');
+      checks++;
+      if (!disc) { bad.push('★ #disclosures 카드가 사라졌다'); }
+      else {
+        // ⚠️ textContent — 고지는 접힌 <details> 안이라 innerText 면 항상 '' 이 된다
+        const dt = disc.textContent;
+        for (const w of DISC_MUST) {
+          checks++;
+          if (dt.indexOf(w) < 0) bad.push('★ #disclosures 에서 사실이 빠졌다: "' + w + '"');
+        }
+      }
+    } catch (e) {
+      bad.push('throw: ' + e.message);
+    }
+    return { mode: 'copyBans', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
+  }
+
   // 전부 한 번에
   function all(opt) {
     opt = opt || {};
@@ -1722,7 +1788,7 @@ window.__fuzz = (function () {
 
   // koLeak 은 대조군(negcontrol-i18n.js)이 단위로 검사한다 — '사용자 데이터는 미번역이 아니다'가
   // 이 함수 한 곳에 걸려 있어서, 여기가 조용히 느슨해지면 영어 검사 전체가 같이 무의미해진다.
-  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, runActionSteps, all, koLeak,
+  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, runActionSteps, runCopyBans, all, koLeak,
            last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null, lastScan: null };
 })();
 'fuzz harness loaded';

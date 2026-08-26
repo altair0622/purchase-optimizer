@@ -833,7 +833,6 @@ Object.assign(STRINGS.en, {
   'start.compare': 'Compare',
   'start.note': 'Each URL <b>becomes a seller row with the cashback % filled in</b>. <b>Cards are not required.</b><br>🔒 To read a price for you, <b>only the product URL you pasted</b> goes to our fetcher — <a href="#disclosures" onclick="openDisclosures(event)">details</a>.',
   'scan.btn': '📊 Scan a barcode',
-  'scan.btn.note': 'When the package has a barcode · <b>this one never sends the photo off your device</b> — works well on kitchenware, small appliances, toys and cosmetics, and <b>does not work on TVs, large appliances, or Costco items</b>.',
 
   // ── 상품 정보 ────────────────────────────────────────────────────
   'product.title': '🛍️ Item',
@@ -1300,7 +1299,6 @@ Object.assign(STRINGS.en, {
   'scan.manual.err.badLength': 'The number under a barcode is normally 12 digits. This one is {len}.',
   'scan.manual.err.badCheck': 'That doesn’t look like a barcode number — is one digit off?',
   'scan.busy': 'Looking for a barcode in the photo…',
-  'scan.busy.note': 'The photo never leaves this device. Decoding finishes inside this browser.',
   'scan.ok': 'Barcode read',
   'scan.link.suffix': ' search',
   'scan.ok.note': '<b>We don’t know the price.</b> Open a link above, <b>read the price with your own eyes</b>, and paste that product page URL into the box above to start the net cost comparison. 🔒 This button sends nothing to our server — the searches open directly at Amazon and Best Buy.',
@@ -1313,10 +1311,9 @@ Object.assign(STRINGS.en, {
   'scan.loadfail': 'Couldn’t download the scanner code — check your connection and press it again.',
   // ── 📷 사진으로 상품 찾기 (vision.js) ────────────────────────────
   'vision.btn': '📷 Find this product from a photo',
-  'vision.btn.note': 'No barcode needed · <b>the photo does leave your device</b> — <a href="#disclosures" onclick="openDisclosures(event)">see where it goes</a>',
   'disc.data.vision': '<b>📷 Find from a photo — this button does send the photo.</b> Your photo goes <b>through our worker to an image recognition API</b>, so it can read the product name off the picture.<br>· <b>We don’t store the photo and we don’t record who sent it</b> — the worker has zero log lines and never reads your IP. <b>It passes through and is dropped</b> — we don’t even cache it.<br>· <b>Anthropic states that it doesn’t use these images to train models and deletes them once the request is processed.</b> The <b>text</b> read out of the photo may be retained for <b>up to 30 days</b>.<br>· <b>Whatever is in the frame goes too.</b> We don’t crop to the product — if a person or a store sign is in the shot, that goes as well.<br><b>Don’t want to send a photo? Typing the product name works exactly the same</b>, and then nothing leaves. The retailer search links built from the query <b>only open when you click them.</b>',
   'vision.busy': 'Looking for the product in your photo…',
-  'vision.busy.note': 'Your photo <b>is leaving the device right now</b>. We pass it through without storing it.',
+  'vision.busy.note': 'We don’t store the photo. <a href="#disclosures" onclick="openDisclosures(event)">How it’s handled</a>',
   'vision.busy.two': 'We’re looking at both photos together.',
   'vision.found': 'Here’s what we see',
   'vision.read': 'Read',
@@ -1339,8 +1336,8 @@ Object.assign(STRINGS.en, {
   'vision.ask.got': 'Read so far',
   'vision.giveup': 'We couldn’t identify it',
   'vision.giveup.note': 'Even with two photos we aren’t sure what this is. <b>We won’t hand you a search query we aren’t sure about</b> — it could send you to the wrong product.',
-  'vision.esc.type': '<b>Typing the product name</b> works exactly the same — and then the photo goes nowhere.',
-  'vision.esc.scan': 'If the package has a barcode, use <b>Scan a barcode</b> — <b>that one never sends the photo off your device</b>.',
+  'vision.esc.type': '<b>Typing the product name</b> works exactly the same.',
+  'vision.esc.scan': 'If the package has a barcode, use <b>Scan a barcode</b>.',
   'vision.blur': 'Looks a little shaky',
   'vision.blur.note': 'One more shot <b>a bit closer</b>, close enough to read the lettering, finds it much better. You can still send this one.',
   'vision.blur.send': 'Send it anyway',

@@ -17,8 +17,9 @@
 //   · **세 번 되묻지 않는다** — 조사 9장 #14. 두 번에서 끊고 직접 입력으로 넘긴다
 //
 // ⚠️ 바코드(scanner.js)와 이 파일은 **프라이버시 성질이 정반대다.**
-//    바코드: 사진이 기기 밖으로 안 나간다 (해독이 브라우저 안에서 끝난다)
-//    사진:   사진이 기기 밖으로 나간다 (비전 API 로)
+//    바코드: 해독이 브라우저 안에서 끝난다
+//    사진:   비전 API 로 보낸다
+//    ⚠️ 이 사실은 `#disclosures` 에 적는다. **화면 곳곳에서 반복하지 않는다**(P7).
 //    **버튼별로 다른 문장을 쓴다. 하나로 뭉개면 둘 중 하나가 거짓이 된다** (조사 4-C·9장 #10).
 // ============================================================================
 
@@ -494,20 +495,35 @@ const againBtn = () => '<button class="mini" id="visionAgain" type="button">' +
 // 실패·오류 화면 공통 꼬리 — **탈출구를 항상 같이 둔다**(원칙 C3).
 // 바코드를 여기에 두는 것이 조사 7장의 "격하하되 남긴다"의 구체적 형태다:
 // 사진이 두 번 실패한 자리가 바코드가 가장 값어치 있는 자리다.
+// ⛔ 여기에 *"사진이 안 나가요"* 류를 다시 넣지 마라. (P7, 사용자 지시)
+//
+// 사용자: *"바코드를 찍으면 안 나간다는 말이 거슬려. **그럼 나가는 게 안 좋게 들리잖아.**"*
+//
+// 안심시키려던 문장이 정확히 반대로 작동한다 — **사진 경로가 나간다는 걸 부각시키고
+// 그걸 나쁜 것처럼 들리게 한다.** 우리 조사 결론과도 일치한다:
+// *"프라이버시를 전면에 내세우면 우려를 해소하는 게 아니라 환기시켜 참여를 억누른다"*
+// (John/Acquisti/Loewenstein 2011 · 리서치/프라이버시-포지셔닝-조사-2026-08-12.md)
+//
+// ⚠️ **사실을 지운 게 아니다.** 무엇이 어디로 가는지는 `#disclosures` 카드에 전부 있다
+//    (📷 항목 · 📊 항목 각각). **한곳에 정확히 적는 것**과 **곳곳에서 반복해 안심시키는 것**은
+//    다르다. 전자는 남기고 후자를 없앴다.
 function escapeHatches() {
   const hasScan = !!document.getElementById('scanBtn');
   return '<div class="valt" style="margin-top:12px">' +
-    '<div>· ' + T('vision.esc.type', '<b>상품명을 직접 입력</b>해도 똑같이 동작해요 — 그러면 사진은 아무 데도 안 가요.') + '</div>' +
+    '<div>· ' + T('vision.esc.type', '<b>상품명을 직접 입력</b>해도 똑같이 동작해요.') + '</div>' +
     (hasScan ? '<div>· ' + T('vision.esc.scan',
-      '포장에 바코드가 있으면 <b>바코드 찍기</b>를 쓰세요 — <b>그쪽은 사진이 기기 밖으로 안 나가요</b>.') + '</div>' : '') +
+      '포장에 바코드가 있으면 <b>바코드 찍기</b>를 쓰세요.') + '</div>' : '') +
     '</div>';
 }
 
 function renderBusy(n) {
   panel().innerHTML = '<div class="vbox"><div class="vhead">⏳ ' +
     T('vision.busy', '사진에서 상품을 찾는 중…') + '</div>' +
+    // ⚠️ 판단이 갈린 자리: *"기기 밖으로 나가고 있어요"* 는 **불안한 순간에 불안을 키우는
+    //    표현**이라 뺐다. 그렇다고 통째로 지우면 **사진 흐름 안에 고지가 하나도 안 남는다**
+    //    (버튼 옆 설명은 이미 없다). 그래서 **중립적인 한 줄 + 고지 링크**로 줄였다.
     '<p class="muted" style="margin:0">' + T('vision.busy.note',
-      '찍은 사진이 지금 <b>기기 밖으로 나가고 있어요</b>. 저장하지 않고 통과만 시켜요.') +
+      '사진은 저장하지 않아요. <a href="#disclosures" onclick="openDisclosures(event)">처리 방식</a>') +
     (n > 1 ? ' ' + T('vision.busy.two', '두 장을 같이 보고 있어요.') : '') + '</p></div>';
 }
 
@@ -586,17 +602,28 @@ function renderResult(r, opts) {
 
 // 되묻기 화면 — **방향을 지목한 문장 하나 + 카메라 버튼.**
 // 첫 사진에서 뭔가 읽었으면 그것도 같이 보여준다(사용자가 진행 상황을 안다).
+// ⚠️ 되묻기 화면이 제목 + 설명 + 읽은것 + 모델문장 + 버튼 + 불릿 2개로 불어나 있었다. 줄인다.
 function renderAsk(r, reason) {
-  const detail = r && r.ask && r.ask.detail ? '<p class="muted" style="margin:6px 0 0">' + esc(r.ask.detail) + '</p>' : '';
-  const got = r && r.read && r.read.length
+  // ⛔ 모델이 쓴 문장(ask.detail)을 **화면에 인쇄하지 않는다.** (P7)
+  //    실물에서 이렇게 나왔다: *"제품의 모든 각도, 특히 하단, 뒷면 또는 포장 정보를 보여주는
+  //    사진이 있으면 정확한 모델 번호를 **식별할 수 있습니다**"* — 혼자 합쇼체고(나머지는
+  //    해요체), 길고 기계적이고, 바로 위 우리 안내와 내용이 겹친다.
+  //    **모델 출력을 그대로 UI 문구로 쓰면 말투를 우리가 통제할 수 없다.** 값은 응답에
+  //    그대로 있으니 필요하면 되살릴 수 있다 — 지금은 안 보여준다.
+  //
+  // ⚠️ 읽은 글자가 **너무 짧으면 줄 자체를 안 보여준다.** 실물에서 `지금까지 읽은 것: SAN`
+  //    이 나왔다 — 조각난 글자는 사용자에게 아무 뜻이 없고, "이것밖에 못 읽었나" 하는
+  //    인상만 준다. 4자 이상인 항목이 하나도 없으면 숨긴다.
+  const readable = (r && r.read) ? r.read.filter(x => String(x || '').trim().length >= 4) : [];
+  const got = readable.length
     ? '<p class="muted" style="margin:6px 0 0">' + T('vision.ask.got', '지금까지 읽은 것') + ': <b>' +
-      r.read.map(esc).join('</b> · <b>') + '</b></p>'
+      readable.map(esc).join('</b> · <b>') + '</b></p>'
     : '';
   panel().innerHTML = '<div class="vbox vfail">' +
     '<div class="vhead">📷 ' + esc(askText(reason)) + '</div>' +
     '<p class="muted" style="margin:0">' + T('vision.ask.note',
       '<b>두 장을 같이 보고 판단해요</b> — 방금 찍은 사진은 그대로 두고 한 장만 더 찍으면 돼요.') + '</p>' +
-    got + detail +
+    got +
     '<div class="vbtns">' + againBtn() + '</div>' +
     escapeHatches() + '</div>';
   wire();

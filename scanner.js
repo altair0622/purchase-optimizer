@@ -305,8 +305,10 @@ const manualReason = r => { const e = MANUAL_REASON[r]; return e ? T(e[0], e[1])
 function renderBusy() {
   panel().innerHTML = '<div class="scanbox"><div class="scanhead">⏳ ' +
     T('scan.busy', '사진에서 바코드를 찾는 중…') + '</div>' +
-    '<p class="muted" style="margin:0">' + T('scan.busy.note',
-      '사진은 이 기기 밖으로 나가지 않아. 해독은 이 브라우저 안에서 끝나.') + '</p></div>';
+    // ⛔ *"기기 밖으로 나가지 않아"* 를 뺐다 (P7, 사용자가 직접 지목).
+    //    바코드 쪽에서 "안 나간다"고 하면 **사진 쪽이 나가는 게 나쁜 것처럼 들린다.**
+    //    사실은 `#disclosures` 의 📊 항목에 그대로 있다. (겸사겸사 반말이던 것도 사라진다.)
+    '</div>';
 }
 
 function renderFound(code) {
