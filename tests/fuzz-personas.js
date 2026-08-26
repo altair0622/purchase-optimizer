@@ -1719,13 +1719,28 @@ window.__fuzz = (function () {
   const COPY_BANNED = [
     '기기 밖으로 안 나가', '아무 데도 안 가', '기기 밖으로 나가고 있어요', '기기 밖으로 나가지 않',
     'goes nowhere', 'never sends the photo', 'is leaving the device', 'never leaves this device',
+    // 카드 오퍼 붙여넣기 — 같은 계열 + 하나 더 무거운 것
+    // 🔴 '비밀번호' 는 **아무도 안 물어본 걱정을 우리가 먼저 심는 문장**이다.
+    //    금융 도구에서 제일 센 불안 유발어이고, 읽고 나면
+    //    "그럼 다른 앱은 받나?" → "얘네는 정말 안 받나?" 로 간다.
+    '비밀번호', 'issuer password',
+    '브라우저 밖으로 나가지 않', 'never leaves the browser',
   ];
+  // ⛔ 접두사 사고 방지 그물 — `ofp.why` 하나를 정리하면서 `ofp.why.*` 를 같이 쓸어버리면
+  //    **오퍼 계산 설명이 통째로 사라진다.** 이 키들은 안심 문구가 아니라 **기능 문구**다
+  //    ("왜 이 금액인지 / 왜 못 넣는지"를 오퍼마다 설명한다).
+  //    특히 `ofp.why.approx`("Up to 라 최대치예요")는 어제 포털에 넣은 upTo 처리와 같은 정신이다.
+  const OFP_KEEP = ['miles', 'min', 'minok', 'needCharge', 'cap', 'noCap', 'approx', 'unknown'];
   // #disclosures 가 반드시 계속 말해야 하는 사실들 (출시 블로커였던 고지를 닫은 자산이다)
   const DISC_MUST = [
     '이미지 인식 API로 전송',   // 사진이 어디로 가는지
     '사진을 저장하지 않',        // 우리가 안 하는 것
     'r.jina.ai',                 // 제3자 프록시 — 이게 빠지면 CORS 고지가 도로 열린다
     '바코드',                    // 바코드 경로 설명
+    // 흐름에서 뺀 카드 오퍼 사실들이 **여기엔 남아 있어야** 한다.
+    // 이 두 줄이 있어서 ofp.why 의 해명을 지워도 사실이 사라지지 않는다.
+    '계정도 로그인도 없어요',
+    '네트워크 요청은 한 건도 나가지 않고',
   ];
 
   async function runCopyBans() {
@@ -1761,8 +1776,20 @@ window.__fuzz = (function () {
           }
         }
       }
+      // ③ ofp.why.* 기능 키가 전부 살아 있는가 — **소스에서 직접 확인한다.**
+      //    STRINGS.ko 로 보면 그 턴에 호출되지 않은 키는 수집이 안 돼 있어서 헛돈다.
+      {
+        const idx = await (await fetch('/index.html?cb=' + Date.now())).text();
+        for (const k of OFP_KEEP) {
+          checks++;
+          // 코드 사용처 + 영어 사전, 최소 두 번 나와야 한다. 한쪽만 지워도 잡힌다.
+          const n = idx.split("'ofp.why." + k + "'").length - 1;
+          if (n < 2) bad.push('★ ofp.why.' + k + ' 가 사라졌거나 한쪽만 남았다(' + n + '곳) — 접두사로 쓸어버린 것 아닌가');
+        }
+      }
+
       checks++;
-      // ③ #disclosures 는 그대로여야 한다 — 없애는 건 *안심시키는 말*이지 *정보*가 아니다
+      // ④ #disclosures 는 그대로여야 한다 — 없애는 건 *안심시키는 말*이지 *정보*가 아니다
       const disc = document.getElementById('disclosures');
       checks++;
       if (!disc) { bad.push('★ #disclosures 카드가 사라졌다'); }

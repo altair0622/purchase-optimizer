@@ -553,7 +553,21 @@ https://www.walmart.com/ip/...
    <details id="offerPastePanel">
     <summary><span data-i18n="ofp.title">🎁 카드사 오퍼 붙여넣기</span> <span class="wsum" id="ofpSummary" data-i18n="ofp.sum.none">선택 — 안 써도 계산은 그대로 돼요</span></summary>
     <div class="foldbody">
-      <p class="cashnote" data-i18n="ofp.why"><b>왜 복사해서 붙여넣나요?</b> 로그인을 대신 처리하는 방법도 있지만, 그러려면 카드사 비밀번호를 제가 받아야 해요. 그건 하지 않기로 했어요. 이 방식은 붙여넣은 내용이 브라우저 밖으로 나가지 않고, 이 기기에만 남아요.</p>
+      <!-- ⛔ 여기에 **해명**을 다시 쓰지 마라. (P7 후속, 사용자 지시)
+           옛 문구: "왜 복사해서 붙여넣나요? … 카드사 **비밀번호**를 제가 받아야 해요.
+                     … 브라우저 **밖으로 나가지 않고** …"
+           문제 셋:
+             ① "밖으로 나가지 않고" — 사진 쪽에서 걷어낸 그 프레임 그대로
+             ② 질문형 제목이 **방어를 시작한다** — 붙여넣기 칸 하나 봤을 뿐인데 우리가 먼저 해명한다
+             ③ 🔴 **"비밀번호"** — 아무도 안 물어본 걱정을 우리가 먼저 심는다.
+                읽고 나면 "그럼 다른 앱은 받나?" → "얘네는 정말 안 받나?" 로 간다.
+                안심시키려는 문장이 우려를 환기시킨다(John/Acquisti/Loewenstein 2011).
+                새 타겟(캐시백을 모르는 사람)에겐 더 세게 작용한다.
+           ⚠️ 사실은 안 사라졌다 — `#disclosures` 가 "계정도 로그인도 없어요" 와
+              "네트워크 요청은 한 건도 나가지 않고" 를 그대로 말한다(대조 확인함).
+           ⚠️ 아래 `ofp.how` 가 이미 **하는 법**(Ctrl+A→C→V)을 말한다. 그래서 여기서는
+              그걸 반복하지 않고 **무엇을 얻는지** 한 줄만 남긴다. -->
+      <p class="cashnote" data-i18n="ofp.why"><b>붙여넣으면</b> 어느 가맹점에 얼마짜리 오퍼가 있는지 읽어와서 계산에 반영해요.</p>
       <p class="muted" style="margin:8px 0 6px" data-i18n="ofp.how">오퍼 페이지를 열고 <b>Ctrl+A → Ctrl+C</b>, 아래 칸에 <b>Ctrl+V</b> 해 주세요. 카드가 여러 장이면 카드를 바꿔가며 한 번씩 해 주세요.
         <a href="https://global.americanexpress.com/offers/eligible" target="_blank" rel="noopener">Amex 허브</a> ·
         <a href="https://secure.chase.com/web/auth/dashboard#/dashboard/offers/hub" target="_blank" rel="noopener">Chase 허브</a>
@@ -1206,7 +1220,7 @@ Object.assign(STRINGS.en, {
   // ── 오퍼 붙여넣기 (v0.28) ────────────────────────────────────────
   'ofp.title': '🎁 Paste your card offers',
   'ofp.sum.none': 'Optional — everything works without it',
-  'ofp.why': '<b>Why paste instead of logging in for you?</b> Handling the login is possible, but it would mean taking your issuer password. We decided not to. This way what you paste never leaves the browser and stays on this device.',
+  'ofp.why': '<b>Paste it in</b> and we read which merchants have offers and how much, then use that in the math.',
   'ofp.how': 'Open your offers page, <b>Ctrl+A → Ctrl+C</b>, then <b>Ctrl+V</b> in the box below. With more than one card, switch cards and do it once each. ',
   'ofp.ph': 'Paste here (Ctrl+V)',
   'ofp.run': '📋 Read it',
