@@ -1742,9 +1742,19 @@ window.__fuzz = (function () {
         }
       }
       // ② 번역 사전 — disc.* 를 뺀 나머지 키에 금지 문구가 있으면 안 된다
+      //
+      // ⚠️ **STRINGS.ko 는 신뢰할 수 없는 증거다.** 한국어 원문은 `t(key, ko)` 가 호출될 때
+      //    **그 순간 로드돼 있는 모듈**에서 자동 수집된다. vision.js·scanner.js 는 지연
+      //    import 라 브라우저가 **옛 버전을 캐시**하고 있으면, 소스는 이미 고쳐졌는데
+      //    사전에는 옛 문구가 남는다. 실제로 그렇게 3건이 오보로 떴다.
+      //    → 모듈이 원문을 소유하는 키(vision.*·scan.*)의 **한국어**는 여기서 안 본다.
+      //      그건 ①(소스 리터럴)이 이미 **서버 파일을 직접 받아서** 검사한다.
+      //      영어는 index.html 이 소유하므로 캐시 문제가 없다 — 그대로 검사한다.
+      const fromModule = k => k.indexOf('vision.') === 0 || k.indexOf('scan.') === 0;
       for (const dict of ['ko', 'en']) {
         for (const k in STRINGS[dict]) {
           if (k.indexOf('disc.') === 0) continue;      // 고지 카드는 예외 — 거기선 사실을 말해야 한다
+          if (dict === 'ko' && fromModule(k)) continue;
           const v = String(STRINGS[dict][k] || '');
           for (const w of COPY_BANNED) {
             if (v.indexOf(w) >= 0) bad.push('★ STRINGS.' + dict + '["' + k + '"] 에 안심 문구: "' + w + '"');
@@ -1770,6 +1780,112 @@ window.__fuzz = (function () {
     return { mode: 'copyBans', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
   }
 
+  // ⭐ upTo(최대 N%)를 확정치처럼 말하지 않는가 — P8-b
+  //
+  // 사용자 실사용: *"Walmart 이 8%여서 TopCashback 으로 들어왔는데 **up to 야**…"*
+  //
+  // 원인은 문구가 아니라 **데이터 유실**이었다. rates.json 에는 `{pct:8, upTo:true}` 가
+  // 제대로 있는데 **자동 입력이 pct 만 시나리오로 옮기고 upTo 를 버렸다.**
+  // 그래서 영수증이 "캐시백 8% −$8.00" 로, P6 배지가 "$8.00 를 더 받을 수 있어요" 로
+  // **상한을 확정치처럼** 찍고 있었다.
+  //
+  // ⚠️ 이 도구가 upTo 를 계속 살려온 이유가 정확히 이것이다 —
+  //    **최대치를 확정치처럼 쓰면 그게 곧 거짓말이 된다.**
+  // ⚠️ 게다가 우리 요율은 로그아웃 스크레이프라 **과대평가일 수 있다**
+  //    (TopCashback 헬프: 로그아웃 화면에 더 높은 Plus 요율이 보인다).
+  //    문구가 확정적일수록 그 위험이 커진다.
+  function runUpTo() {
+    const bad = []; let checks = 0;
+    const keep = { wallet: myWallet.slice(), scen: scenarios.slice(), tax: taxPct, auto: autoApplied };
+    const langKeep = LANG;
+    const badge = () => { const b = document.querySelector('#finalConclusion .savebadge'); return b ? b.innerText : ''; };
+    const receipt = () => [].slice.call(document.querySelectorAll('#finalConclusion .line'))
+      .map(x => x.innerText.replace(/\n/g, ' ')).filter(x => x.indexOf('🔗') >= 0)[0] || '';
+    const load = (store) => {
+      myWallet = ['wfactivecash']; CARDS = activeCards(); taxPct = 0; autoApplied = {};
+      scenarios = [blankScenario({ store: store, price: 100 })];
+      buildAll(); recompute();
+      return scenarios[0];
+    };
+    // 스냅샷에서 upTo 인 판매처 / 확정인 판매처를 실제로 골라온다 —
+    // 이름을 박아두면 요율이 바뀐 날 이 검사가 조용히 헛돈다.
+    const withUpTo = [], withFlat = [];
+    for (const k in PORTAL_RATES.stores) {
+      const b = baselineFor(k); if (!b) continue;
+      const rk = b.rk || {}, tc = b.tcb || {};
+      const best = Math.max((rk.listed !== false && rk.pct) || 0, (tc.listed !== false && tc.pct) || 0);
+      if (!(best > 0)) continue;
+      const up = ((tc.pct || 0) === best) ? !!tc.upTo : !!rk.upTo;
+      (up ? withUpTo : withFlat).push(k);
+    }
+    checks++;
+    if (!withUpTo.length) bad.push('★ 스냅샷에 upTo 인 판매처가 하나도 없다 — 이 검사가 아무것도 안 보고 있다');
+    checks++;
+    if (!withFlat.length) bad.push('★ 스냅샷에 확정 요율 판매처가 없다 — 오탐 감시가 불가능하다');
+
+    try {
+      for (const lang of ['ko', 'en']) {
+        setLangForTest(lang);
+        const UP = lang === 'ko' ? '최대' : 'up to';
+        for (const key of withUpTo.slice(0, 4)) {
+          const name = (STORE_LIST.find(e => ((e[2] && e[2].key) || String(e[0]).toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '')) === key) || [])[0];
+          if (!name) continue;
+          const sc = load(name);
+          if (!(sc.portalPct > 0)) continue;           // 자동 입력이 안 됐으면 볼 게 없다
+          checks++;
+          if (!sc.portalUpTo) { bad.push('★ [' + lang + '] ' + name + ' 는 스냅샷이 upTo 인데 시나리오에 안 실렸다 (자동입력이 플래그를 버린다)'); continue; }
+          checks++;
+          if (badge().indexOf(UP) < 0) bad.push('★ [' + lang + '] ' + name + ' — 행동 순서 금액이 확정형이다(상한인데): ' + JSON.stringify(badge().slice(0, 110)));
+          checks++;
+          if (receipt().indexOf(UP) < 0) bad.push('★ [' + lang + '] ' + name + ' — 영수증 포털 줄이 확정형이다: ' + JSON.stringify(receipt().slice(0, 110)));
+        }
+        // 오탐 감시 — 확정 요율에까지 "최대" 를 붙이면 그것도 틀린 말이다
+        for (const key of withFlat.slice(0, 3)) {
+          const name = (STORE_LIST.find(e => ((e[2] && e[2].key) || String(e[0]).toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '')) === key) || [])[0];
+          if (!name) continue;
+          const sc = load(name);
+          if (!(sc.portalPct > 0)) continue;
+          checks++;
+          if (sc.portalUpTo) bad.push('[' + lang + '] ' + name + ' 는 확정 요율인데 upTo 가 켜졌다');
+          checks++;
+          if (receipt().indexOf(UP) >= 0) bad.push('[' + lang + '] ' + name + ' — 확정 요율에 "' + UP + '" 가 붙었다: ' + JSON.stringify(receipt().slice(0, 110)));
+        }
+      }
+
+      // 상태 전이 — 사용자가 직접 넣은 값은 **우리 upTo 가 아니다**
+      setLangForTest('ko');
+      const up0 = withUpTo[0];
+      const nm = (STORE_LIST.find(e => ((e[2] && e[2].key) || String(e[0]).toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '')) === up0) || [])[0];
+      if (nm) {
+        const sc = load(nm);
+        const card = document.getElementById('scard-' + sc.id);
+        const inp = card && card.querySelector('.s-portal');
+        if (inp) {
+          inp.value = '5'; inp.dispatchEvent(new Event('input', { bubbles: true }));
+          checks++;
+          if (sc.portalUpTo) bad.push('★ 사용자가 직접 넣었는데 upTo 가 남았다 — 본인이 본 확정 요율에 "최대"를 덧씌운다');
+          checks++;
+          if (badge().indexOf('최대') >= 0) bad.push('★ 사용자 입력값인데 배지가 "최대"라고 한다: ' + JSON.stringify(badge().slice(0, 110)));
+        }
+        // 재확인하면 플래그도 같이 지워져야 한다 (유령 플래그 방지)
+        const sc2 = load(nm);
+        const card2 = document.getElementById('scard-' + sc2.id);
+        const ow = window.open; window.open = () => null;
+        const rb = card2 && card2.querySelector('.recheck'); if (rb) rb.click();
+        window.open = ow;
+        checks++;
+        if (sc2.portalUpTo) bad.push('★ 재확인으로 요율을 지웠는데 upTo 플래그가 남았다');
+      }
+    } catch (e) {
+      bad.push('throw: ' + e.message);
+    } finally {
+      setLangForTest(langKeep);
+      myWallet = keep.wallet; CARDS = activeCards(); taxPct = keep.tax; autoApplied = keep.auto;
+      scenarios = keep.scen; buildAll(); recompute();
+    }
+    return { mode: 'upTo', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
+  }
+
   // 전부 한 번에
   function all(opt) {
     opt = opt || {};
@@ -1788,7 +1904,7 @@ window.__fuzz = (function () {
 
   // koLeak 은 대조군(negcontrol-i18n.js)이 단위로 검사한다 — '사용자 데이터는 미번역이 아니다'가
   // 이 함수 한 곳에 걸려 있어서, 여기가 조용히 느슨해지면 영어 검사 전체가 같이 무의미해진다.
-  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, runActionSteps, runCopyBans, all, koLeak,
+  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, runActionSteps, runCopyBans, runUpTo, all, koLeak,
            last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null, lastScan: null };
 })();
 'fuzz harness loaded';
