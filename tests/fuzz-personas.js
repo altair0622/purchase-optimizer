@@ -1886,6 +1886,53 @@ window.__fuzz = (function () {
     return { mode: 'upTo', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
   }
 
+  // ⭐ 버전 문자열이 세 곳에서 갈라지지 않는가 — P9
+  //
+  // 화면 배지는 v0.35 인데 코드 주석엔 이미 v0.36 이 있었고, 그날 들어간 것들은
+  // 아무 데도 반영이 안 돼 있었다. **버전이 세 곳에 손으로 적혀 있어서** 그렇다:
+  //   ① <span class="ver">   ② 한국어 푸터   ③ footer.note (영어)
+  // 한 곳만 고치면 또 갈라진다. 셋이 **항상 같은지** 검사가 못 박는다.
+  //
+  // ⚠️ 값이 무엇인지는 검사하지 않는다(올릴 때마다 검사를 같이 고쳐야 하면 결국 꺼진다).
+  //    **서로 같은지**만 본다.
+  function runVersion() {
+    const bad = []; let checks = 0;
+    const langKeep = LANG;
+    const VER = /v\d+\.\d+/;
+    try {
+      const badge = document.querySelector('.ver');
+      checks++;
+      if (!badge) { bad.push('★ 화면에 버전 배지(.ver)가 없다'); return { mode: 'version', 검사: checks, 실패: bad.length, 상세: bad }; }
+      const vBadge = (badge.textContent.match(VER) || [])[0];
+      checks++;
+      if (!vBadge) bad.push('★ 버전 배지에서 vN.N 을 못 찾았다: "' + badge.textContent + '"');
+
+      const foot = () => {
+        const el = document.querySelector('[data-i18n="footer.note"]');
+        return el ? (el.textContent.match(VER) || [])[0] : null;
+      };
+      setLangForTest('ko');
+      const vKo = foot();
+      checks++;
+      if (!vKo) bad.push('★ 한국어 푸터에서 버전을 못 찾았다');
+      setLangForTest('en');
+      const vEn = foot();
+      checks++;
+      if (!vEn) bad.push('★ 영어 푸터에서 버전을 못 찾았다');
+      setLangForTest(langKeep);
+
+      checks++;
+      if (vBadge && vKo && vBadge !== vKo) bad.push('★ 배지(' + vBadge + ')와 한국어 푸터(' + vKo + ')의 버전이 다르다');
+      checks++;
+      if (vBadge && vEn && vBadge !== vEn) bad.push('★ 배지(' + vBadge + ')와 영어 푸터(' + vEn + ')의 버전이 다르다');
+      checks++;
+      if (vKo && vEn && vKo !== vEn) bad.push('★ 한국어 푸터(' + vKo + ')와 영어 푸터(' + vEn + ')의 버전이 다르다');
+    } catch (e) {
+      bad.push('throw: ' + e.message);
+    } finally { setLangForTest(langKeep); }
+    return { mode: 'version', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 10) };
+  }
+
   // 전부 한 번에
   function all(opt) {
     opt = opt || {};
@@ -1904,7 +1951,7 @@ window.__fuzz = (function () {
 
   // koLeak 은 대조군(negcontrol-i18n.js)이 단위로 검사한다 — '사용자 데이터는 미번역이 아니다'가
   // 이 함수 한 곳에 걸려 있어서, 여기가 조용히 느슨해지면 영어 검사 전체가 같이 무의미해진다.
-  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, runActionSteps, runCopyBans, runUpTo, all, koLeak,
+  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, runActionSteps, runCopyBans, runUpTo, runVersion, all, koLeak,
            last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null, lastScan: null };
 })();
 'fuzz harness loaded';
