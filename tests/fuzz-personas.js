@@ -1608,6 +1608,102 @@ window.__fuzz = (function () {
     return { mode: 'recoNarrow', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
   }
 
+  // ⭐ 결론이 **행동 순서**로 끝나는가 — P6
+  //
+  // 타겟이 "캐시백 모르는 사람 먼저"로 뒤집혔다(출시-플랜 1장). 초보자의 질문은
+  // *"내 순비용이 얼마인가"* 가 아니라 **"그래서 뭘 하면 되나"** 다.
+  //
+  // ⭐ 이 기능의 값어치는 금액이 아니라 **순서**다 — 순서를 틀리면 돈을 못 받는다.
+  //    포털 링크는 판매처 도착 직전 마지막 클릭이어야 하고, 카드 오퍼는 결제 **전에**
+  //    켜야 한다. 그래서 검사도 "문구가 있나"가 아니라 **"순서가 맞나"** 를 본다.
+  //
+  // ⚠️ innerText 로 본다 — #finalConclusion 은 *"결론은 클릭 없이 보인다"* 는 제품
+  //    불변식을 이 방식으로 고정한다. 행동 순서를 <details> 안에 넣으면 여기서 죽는다.
+  function runActionSteps() {
+    const bad = []; let checks = 0;
+    const keep = { wallet: myWallet.slice(), scen: scenarios.slice(), tax: taxPct, auto: autoApplied, reco: lastRecognition };
+    const langKeep = LANG;
+    const L = {
+      ko: { portal: '링크로 들어가서', offer: '오퍼를 켜고', pay: '에서 결제', gain: '더 받을 수 있어요',
+            net: '실제 부담', charge: '결제 →' },
+      en: { portal: 'go in through', offer: 'offer', pay: 'pay', gain: 'you can get',
+            net: 'Net cost', charge: '' },
+    };
+    const concl = () => document.getElementById('finalConclusion').innerText;
+    // ⚠️ 순서 검사는 **배지 안에서만** 본다. 결론 전체를 보면 영수증 줄("🎁 이 카드의 Nike 오퍼",
+    //    "🔗 TopCashback 링크로 들어가서")이 같은 단어를 먼저 갖고 있어서 위치 비교가 무의미해진다.
+    //    실제로 영어에서 'offer' 가 영수증 줄에 먼저 걸려 순서가 뒤집힌 것처럼 보고됐다.
+    //    "클릭 없이 보이는가"는 여전히 결론 전체(innerText)로 본다 — 그게 그 검사의 요지다.
+    const badge = () => { const b = document.querySelector('#finalConclusion .savebadge'); return b ? b.innerText : ''; };
+
+    const setup = (opt) => {
+      myWallet = opt.wallet; CARDS = activeCards(); taxPct = 0; autoApplied = {}; lastRecognition = null;
+      scenarios = [blankScenario(opt.sc)];
+      buildAll();
+      if (opt.unknownPortal) { scenarios[0].portalPct = 0; scenarios[0].portalName = ''; scenarios[0].portalUnknown = true; }
+      recompute();
+      return concl();
+    };
+
+    try {
+      for (const lang of ['ko', 'en']) {
+        setLangForTest(lang);
+        const T = L[lang];
+
+        // ① 세 단계 다 있는 경우 — 순서가 포털 → 오퍼 → 결제 여야 한다
+        const full = setup({ wallet: ['amexgold'], sc: { store: 'Nike', price: 100, portalPct: 8, portalName: 'TopCashback', offers: { amexgold: 15 } } });
+        checks++;
+        if (full.indexOf('①') < 0) bad.push('[' + lang + '] ★ 행동 순서가 안 보인다 — 결론이 숫자로만 끝난다: ' + JSON.stringify(full.slice(0, 120)));
+        const bt = badge();
+        const iPortal = bt.indexOf(T.portal), iOffer = bt.indexOf(T.offer), iPay = bt.lastIndexOf(T.pay);
+        checks++;
+        if (iPortal < 0) bad.push('[' + lang + '] 포털 단계가 없다: ' + JSON.stringify(bt.slice(0, 120)));
+        checks++;
+        if (iOffer < 0) bad.push('[' + lang + '] 오퍼 단계가 없다: ' + JSON.stringify(bt.slice(0, 120)));
+        checks++;
+        // ★ 순서가 이 기능의 전부다 — 뒤바뀌면 돈을 못 받는 순서를 알려주는 셈이 된다
+        if (!(iPortal >= 0 && iOffer > iPortal && iPay > iOffer))
+          bad.push('[' + lang + '] ★ 순서가 어긋났다 (포털 ' + iPortal + ' → 오퍼 ' + iOffer + ' → 결제 ' + iPay + '): ' + JSON.stringify(bt.slice(0, 140)));
+        checks++;
+        if (bt.indexOf(T.gain) < 0) bad.push('[' + lang + '] 순서를 지키면 더 받는다는 말이 없다 — 행동할 이유가 안 생긴다');
+        checks++;
+        // ⚠️ 개명 금지 — 하니스가 리터럴로 찾는 문구다. 덧붙이는 것이지 고치는 게 아니다.
+        if (full.indexOf(T.net) < 0) bad.push('[' + lang + '] ★ "' + T.net + '" 이 사라졌다 (v0.20 정직성 코어)');
+
+        // ② 카드 미입력 — 오퍼 단계가 **없어야** 한다 (v0.24 "카드 없이도 작동")
+        const noCard = setup({ wallet: [], sc: { store: 'Nike', price: 100, portalPct: 8, portalName: 'TopCashback' } });
+        checks++;
+        if (badge().indexOf(T.offer) >= 0) bad.push('[' + lang + '] ★ 카드가 없는데 오퍼 단계가 있다: ' + JSON.stringify(noCard.slice(0, 120)));
+        checks++;
+        if (badge().indexOf(T.portal) < 0) bad.push('[' + lang + '] 카드가 없어도 포털 단계는 남아야 한다: ' + JSON.stringify(noCard.slice(0, 120)));
+
+        // ③ 포털 요율 모름 — 포털 단계를 **지어내면 안 된다**
+        const unk = setup({ wallet: ['wfactivecash'], sc: { store: 'Nike', price: 100 }, unknownPortal: true });
+        checks++;
+        if (badge().indexOf(T.portal) >= 0) bad.push('[' + lang + '] ★ 포털 요율을 모르는데 포털 단계를 지어냈다: ' + JSON.stringify(unk.slice(0, 120)));
+        checks++;
+        // 아무 행동도 없으면 "① 결제" 같은 빈 단계를 만들지 않는다
+        if (unk.indexOf('①') >= 0) bad.push('[' + lang + '] 할 행동이 없는데 번호 단계를 만들었다(빈 자리): ' + JSON.stringify(unk.slice(0, 120)));
+        checks++;
+        if (badge().indexOf(T.gain) >= 0) bad.push('[' + lang + '] ★ 더 받을 게 없는데 더 받는다고 말한다: ' + JSON.stringify(unk.slice(0, 120)));
+      }
+
+      // ④ 사이트 모드의 '결제 예상액' 도 그대로 있는지 — 개명 금지 대상 둘 중 하나
+      setLangForTest('ko');
+      checks++;
+      if (document.body.innerHTML.indexOf('결제 예상액') < 0)
+        bad.push('★ "결제 예상액" 문자열이 사라졌다 (하니스가 리터럴로 찾는 문구)');
+    } catch (e) {
+      bad.push('throw: ' + e.message);
+    } finally {
+      setLangForTest(langKeep);
+      myWallet = keep.wallet; CARDS = activeCards(); taxPct = keep.tax; autoApplied = keep.auto;
+      scenarios = keep.scen; lastRecognition = keep.reco;
+      buildAll(); recompute();
+    }
+    return { mode: 'actionSteps', 검사: checks, 실패: bad.length, 상세: bad.slice(0, 20) };
+  }
+
   // 전부 한 번에
   function all(opt) {
     opt = opt || {};
@@ -1626,7 +1722,7 @@ window.__fuzz = (function () {
 
   // koLeak 은 대조군(negcontrol-i18n.js)이 단위로 검사한다 — '사용자 데이터는 미번역이 아니다'가
   // 이 함수 한 곳에 걸려 있어서, 여기가 조용히 느슨해지면 영어 검사 전체가 같이 무의미해진다.
-  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, all, koLeak,
+  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, runActionSteps, all, koLeak,
            last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null, lastScan: null };
 })();
 'fuzz harness loaded';
