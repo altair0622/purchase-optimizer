@@ -1,5 +1,5 @@
 {
- "asOf": "2026-08-27",
+ "asOf": "2026-08-28",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -628,7 +628,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    }
   },
@@ -1190,7 +1190,7 @@
   },
   "logitech": {
    "rk": {
-    "pct": 3,
+    "pct": 9,
     "listed": true
    },
    "cap": {
@@ -1302,7 +1302,7 @@
   },
   "iherb": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1360,7 +1360,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 8,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -1417,7 +1417,7 @@
   },
   "petsmart": {
    "rk": {
-    "pct": 4,
+    "pct": 15,
     "listed": true
    },
    "cap": {
@@ -1547,7 +1547,7 @@
   },
   "expedia": {
    "rk": {
-    "pct": 6,
+    "pct": 3,
     "listed": true,
     "upTo": true
    },
@@ -1579,7 +1579,7 @@
   },
   "booking": {
    "rk": {
-    "pct": 6,
+    "pct": 5,
     "listed": true,
     "upTo": true
    },
