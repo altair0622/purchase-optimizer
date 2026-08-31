@@ -807,7 +807,29 @@ async function send(list, smallList) {
   if (!r.ok) { renderError(r.errorCode, r.error); return; }
   attempts++;
   if (needsReask(r)) {
-    if (attempts >= 2) { renderGiveUp(); resetVision(); return; }   // 세 번은 없다
+    if (attempts >= 2) {
+      // ⭐ 포기하기 전에 **두 장으로 승격을 한 번 건다.** (P10)
+      //
+      // 실물 5번(대형 Sonic 봉제인형, 글자 없음)이 "못 알아봤어요"로 끝났다. 재현해 보니
+      // 호출이 `1차(1장) → 승격(1장) → 1차(2장)` 에서 멈췄다 — **승격(2장)이 없다.**
+      // 두 번째 사진이 오면 viewToken 이 올라가 진행 중이던 승격(1장)이 버려지는데,
+      // 그 다음 `attempts >= 2` 가 **승격을 걸어보기도 전에** 포기로 빠졌다.
+      // 결과: 사용자는 두 번째 사진을 찍는 수고를 하고 **답을 통째로 잃었다.**
+      //
+      // ⚠️ 여기가 승격이 **가장 값어치 있는 자리**다 — 두 장을 보고도 글자를 못 읽었다는 건
+      //    작은 모델이 할 수 있는 게 끝났다는 뜻이다. 실제로 6번(텡과르 문자만 있는 벽걸이)은
+      //    같은 "글자 없음"인데 두 번째 사진을 안 찍어서 승격이 살아남았고 **맞혔다.**
+      //    같은 물건을 두 장 찍으면 오히려 못 맞히는 구조였다.
+      //
+      // ⛔ 옛 승격 결과를 되살리는 게 아니다. **지금 두 장으로 새로 건다.**
+      //    두 번째 사진을 찍은 행위 자체가 "첫 번째는 아니다"라는 사용자 판정이라,
+      //    그 위에 옛 답을 올리면 우리가 그 판정을 뒤집는 게 된다.
+      if (shouldPromote(r) && await promote(smallList || list, viewToken, { final: true })) {
+        held = []; heldSmall = []; attempts = 0;
+        return;
+      }
+      renderGiveUp(); resetVision(); return;   // 세 번은 없다
+    }
     renderAsk(r, reaskReason(r));
     // ⭐ 되묻는 순간이 승격이 **가장 값어치 있는** 때다 — 읽은 글자가 없어서 되묻는 것이므로.
     //    사용자가 두 번째 사진을 찍는 동안 뒤에서 큰 모델이 답을 낼 수도 있다.
@@ -831,23 +853,29 @@ async function send(list, smallList) {
 //      (후보 고르기에서 "어떻게 선택해야 하는지 모르겠다"는 지적을 받은 바로 그 패턴이다).
 //   ② 승격이 실패하거나 꺼져 있으면 **1차 결과를 그대로 둔다.** 퇴화 금지.
 //   ③ 바꿀 때는 **바뀌었다고 말한다.**
-async function promote(list, token) {
+async function promote(list, token, opts) {
   // ⚠️ 승격은 **768px 사본**을 보낸다(1차의 1568 이 아니다). 실측에서 12.4초 → 7.7초.
   //    승격 경로는 읽을 글자가 없어서 올린 것이라 해상도를 낮춰도 잃을 글자가 없다.
   const store = (() => { try { return window.localStorage; } catch (e) { return null; } })();
-  if (store && promoteCount(store, todayStr()) >= PROMOTE_DAILY_CAP) { renderPromoteCapped(); return; }
+  // ⚠️ 포기 직전 경로에서는 상한 안내를 그리지 않는다 — 그릴 결과 상자가 없고,
+  //    바로 뒤에 "못 알아봤어요"가 뜨므로 두 말이 겹친다. 조용히 false 를 준다.
+  if (store && promoteCount(store, todayStr()) >= PROMOTE_DAILY_CAP) {
+    if (!(opts && opts.final)) renderPromoteCapped();
+    return false;
+  }
   showSeeking();
   let r = null;
   try { r = await askVision(list, { promote: true }); }
   catch (e) { r = null; }
   clearSeeking();
   // 늦게 도착했는데 화면이 이미 바뀌었거나 사용자가 손댔으면 **아무것도 안 한다**
-  if (token !== viewToken || userTouched) return;
-  if (!r || !r.ok) return;                       // 실패 → 1차 결과 유지(퇴화 금지)
-  if (!r.promoted) return;                       // 워커에서 승격이 꺼져 있음 → 조용히 종료
-  if (!r.candidates || !r.candidates.length) return;
+  if (token !== viewToken || userTouched) return false;
+  if (!r || !r.ok) return false;                 // 실패 → 1차 결과 유지(퇴화 금지)
+  if (!r.promoted) return false;                 // 워커에서 승격이 꺼져 있음 → 조용히 종료
+  if (!r.candidates || !r.candidates.length) return false;
   if (store) bumpPromote(store, todayStr());
   renderResult(r, { upgraded: true });
+  return true;
 }
 
 export async function handleFile(file) {
