@@ -956,6 +956,13 @@ Object.assign(STRINGS.en, {
   'price.orManual': 'or type it yourself',
   'price.inserted': 'filled in',
   'price.auto': '💲 {v} filled in automatically — check that it’s right',
+  // 자동조회 실패 경로. 워커가 돌려주는 사유는 한국어라 화면에서 갈아끼운다(priceErrText).
+  'price.failed': 'Could not fetch the price — please type it in',
+  'price.err.blocked': 'this site blocks automated lookups, so we can’t read the price',
+  'price.err.nothtml': 'the response wasn’t a product page',
+  'price.err.fetch': 'we couldn’t load the page',
+  'price.err.host': 'we don’t look up this address',
+  'price.err.badurl': 'that isn’t a valid address',
 
   // ── 붙여넣기 ─────────────────────────────────────────────────────
   'paste.created': '<b style="color:var(--accent)">✅ Created {n} sellers</b> — fetching prices…',
@@ -1924,6 +1931,23 @@ async function fetchPrice(url){
   return null;
 }
 let lastErr='';
+// 워커의 error 문구를 화면 말투로 옮긴다. **i18n 은 워커가 아니라 화면의 일이다** —
+// 워커는 배포 주기가 다르고(Cloudflare), 언어를 모르며, 같은 사유를 여러 화면이 다르게 말할 수 있다.
+// 워커 문구는 반말로 쓰여 있는데(개발자용 톤) 그게 lastErr 로 **그대로 사용자에게 보이고 있었다.**
+// 가장 자주 뜨는 '봇 차단'이 특히 그랬다 — 실측(2026-08-31) 10곳 중 4곳이 이 경로다.
+// 매칭은 부분 문자열이다. 워커 문구가 바뀌면 조용히 원문으로 폴백할 뿐 깨지지 않는다.
+const PRICE_ERR_MAP=[
+  ['봇 차단',   'price.err.blocked', '이 사이트는 자동조회를 막아둬서 값을 못 가져와요'],
+  ['HTML 응답', 'price.err.nothtml', '상품 페이지가 아닌 응답이 왔어요'],
+  ['가져오기 실패','price.err.fetch', '페이지를 못 불러왔어요'],
+  ['허용되지 않은 호스트','price.err.host','이 주소로는 조회하지 않아요'],
+  ['URL 형식',  'price.err.badurl',  '주소 형식이 아니에요'],
+];
+function priceErrText(raw){
+  if(!raw) return '';
+  for(const [needle,key,ko] of PRICE_ERR_MAP){ if(raw.indexOf(needle)>=0) return t(key,ko); }
+  return raw;   // 모르는 사유는 그대로 — 조용히 감추지 않는다
+}
 async function tryFetchPrice(url, sc, statusEl){
   lastErr='';
   if(statusEl) statusEl.innerHTML+=` <span class="fetchp">${t('price.loading','· ⏳ 가격 자동 조회 중…')}</span>`;
@@ -1955,8 +1979,8 @@ async function tryFetchPrice(url, sc, statusEl){
     recompute();
     return p;
   } else {
-    clean(); if(statusEl) statusEl.innerHTML+=` <b style="color:var(--warn)">가격 자동조회 실패 — 직접 넣어 주세요</b>`+
-      (lastErr?` <span class="tag">(${lastErr})</span>`:'');
+    clean(); if(statusEl) statusEl.innerHTML+=` <b style="color:var(--warn)">${t('price.failed','가격 자동조회 실패 — 직접 넣어 주세요')}</b>`+
+      (lastErr?` <span class="tag">(${priceErrText(lastErr)})</span>`:'');
     return 0;
   }
 }
