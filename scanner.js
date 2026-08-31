@@ -164,15 +164,16 @@ export async function decodeWithRetries(src, decodeOnce, attempts) {
 // ---------------------------------------------------------------------------
 // 실효 범위 — 한계를 먼저 말한다 (조사 9-C·9-D, 원칙 C2·C3)
 // ---------------------------------------------------------------------------
-// ⚠️ 문구는 초안이다. 카피 세션이 다듬는다. 다만 **판정(🟢🟡🔴)은 실측 근거가 있으므로
+// ⚠️ 문구는 2026-08-31에 해요체로 정리했다(그전까지 이 파일만 반말로 남아 있었다).
+//    판정(🟢🟡🔴)은 실측 근거가 있으므로
 //    문구를 다듬을 때도 카테고리를 옮기지 마라.**
 export const SCAN_LIMITS = [
   { mark: '🟢', key: 'scan.lim.green',  ko: '주방용품 · 소형가전 · 완구 · 화장품 · 책',
-    whyKey: 'scan.lim.green.why',  why: '제조사 바코드가 그대로 유통돼' },
+    whyKey: 'scan.lim.green.why',  why: '제조사 바코드가 그대로 유통돼요' },
   { mark: '🟡', key: 'scan.lim.yellow', ko: '식료품 · 의류',
-    whyKey: 'scan.lim.yellow.why', why: '바코드는 맞는데 온라인에 같은 걸 잘 안 팔아' },
+    whyKey: 'scan.lim.yellow.why', why: '바코드는 맞는데 온라인에 같은 걸 잘 안 팔아요' },
   { mark: '🔴', key: 'scan.lim.red',    ko: 'TV · 대형가전 · 코스트코/샘스클럽 · 매장 자체 브랜드',
-    whyKey: 'scan.lim.red.why',    why: '매장마다 모델번호를 일부러 다르게 붙여' },
+    whyKey: 'scan.lim.red.why',    why: '매장마다 모델번호를 일부러 다르게 붙여요' },
 ];
 
 // ============================================================================
@@ -278,7 +279,7 @@ function limitsHtml() {
   ).join('');
   return '<div class="scanlim">' + rows +
     '<div class="muted" style="margin-top:6px">' + T('scan.lim.variant',
-      '<b>색·용량이 다르면 바코드도 달라.</b> 찍은 그 색·그 용량만 찾아줘.') + '</div></div>';
+      '<b>색·용량이 다르면 바코드도 달라요.</b> 찍은 그 색·그 용량만 찾아요.') + '</div></div>';
 }
 
 // 폴백 — 12자리 직접 입력. 눌러야 나온다(기본 경로가 아니다).
@@ -316,11 +317,11 @@ function renderFound(code) {
     '<a href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' +
     esc(l.name) + T('scan.link.suffix', '에서 찾기') + '</a>').join('');
   panel().innerHTML = '<div class="scanbox">' +
-    '<div class="scanhead">✅ ' + T('scan.ok', '바코드를 읽었어') + '</div>' +
+    '<div class="scanhead">✅ ' + T('scan.ok', '바코드를 읽었어요') + '</div>' +
     '<div class="scancode">' + esc(code) + '</div>' +
     '<div class="scanlinks">' + links + '</div>' +
     '<p class="cpp-note" style="margin:6px 0 0">' + T('scan.ok.note',
-      '<b>가격은 우리가 모른다.</b> 위 링크를 열어 <b>네 눈으로 가격을 확인</b>하고, 그 상품 페이지 URL을 위 붙여넣기 칸에 넣으면 순비용 비교가 시작돼. 🔒 이 버튼은 아무것도 우리 서버로 보내지 않아 — 검색은 아마존·베스트바이에서 바로 열려.') + '</p>' +
+      '<b>가격은 저희가 몰라요.</b> 위 링크를 열어 <b>직접 가격을 확인</b>하고, 그 상품 페이지 URL을 위 붙여넣기 칸에 넣으면 실제 부담 비교가 시작돼요. 🔒 이 버튼은 아무것도 저희 서버로 보내지 않아요 — 검색은 아마존·베스트바이에서 바로 열려요.') + '</p>' +
     limitsHtml() + manualHtml() +
     '<div style="margin-top:10px"><button class="mini" id="scanAgain" type="button">' +
     T('scan.again', '📷 다시 찍기') + '</button></div></div>';
@@ -329,13 +330,13 @@ function renderFound(code) {
 
 function renderFail(reason, detail) {
   const head = reason === 'ambiguous'
-    ? T('scan.fail.amb', '바코드가 여러 가지로 읽혀서 확신할 수 없어')
+    ? T('scan.fail.amb', '바코드가 여러 가지로 읽혀서 확신할 수 없어요')
     : T('scan.fail.none', '바코드를 못 읽었어요');
   const body = reason === 'ambiguous'
-    ? T('scan.fail.amb.note', '읽을 때마다 다른 숫자가 나왔어. <b>어느 쪽인지 모르니 넘겨짚지 않을게.</b> 바코드가 화면에 크고 반듯하게 들어오도록 다시 찍어줘.')
+    ? T('scan.fail.amb.note', '읽을 때마다 다른 숫자가 나왔어요. <b>어느 쪽인지 모르니 넘겨짚지 않을게요.</b> 바코드가 화면에 크고 반듯하게 들어오도록 다시 찍어 주세요.')
     : reason === 'load-failed'
-      ? T('scan.fail.load', '스캐너 코드를 받지 못했어. 인터넷 연결을 확인하고 다시 눌러줘.')
-      : T('scan.fail.none.note', '바코드가 <b>화면에 크게 · 반듯하게 · 초점이 맞게</b> 들어오도록 다시 찍어줘. 포장이 휘었거나 비닐이 반사되면 잘 안 읽혀.');
+      ? T('scan.fail.load', '스캐너 코드를 받지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.')
+      : T('scan.fail.none.note', '바코드가 <b>화면에 크게 · 반듯하게 · 초점이 맞게</b> 들어오도록 다시 찍어 주세요. 포장이 휘었거나 비닐이 반사되면 잘 안 읽혀요.');
   panel().innerHTML = '<div class="scanbox scanfail">' +
     '<div class="scanhead">😕 ' + head + '</div>' +
     '<p class="muted" style="margin:0">' + body + '</p>' +
