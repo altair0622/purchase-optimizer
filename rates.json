@@ -1,5 +1,5 @@
 {
- "asOf": "2026-08-31",
+ "asOf": "2026-09-01",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -250,7 +250,7 @@
   },
   "samsclub": {
    "rk": {
-    "pct": 10,
+    "pct": 8,
     "listed": true,
     "upTo": true
    },
@@ -279,7 +279,7 @@
   },
   "macys": {
    "rk": {
-    "pct": 10,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -288,7 +288,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 8,
+    "pct": 5,
     "listed": true,
     "upTo": true
    }
@@ -415,7 +415,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 8,
+    "pct": 4,
     "listed": true
    }
   },
@@ -429,7 +429,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    }
   },
@@ -443,7 +443,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 3,
     "listed": true
    }
   },
@@ -463,7 +463,7 @@
   },
   "americaneagle": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -499,8 +499,9 @@
     "listed": true
    },
    "tcb": {
-    "pct": 8,
-    "listed": true
+    "pct": 4,
+    "listed": true,
+    "upTo": true
    }
   },
   "freepeople": {
@@ -718,7 +719,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 10,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -726,13 +727,13 @@
     "listed": true
    },
    "tcb": {
-    "pct": 10,
+    "pct": 8,
     "listed": true
    }
   },
   "adidas": {
    "rk": {
-    "pct": 10,
+    "pct": 4,
     "listed": true,
     "upTo": true
    },
@@ -741,7 +742,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 11,
+    "pct": 5,
     "listed": true,
     "upTo": true
    }
@@ -770,13 +771,13 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 5,
     "listed": true
    }
   },
   "puma": {
    "rk": {
-    "pct": 11,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -784,9 +785,8 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
-    "listed": true,
-    "upTo": true
+    "pct": 0,
+    "listed": true
    }
   },
   "reebok": {
@@ -805,7 +805,7 @@
   },
   "footlocker": {
    "rk": {
-    "pct": 10,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -890,7 +890,7 @@
   },
   "athleta": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -918,7 +918,7 @@
   },
   "columbia": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -932,7 +932,7 @@
   },
   "northface": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -946,7 +946,7 @@
   },
   "patagonia": {
    "rk": {
-    "pct": 5,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1190,7 +1190,7 @@
   },
   "logitech": {
    "rk": {
-    "pct": 9,
+    "pct": 3,
     "listed": true
    },
    "cap": {
@@ -1274,7 +1274,7 @@
   },
   "gnc": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -1282,7 +1282,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 8,
+    "pct": 6,
     "listed": true
    }
   },
@@ -1302,7 +1302,7 @@
   },
   "iherb": {
    "rk": {
-    "pct": 10,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1331,7 +1331,7 @@
   },
   "cvs": {
    "rk": {
-    "pct": 5,
+    "pct": 3,
     "listed": true
    },
    "cap": {
@@ -1360,7 +1360,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 10,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -1397,7 +1397,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 6,
+    "pct": 1,
     "listed": true
    }
   },
@@ -1431,7 +1431,7 @@
   },
   "staples": {
    "rk": {
-    "pct": 10,
+    "pct": 4,
     "listed": true,
     "upTo": true
    },
@@ -1491,7 +1491,7 @@
   },
   "etsy": {
    "rk": {
-    "pct": 1,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1505,7 +1505,7 @@
   },
   "aliexpress": {
    "rk": {
-    "pct": 2,
+    "pct": 18,
     "listed": true
    },
    "cap": {
@@ -1548,7 +1548,7 @@
   },
   "expedia": {
    "rk": {
-    "pct": 10,
+    "pct": 6,
     "listed": true,
     "upTo": true
    },
@@ -1580,7 +1580,7 @@
   },
   "booking": {
    "rk": {
-    "pct": 6,
+    "pct": 5,
     "listed": true,
     "upTo": true
    },
@@ -1625,7 +1625,7 @@
   },
   "tumi": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
