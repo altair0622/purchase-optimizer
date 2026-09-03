@@ -618,11 +618,11 @@ https://www.walmart.com/ip/...
         네트워크 요청은 한 건도 나가지 않고, 🔗 지갑 링크에도 싣지 않아요.
       </p>
       <p class="cashnote" data-i18n="disc.data.p2">
-        <b>① 가격 자동 조회를 쓸 때 = 그 상품 URL이 나가요.</b> 붙여넣은 링크가 아래 순서로 전달돼요:
+        <b>① 가격 자동 조회를 쓸 때 = 그 상품 URL이 나가요.</b> 나가는 곳은 <b>한 군데뿐이에요:</b>
       </p>
       <p class="cashnote" data-i18n="disc.data.p3">
-        ① <b>제가 운영하는 가격조회 서버</b>(Cloudflare Worker) — 상품 URL만 받아서 <b>가격·제목만</b> 돌려줘요. 페이지 원문은 넘겨주지 않고, 저장하거나 기록하는 코드도 없어요(<a href="https://github.com/altair0622/purchase-optimizer/tree/main/worker" target="_blank" rel="noopener">코드 공개</a>). 결과는 30분 캐시예요.<br>
-        ② ①이 실패하면(사이트가 봇을 막는 경우) <b>제3자 공개 프록시 <code>r.jina.ai</code></b>로 한 번 더 시도해요. 이때 상품 URL은 <b>제가 통제하지 못하는 남의 서버</b>로 가고, 그쪽 로그 정책은 <b>제가 보장할 수 없어요.</b> 여기서 온 값은 신뢰도가 낮아 <b>자동 입력하지 않고 확인 버튼</b>으로만 보여줘요.
+        <b>제가 운영하는 가격조회 서버</b>(Cloudflare Worker) — 상품 URL만 받아서 <b>가격·제목만</b> 돌려줘요. 페이지 원문은 넘겨주지 않고, 저장하거나 기록하는 코드도 없어요(<a href="https://github.com/altair0622/purchase-optimizer/tree/main/worker" target="_blank" rel="noopener">코드 공개</a>). 결과는 30분 캐시예요.<br>
+        예전에는 이게 실패하면 <b>제3자 공개 프록시(<code>r.jina.ai</code>)</b>로 한 번 더 시도했는데, <b>2026-08-31에 그 경로를 없앴어요.</b> 틀린 가격을 준 적이 있어서요($249짜리를 $35.99로 읽었어요). 그래서 지금은 <b>상품 URL이 제3자에게 가지 않아요.</b>
       </p>
       <p class="cashnote" data-i18n="disc.data.p4">
         <b>이게 싫으면:</b> URL을 붙여넣지 말고 <b>가격을 직접 입력</b>하면 돼요 — 그러면 아무것도 밖으로 나가지 않아요. (판매처 이름만 넣는 건 조회를 일으키지 않아요.)
@@ -957,7 +957,7 @@ Object.assign(STRINGS.en, {
   'price.inserted': 'filled in',
   'price.auto': '💲 {v} filled in automatically — check that it’s right',
   // 자동조회 실패 경로. 워커가 돌려주는 사유는 한국어라 화면에서 갈아끼운다(priceErrText).
-  'price.failed': 'Could not fetch the price — please type it in',
+  'price.failed': 'Just type the price',
   'price.err.blocked': 'this site blocks automated lookups, so we can’t read the price',
   'price.err.nothtml': 'the response wasn’t a product page',
   'price.err.fetch': 'we couldn’t load the page',
@@ -1297,8 +1297,8 @@ Object.assign(STRINGS.en, {
   'disc.data.title': '<b>🔒 Where does my data go</b> — everything that leaves is listed here',
   'disc.data.p1': '<b>No account, no login.</b> Your card wallet, point valuations, prices, coupons and results live <b>only in this browser</b> (localStorage) and are never sent to a server. The math runs on this page. There is not one ad, analytics or tracking script on it (no third-party scripts or fonts either).',
   'disc.data.offers': '<b>🎁 Pasting your card offers sends nothing out either.</b> Paste an entire Amex or Chase screen and it is read <b>on this page only</b>, and only the <b>merchant, benefit and expiry</b> are stored in this browser. <b>The pasted text itself is not saved</b> (it has card last-4s and account state mixed into it). Not one network request goes out, and it never rides along in the 🔗 wallet link.',
-  'disc.data.p2': '<b>① When you use the price fetcher, the product URL leaves.</b> The link you pasted travels like this:',
-  'disc.data.p3': '① <b>Our own price fetcher</b> (a Cloudflare Worker) — it takes the product URL and returns <b>the price and title only</b>. It does not hand back the page source, and there is no code in it that stores or logs anything (<a href="https://github.com/altair0622/purchase-optimizer/tree/main/worker" target="_blank" rel="noopener">source is public</a>). Results are cached for 30 minutes.<br>② If ① fails (the site blocks bots), it tries once more through <b>a third-party public proxy, <code>r.jina.ai</code></b>. That sends the product URL to <b>a server we do not control</b>, and <b>we cannot vouch for their logging policy.</b> Values from there are low-confidence, so they are <b>never auto-filled</b> — you get a confirm button instead.',
+  'disc.data.p2': '<b>① When you use the price fetcher, the product URL leaves.</b> It goes to <b>exactly one place:</b>',
+  'disc.data.p3': '① <b>Our own price fetcher</b> (a Cloudflare Worker) — it takes the product URL and returns <b>the price and title only</b>. It does not hand back the page source, and there is no code in it that stores or logs anything (<a href="https://github.com/altair0622/purchase-optimizer/tree/main/worker" target="_blank" rel="noopener">source is public</a>). Results are cached for 30 minutes.<br>It used to fall back to <b>a third-party public proxy (<code>r.jina.ai</code>)</b> when that failed, but <b>we removed that path on 2026-08-31</b> because it returned a wrong price once (it read a $249 item as $35.99). So <b>the product URL never goes to a third party</b>.',
   'disc.data.p4': '<b>Don’t want that:</b> skip the URL and <b>type the price in</b> — then nothing leaves at all. (Typing a seller name on its own triggers no fetch.)',
   'disc.data.p5': 'Beyond that, the only thing this page requests is <b>one cashback % file from the same site</b> (<code>rates.json</code>, not a third party). Cashback portal and seller links only go anywhere <b>when you click them.</b>',
   'disc.data.scan': '<b>📊 Scanning a barcode doesn’t send the photo anywhere.</b> The photo is read <b>inside this browser</b> and thrown away immediately — not to our server, not anywhere. Pressing the button downloads <b>the scanner code from the same site</b> (<code>scanner.js</code> + <code>vendor/quagga2.min.js</code>, about 157KB) <b>once</b> — same tier as <code>rates.json</code>, not a third party. <b>Don’t press it and it is never downloaded.</b> The Amazon and Best Buy search links built from the number <b>only open when you click them.</b>',
@@ -1899,32 +1899,28 @@ function parsePriceFromHtml(html){
 //    가격조회(/?url=)·요율(/rate)·사진인식(/vision) **세 경로가 전부 이 한 곳**을 본다 — 확인함.
 const PRICE_API = "https://purchase-optimizer-price.altair0622.workers.dev";
 
-// 폴백 = 무료 공개 프록시 (상품 URL만 전달됨)
-// ⚠️ 순서 중요(2026-08-11 점검): corsproxy.io는 403, allorigins는 무응답이라
-//    이 둘을 먼저 두면 살아있는 jina에 닿기까지 20초를 버린다 → jina를 1순위로.
-const PRICE_PROXIES=[
-  u=>'https://r.jina.ai/'+u,
-  u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
-  u=>'https://corsproxy.io/?url='+encodeURIComponent(u),
-];
+// ⛔ 공개 프록시 폴백을 **뺐다** (2026-08-31). 예전엔 워커가 실패하면
+//    r.jina.ai → allorigins → corsproxy.io 를 차례로 시도했다. 세 가지 이유로 지웠다:
+//    ① **틀린 값을 준다.** jina 는 HTML 을 마크다운으로 뭉개서 JSON 키가 사라지고 본문 $ 만 남는다
+//       → $249 짜리 Amazon 을 **$35.99** 로 읽은 적이 있다. "틀린 가격은 없는 것보다 나쁘다"에 정면으로 걸린다
+//    ② **두 개는 이미 죽어 있었다** (2026-08-11 점검: corsproxy.io 403 · allorigins 무응답).
+//       살아있지도 않은 곳을 8초씩 기다렸다 — 실패 한 번에 최악 14+8+8+8 = **38초**
+//    ③ 여기서 온 값은 전부 confidence:'low' 라 어차피 확인 버튼을 눌러야 했다. 이득이 거의 0
+//    실측(2026-08-31): 10곳 중 워커가 가격을 준 곳은 2곳뿐이고, 프록시가 그걸 뒤집은 사례는 없다.
+//    ⭐ 부수 효과 — 상품 URL 이 **남의 서버로 나가는 경로가 사라졌다.** 고지 ②도 같이 지웠다.
 async function fetchPrice(url){
   if(PRICE_API){
-    const ctrl=new AbortController(); const tm=setTimeout(()=>ctrl.abort(),14000);
+    // 8초. 워커는 결과를 캐시하므로 두 번째부터는 ~70ms 다(실측).
+    // 예전 14초는 근거 없이 길었다 — 실측에서 콜드 조회도 대부분 1초 안이고,
+    // 유일한 예외(Nike 14.4초)는 옛 14초 제한도 넘겨서 어차피 실패했다.
+    // 가격 자동조회는 이제 **보너스**다. 안 되면 빨리 "직접 넣어 주세요"로 가는 게 낫다.
+    const ctrl=new AbortController(); const tm=setTimeout(()=>ctrl.abort(),8000);
     try{
       const res=await fetch(PRICE_API.replace(/\/$/,'')+'/?url='+encodeURIComponent(url),{signal:ctrl.signal});
       if(res.ok){ const j=await res.json();
         if(j && +j.price>0) return {price:+j.price, confidence:j.confidence||'high'};
         if(j && j.error) lastErr=j.error;   // "봇 차단" 같은 구체적 사유를 그대로 보여준다
       }
-    }catch(e){}
-    finally{ clearTimeout(tm); }
-  }
-  // 공개 프록시는 HTML을 마크다운으로 뭉개 넘겨서, 본문 $텍스트 추측이 된다 → 신뢰도 낮음
-  for(const mk of PRICE_PROXIES){
-    const ctrl=new AbortController(); const tm=setTimeout(()=>ctrl.abort(),8000);
-    try{
-      const res=await fetch(mk(url),{signal:ctrl.signal});
-      if(res.ok){ const p=parsePriceFromHtml(await res.text()); if(p) return {price:p, confidence:'low'}; }
     }catch(e){}
     finally{ clearTimeout(tm); }
   }
@@ -1979,8 +1975,13 @@ async function tryFetchPrice(url, sc, statusEl){
     recompute();
     return p;
   } else {
-    clean(); if(statusEl) statusEl.innerHTML+=` <b style="color:var(--warn)">${t('price.failed','가격 자동조회 실패 — 직접 넣어 주세요')}</b>`+
-      (lastErr?` <span class="tag">(${priceErrText(lastErr)})</span>`:'');
+    // ⚠️ 경고색(--warn)을 쓰지 않는다. 가격 자동조회는 **보너스**이지 약속이 아니고,
+    //    10곳 중 8곳에서 안 되는 게 정상이다(실측 2026-08-31). 정상적인 일에 노란 경고를 띄우면
+    //    도구가 고장 난 것으로 읽힌다 — 실제로는 가격만 넣으면 나머지가 전부 그대로 돈다.
+    //    붙여넣기 칸(start.note)이 이미 "가격은 직접 넣는 경우가 많다"고 먼저 말해뒀다.
+    //    사유는 지우지 않고 옆에 작게 남긴다. 조용히 감추는 것과 소리치지 않는 것은 다르다.
+    clean(); if(statusEl) statusEl.innerHTML+=` <b>${t('price.failed','가격만 넣어 주세요')}</b>`+
+      (lastErr?` <span class="tag">${priceErrText(lastErr)}</span>`:'');
     return 0;
   }
 }
