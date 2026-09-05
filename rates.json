@@ -1,5 +1,5 @@
 {
- "asOf": "2026-09-04",
+ "asOf": "2026-09-05",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -164,7 +164,7 @@
   },
   "acehardware": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -250,7 +250,7 @@
   },
   "samsclub": {
    "rk": {
-    "pct": 8,
+    "pct": 12,
     "listed": true,
     "upTo": true
    },
@@ -279,7 +279,7 @@
   },
   "macys": {
    "rk": {
-    "pct": 4,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -393,7 +393,7 @@
   },
   "gap": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -443,7 +443,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 3,
+    "pct": 5,
     "listed": true
    }
   },
@@ -463,7 +463,7 @@
   },
   "americaneagle": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -592,7 +592,7 @@
   },
   "levis": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -732,7 +732,7 @@
   },
   "adidas": {
    "rk": {
-    "pct": 4,
+    "pct": 6,
     "listed": true,
     "upTo": true
    },
@@ -741,7 +741,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 10,
+    "pct": 5,
     "listed": true,
     "upTo": true
    }
@@ -776,7 +776,7 @@
   },
   "puma": {
    "rk": {
-    "pct": 6,
+    "pct": 9,
     "listed": true
    },
    "cap": {
@@ -805,7 +805,7 @@
   },
   "footlocker": {
    "rk": {
-    "pct": 6,
+    "pct": 9,
     "listed": true
    },
    "cap": {
@@ -834,7 +834,7 @@
   },
   "dsw": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -863,7 +863,7 @@
   },
   "stevemadden": {
    "rk": {
-    "pct": 3,
+    "pct": 9,
     "listed": true
    },
    "cap": {
@@ -891,7 +891,7 @@
   },
   "athleta": {
    "rk": {
-    "pct": 4,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -919,7 +919,7 @@
   },
   "columbia": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -933,7 +933,7 @@
   },
   "northface": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -961,7 +961,7 @@
   },
   "dickssportinggoods": {
    "rk": {
-    "pct": 2,
+    "pct": 9,
     "listed": true
    },
    "cap": {
@@ -1219,7 +1219,7 @@
   },
   "dyson": {
    "rk": {
-    "pct": 10,
+    "pct": 12,
     "listed": true
    },
    "cap": {
@@ -1233,7 +1233,7 @@
   },
   "sephora": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1247,7 +1247,7 @@
   },
   "ulta": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1275,7 +1275,7 @@
   },
   "gnc": {
    "rk": {
-    "pct": 4,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1303,7 +1303,7 @@
   },
   "iherb": {
    "rk": {
-    "pct": 6,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1361,7 +1361,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 8,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1375,7 +1375,7 @@
   },
   "lego": {
    "rk": {
-    "pct": 2.5,
+    "pct": 7.5,
     "listed": true,
     "upTo": true
    },
@@ -1418,7 +1418,7 @@
   },
   "petsmart": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1432,9 +1432,8 @@
   },
   "staples": {
    "rk": {
-    "pct": 4,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": null,
@@ -1492,7 +1491,7 @@
   },
   "etsy": {
    "rk": {
-    "pct": 2,
+    "pct": 1,
     "listed": true
    },
    "cap": {
@@ -1550,7 +1549,7 @@
   },
   "expedia": {
    "rk": {
-    "pct": 6,
+    "pct": 3,
     "listed": true,
     "upTo": true
    },
@@ -1566,7 +1565,7 @@
   },
   "hotels": {
    "rk": {
-    "pct": 6,
+    "pct": 3,
     "listed": true,
     "upTo": true
    },
@@ -1597,7 +1596,7 @@
   },
   "priceline": {
    "rk": {
-    "pct": 8,
+    "pct": 4,
     "listed": true,
     "upTo": true
    },
@@ -1627,7 +1626,7 @@
   },
   "tumi": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
