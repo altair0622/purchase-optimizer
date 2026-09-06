@@ -1,5 +1,5 @@
 {
- "asOf": "2026-09-05",
+ "asOf": "2026-09-06",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -317,7 +317,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 6,
+    "pct": 2,
     "listed": true
    }
   },
@@ -337,7 +337,7 @@
   },
   "nordstrom": {
    "rk": {
-    "pct": 2,
+    "pct": 0,
     "listed": true
    },
    "cap": {
@@ -351,8 +351,9 @@
   },
   "bloomingdales": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 10,
+    "listed": true,
+    "upTo": true
    },
    "cap": {
     "pct": null,
@@ -407,7 +408,7 @@
   },
   "oldnavy": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -718,7 +719,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 8,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -857,7 +858,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    }
   },
@@ -1612,7 +1613,7 @@
   },
   "samsonite": {
    "rk": {
-    "pct": 2.5,
+    "pct": 7.5,
     "listed": true
    },
    "cap": {
