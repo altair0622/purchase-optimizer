@@ -1,5 +1,5 @@
 {
- "asOf": "2026-09-06",
+ "asOf": "2026-09-07",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -157,7 +157,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
+    "pct": 4,
     "listed": true,
     "upTo": true
    }
@@ -408,7 +408,7 @@
   },
   "oldnavy": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -444,7 +444,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 5,
+    "pct": 8,
     "listed": true
    }
   },
@@ -586,9 +586,8 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
-    "listed": true,
-    "upTo": true
+    "pct": 4,
+    "listed": true
    }
   },
   "levis": {
@@ -742,7 +741,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 5,
+    "pct": 11,
     "listed": true,
     "upTo": true
    }
@@ -785,7 +784,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
+    "pct": 8,
     "listed": true,
     "upTo": true
    }
@@ -1514,9 +1513,8 @@
     "listed": true
    },
    "tcb": {
-    "pct": 12,
-    "listed": true,
-    "upTo": true
+    "pct": 0,
+    "listed": true
    }
   },
   "temu": {
@@ -1582,7 +1580,7 @@
   },
   "booking": {
    "rk": {
-    "pct": 5,
+    "pct": 6,
     "listed": true,
     "upTo": true
    },
@@ -1597,7 +1595,7 @@
   },
   "priceline": {
    "rk": {
-    "pct": 4,
+    "pct": 8,
     "listed": true,
     "upTo": true
    },
