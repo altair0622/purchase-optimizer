@@ -1,5 +1,5 @@
 {
- "asOf": "2026-09-10",
+ "asOf": "2026-09-11",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -278,7 +278,7 @@
   },
   "macys": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -287,7 +287,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 11,
+    "pct": 12,
     "listed": true,
     "upTo": true
    }
@@ -583,14 +583,14 @@
     "listed": true
    },
    "tcb": {
-    "pct": 19,
+    "pct": 23,
     "listed": true,
     "upTo": true
    }
   },
   "levis": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -598,9 +598,8 @@
     "listed": true
    },
    "tcb": {
-    "pct": 5,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    }
   },
   "ralphlauren": {
@@ -803,7 +802,7 @@
   },
   "footlocker": {
    "rk": {
-    "pct": 6,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -925,7 +924,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 25,
+    "pct": 4,
     "listed": true
    }
   },
@@ -1281,7 +1280,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   },
@@ -1359,7 +1358,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 2,
+    "pct": 8,
     "listed": true
    },
    "cap": {
@@ -1430,9 +1429,8 @@
   },
   "staples": {
    "rk": {
-    "pct": 4,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": null,
@@ -1526,7 +1524,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 34,
+    "pct": 39,
     "listed": true,
     "upTo": true
    }
