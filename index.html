@@ -660,7 +660,7 @@ https://www.walmart.com/ip/...
       <summary data-i18n="disc.referral.title"><b>🤝 리퍼럴 고지</b></summary>
       <p class="cashnote" data-i18n="disc.referral.body">
         Rakuten과 Capital One Shopping 가입 링크는 <b>제 초대 링크예요.</b> 가입해서 조건을 채우면 저도 보너스를 받아요. 미리 <b>밝혀둘게요.</b><br>
-        TopCashback에 링크가 없는 건 <b>그 회사에 초대 제도가 없어서</b>지, 나쁜 포털이라서가 아니에요 — 오히려 캐시백 %는 TopCashback이 가장 높은 경우가 많아요.<br>
+        TopCashback도 초대 제도가 있지만 <b>저는 아직 안 붙였어요.</b> 그래서 TopCashback으로 가면 <b>제게 돌아오는 건 없어요</b> — 그런데도 캐시백 %가 제일 높으면 TopCashback이라고 말씀드려요.<br>
         <b>어느 포털이 이기는지는 입력한 % 숫자만으로 계산돼요.</b> 제가 보너스를 받는지는 계산에 전혀 반영되지 않고, TopCashback이 제일 높으면 TopCashback이라고 말씀드려요.<br>
         초대 링크 없이 직접 가입해도 <b>받는 캐시백은 완전히 똑같아요.</b><br>
         카드 발급 어필리에이트는 <b>일부러 붙이지 않았어요</b> — 추천 순위가 수수료에 휘둘리면 안 되니까요.
@@ -1192,7 +1192,9 @@ Object.assign(STRINGS.en, {
   'site.offer.body': 'For each card that has an offer, enter the <b>discount ($)</b> — it gets applied to the ranking against the charge above. Check them at: ',
   'site.offerNone': '🎁 Cards with an offer at this site <span class="muted" style="font-weight:600">— enter the amount if you have one</span>',
   'site.noOffers': '🎁 No offers entered yet — check the Amex/Chase hubs below and the amounts feed straight into the ranking.',
-  'site.pickCard': 'Pick a card under 👛 My cards above.',
+  'site.noCard.portal': 'Go in through {portal} and you get {pct} back.',
+  'site.noCard.add': 'None of this needs a card. Add one and we’ll also tell you <b>which card to pay with</b>.',
+  'site.noCard.needPct': 'Enter a cashback % above and we’ll pick the link for you.',
   'site.route.portal': 'Go in through the <b>{portal}</b> link and pay with <b>{card}</b>',
   'site.route.direct': 'Pay with <b>{card}</b>',
   'site.noPortal': 'No portal carries this site (all three are 0%)',
@@ -1214,7 +1216,7 @@ Object.assign(STRINGS.en, {
   'site.flipped': '🎁 <b>The offer changed the ranking</b> — on earn rate alone {card} wins, but the {v} offer covers the gap.',
   'site.noData': '⚠️ No cashback % on file — the <b>0% above is "unknown," not "no cashback."</b>',
   'site.noData.sub': 'Check it on CashbackMonitor below and type it in.',
-  'site.rateVolatile': 'Today’s real % moves constantly — compare every portal: ',
+  'site.rateVolatile': 'We only watch Rakuten and TopCashback. To see the other 40-odd portals → ',
   'site.guessLink': 'guessed link; if it 404s, search "{store}" directly',
   'site.winner': '⚖️ Rakuten <b>{rk}</b> vs TopCashback <b>{tcb}</b> → <span class="winner">take {pick}</span>',
   'site.winner.tie': '⚖️ Both at {pct} — take whichever one works',
@@ -1227,7 +1229,7 @@ Object.assign(STRINGS.en, {
   'ref.head': '<b>No portal account yet?</b> — sign up once and you earn cashback on online shopping from then on. It’s free.',
   'ref.mine': '— these two are my referral links',
   'ref.disc.title': '⚠️ Disclosure — about the referral links',
-  'ref.disc.body': 'The Rakuten and Capital One Shopping signup links are <b>my referral links.</b> If you sign up and meet their terms, I get a bonus too. <b>Saying so up front.</b><br><br>There’s no link for TopCashback because <b>they don’t run a referral program</b>, not because they’re a worse portal — their cashback % is often the highest of the three.<br><br><b>Which portal wins is computed from the % you enter, and nothing else.</b> Whether I get a bonus has zero weight in the math, and when TopCashback is highest, it says TopCashback.<br><br>Sign up directly without a referral and <b>you get exactly the same cashback.</b> Do whichever you prefer.',
+  'ref.disc.body': 'The Rakuten and Capital One Shopping signup links are <b>my referral links.</b> If you sign up and meet their terms, I get a bonus too. <b>Saying so up front.</b><br><br>There’s no link for TopCashback because <b>I haven’t set one up</b> — they do run a referral program, I just don’t have a link in yet. So I get <b>nothing</b> when you go through TopCashback, and it’s still the one we name when its rate is highest.<br><br><b>Which portal wins is computed from the % you enter, and nothing else.</b> Whether I get a bonus has zero weight in the math, and when TopCashback is highest, it says TopCashback.<br><br>Sign up directly without a referral and <b>you get exactly the same cashback.</b> Do whichever you prefer.',
 
   // ── 오퍼 붙여넣기 (v0.28) ────────────────────────────────────────
   'ofp.title': '🎁 Paste your card offers',
@@ -1310,7 +1312,7 @@ Object.assign(STRINGS.en, {
   'disc.limits.title': '<b>⚖️ What this calculator can’t do, and disclaimers</b>',
   'disc.limits.body': 'This is <b>not financial advice.</b> It doesn’t decide whether to open a card or make a purchase; it is <b>a calculator that does the arithmetic</b> on numbers you enter.<br>Cashback %, card earn conditions and offers change constantly and the values here are a snapshot, so <b>check the real screens right before you pay.</b><br>Portal cashback is <b>pending, not guaranteed</b> — failed tracking, returns and gift-card payments all void it.<br>Point values are <b>an estimate</b> of a good redemption and <b>do not reduce your statement balance.</b><br>Sales tax and return shipping are <b>not in the math.</b>',
   'disc.referral.title': '<b>🤝 Referral disclosure</b>',
-  'disc.referral.body': 'The Rakuten and Capital One Shopping signup links are <b>my referral links.</b> If you sign up and meet their terms, I get a bonus too. <b>Saying so up front.</b><br>There’s no link for TopCashback because <b>they don’t run a referral program</b>, not because they’re a worse portal — their cashback % is often the highest of the three.<br><b>Which portal wins is computed from the % you enter, and nothing else.</b> Whether I get a bonus has zero weight in the math, and when TopCashback is highest, it says TopCashback.<br>Sign up directly without a referral and <b>you get exactly the same cashback.</b><br>There is <b>deliberately no card-issuer affiliate link</b> anywhere — a recommendation ranking must not bend to commission.',
+  'disc.referral.body': 'The Rakuten and Capital One Shopping signup links are <b>my referral links.</b> If you sign up and meet their terms, I get a bonus too. <b>Saying so up front.</b><br>There’s no link for TopCashback because <b>I haven’t set one up</b> — they do run a referral program, I just don’t have a link in yet. So I get <b>nothing</b> when you go through TopCashback, and it’s still the one we name when its rate is highest.<br><b>Which portal wins is computed from the % you enter, and nothing else.</b> Whether I get a bonus has zero weight in the math, and when TopCashback is highest, it says TopCashback.<br>Sign up directly without a referral and <b>you get exactly the same cashback.</b><br>There is <b>deliberately no card-issuer affiliate link</b> anywhere — a recommendation ranking must not bend to commission.',
 
   // ── 바코드 스캔 (scanner.js) ─────────────────────────────────────
   'scan.lim.green': 'Kitchenware · small appliances · toys · cosmetics · books',
@@ -2988,7 +2990,17 @@ function computeSite(){
   const pBestBase = (base && (pBest===rp ? base.rk : (pBest===tp ? base.tcb : null))) || null;
   const pName= pBest<=0 ? '' : (tp===pBest?'TopCashback':(rp===pBest?'Rakuten':'Capital One Shopping'));
   const rec=document.getElementById('siteRec');
-  if(!CARDS.length){ rec.innerHTML=`<p class="muted">${t('site.pickCard','위 👛 내 카드에서 카드를 골라 주세요.')}</p>`; }
+  if(!CARDS.length){
+    // ⚠️ 예전엔 여기서 추천 자리를 통째로 "카드를 골라 주세요"로 덮었다.
+    //    캐시백 답은 이미 나와 있는데도 카드를 먼저 요구한 셈이다 —
+    //    8/25 타겟 역전("캐시백 모르는 사람이 먼저") 과 정면으로 어긋난다.
+    //    경쟁 포지션이기도 하다: 카드 추천은 커모디티라 우리가 그걸로 진입하면 안 된다
+    //    (리서치/MVP-재정의-2026-09-14.md §1). **포털 답을 먼저 주고 카드는 덤으로.**
+    rec.innerHTML = (pBest>0 && pName)
+      ? `<p><b>${t('site.noCard.portal','{portal} 링크로 들어가서 사면 {pct} 돌려받아요.',{portal:pName,pct:sitePctText(pBestBase,pBest)})}</b></p>`+
+        `<p class="muted">${t('site.noCard.add','카드는 안 골라도 여기까지는 그대로예요. 고르면 <b>어느 카드로 결제할지</b>까지 알려드려요.')}</p>`
+      : `<p class="muted">${t('site.noCard.needPct','위에 캐시백 %를 넣으면 어느 링크로 들어갈지 정해 드릴게요.')}</p>`;
+  }
   else {
   // 사이트 모드는 한도(cap)를 금액으로 판정하기 애매해 가맹처·포털 조건만 반영한다
   const amt=Math.max(0,+v('siteAmt')||0);
@@ -3081,7 +3093,7 @@ function computeSite(){
     `<a class="pbtn rk" href="${rkUrl}" target="_blank">Rakuten ↗<small>${t('portal.via','여기 경유 후 사이트로')}</small></a>`+
     `<a class="pbtn tcb" href="${tcbUrl}" target="_blank">TopCashback ↗<small>${t('portal.via','여기 경유 후 사이트로')}</small></a>`;
   document.getElementById('siteCompare').innerHTML=
-    t('site.rateVolatile','오늘 실제 %는 수시로 바뀜 — 전체 포털 비교: ')+`<a href="${cbmUrl}" target="_blank">CashbackMonitor</a>`+
+    t('site.rateVolatile','저희는 Rakuten·TopCashback 둘만 봐요. 나머지 40여 개 포털까지 보려면 → ')+`<a href="${cbmUrl}" target="_blank">CashbackMonitor</a>`+
     (pt.known?'':` <span style="color:var(--warn)">— ${t('site.guessLink','추정 링크, 안 열리면 "{store}" 직접 검색',{store:store||t('site.storeNamePh','사이트명')})}</span>`);
 
   const wEl=document.getElementById('portalWinner');
@@ -3106,7 +3118,7 @@ function renderRefBox(){
     `<a href="${capUrl}" target="_blank">Capital One Shopping</a> · <a href="${rkUrl}" target="_blank">Rakuten</a>`+
     (hasRef?` <span class="tag">${t('ref.mine','— 이 둘은 제 초대 링크')}</span> · <a href="https://www.topcashback.com/" target="_blank">TopCashback</a>`:``)+
     (hasRef?`<details><summary>${t('ref.disc.title','⚠️ 이해관계 고지 — 초대 링크에 대해')}</summary>`+
-      `<p class="cashnote">${t('ref.disc.body','Rakuten과 Capital One Shopping 가입 링크는 <b>제 초대 링크예요.</b> 가입해서 조건을 채우면 저도 보너스를 받아요. 미리 <b>밝혀둘게요.</b><br><br>TopCashback에 링크가 없는 건 <b>그 회사에 초대 제도가 없어서</b>지, 나쁜 포털이라서가 아니에요 — 오히려 캐시백 %는 TopCashback이 가장 높은 경우가 많아요.<br><br><b>어느 포털이 이기는지는 입력한 % 숫자만으로 계산돼요.</b> 제가 보너스를 받는지는 계산에 전혀 반영되지 않고, TopCashback이 제일 높으면 TopCashback이라고 말씀드려요.<br><br>초대 링크 없이 직접 가입해도 <b>받는 캐시백은 완전히 똑같아요.</b> 편한 쪽으로 하면 돼요.')}</p></details>`:``)+
+      `<p class="cashnote">${t('ref.disc.body','Rakuten과 Capital One Shopping 가입 링크는 <b>제 초대 링크예요.</b> 가입해서 조건을 채우면 저도 보너스를 받아요. 미리 <b>밝혀둘게요.</b><br><br>TopCashback도 초대 제도가 있지만 <b>저는 아직 안 붙였어요.</b> 그래서 TopCashback으로 가면 <b>제게 돌아오는 건 없어요</b> — 그런데도 캐시백 %가 제일 높으면 TopCashback이라고 말씀드려요.<br><br><b>어느 포털이 이기는지는 입력한 % 숫자만으로 계산돼요.</b> 제가 보너스를 받는지는 계산에 전혀 반영되지 않고, TopCashback이 제일 높으면 TopCashback이라고 말씀드려요.<br><br>초대 링크 없이 직접 가입해도 <b>받는 캐시백은 완전히 똑같아요.</b> 편한 쪽으로 하면 돼요.')}</p></details>`:``)+
     `</div>`;
   slots.forEach(s=>{ s.innerHTML=html; });
 }
