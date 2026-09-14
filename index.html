@@ -1069,8 +1069,14 @@ Object.assign(STRINGS.en, {
   'card.wfautograph.hint': '3× dining, travel and gas',
   'card.discoverit.hint': 'Rotating 5% quarterly (1% otherwise)',
   'card.applecard.hint': '3% at Apple · 2% with Apple Pay',
+  'card.citicustom.hint': '5% on your top category that month ($500 cap)',
+  'card.targetred.hint': '5% at Target only · cannot be used anywhere else',
 
   // ── 조건부 적립 사유 ─────────────────────────────────────────────
+  'cond.citicustom.general': 'This card gives 5% on <b>only the one category you spent most in</b> that month ($500 monthly cap). Electronics, department stores and general online shopping are <b>not on its 5% list</b> — so we scored it at 1% here.',
+  'cond.citicustom.online': 'This card gives 5% on <b>only the one category you spent most in</b> that month ($500 monthly cap). General online shopping is <b>not on its 5% list</b> — so we scored it at 1% here.',
+  'cond.targetred.general': 'This card <b>only works at Target</b> — it cannot be used anywhere else.',
+  'cond.targetred.online': 'This card <b>only works at Target</b> — it cannot be used anywhere else.',
   'cond.amazonchase.online': 'The 5% is <b>Amazon and Whole Foods only</b> — every other online retailer is 1%',
   'cond.amazonchase.travel': 'The 5% is <b>Chase Travel bookings only</b> — booking direct with the airline or hotel is 1%',
   'cond.freedom.travel': 'The 5× is <b>Chase Travel bookings only</b> — booking direct is 1×',
@@ -1466,6 +1472,12 @@ const CARD_CATALOG = [
     rates:{general:[2,'cash'],online:[2,'cash'],dining:[2,'cash'],grocery:[2,'cash'],gas:[2,'cash'],drugstore:[2,'cash'],travel:[2,'cash']}},
   {id:'citistrata', short:'Strata Prem', name:'Citi Strata Premier', issuer:'Citi', hint:'외식·마트·주유·여행 3배',
     rates:{general:[1,'TY'],online:[1,'TY'],dining:[3,'TY'],grocery:[3,'TY'],gas:[3,'TY'],drugstore:[1,'TY'],travel:[3,'TY']}},
+  // ⚠️ Custom Cash 는 **그 달 가장 많이 쓴 카테고리 하나**에만 5%($500 한도)다.
+  //    어느 카테고리가 될지는 그 달 지출에 달렸고 우리는 모른다 → Amex Plat 선례대로
+  //    **보수적으로 1배**를 적용하고 조건을 알려준다(A9: 못 받을 요율을 받을 수 있다고 말하지 않는다).
+  //    ⚠️ 5% 대상 10개에 **전자제품·백화점·일반 온라인쇼핑은 없다** — 우리 주 용도에선 대개 1%다.
+  {id:'citicustom', short:'Custom Cash', name:'Citi Custom Cash', issuer:'Citi', hint:'그 달 최다 카테고리 1개만 5%($500 한도)',
+    rates:{general:[1,'TY'],online:[1,'TY'],dining:[1,'TY'],grocery:[1,'TY'],gas:[1,'TY'],drugstore:[1,'TY'],travel:[1,'TY']}},
   // Capital One
   {id:'venturex', short:'Venture X', name:'Capital One Venture X', issuer:'Capital One', hint:'전분야 2배 · Cap1여행 5~10배',
     rates:{general:[2,'C1'],online:[2,'C1'],dining:[2,'C1'],grocery:[2,'C1'],gas:[2,'C1'],drugstore:[2,'C1'],travel:[5,'C1']}},
@@ -1486,6 +1498,11 @@ const CARD_CATALOG = [
   // Discover
   {id:'discoverit', short:'Discover it', name:'Discover it', issuer:'Discover', hint:'분기 5% 로테이션(그외 1%)',
     rates:{general:[1,'cash'],online:[1,'cash'],dining:[1,'cash'],grocery:[1,'cash'],gas:[1,'cash'],drugstore:[1,'cash'],travel:[1,'cash']}},
+  // Target — ⚠️ **스토어 카드다.** Target 밖에서는 결제 자체가 안 되므로 fallback:0.
+  //    (도구가 스토어 카드 발급을 권하는 건 아니다 — v0.20 P2-7 경고는 그대로다.
+  //     이미 가진 사람에게 "Target 에선 이게 5%"를 알려주기 위한 항목이다.)
+  {id:'targetred', short:'Target RedCard', name:'Target RedCard', issuer:'Target', hint:'Target에서만 5% · 다른 곳 사용 불가',
+    rates:{general:[5,'cash'],online:[5,'cash'],dining:[5,'cash'],grocery:[5,'cash'],gas:[5,'cash'],drugstore:[5,'cash'],travel:[5,'cash']}},
   // Apple
   {id:'applecard', short:'Apple Card', name:'Apple Card', issuer:'Apple', hint:'Apple 3% · Apple Pay 2%',
     rates:{general:[1,'cash'],online:[2,'cash'],dining:[2,'cash'],grocery:[2,'cash'],gas:[2,'cash'],drugstore:[2,'cash'],travel:[2,'cash']}},
@@ -1534,6 +1551,16 @@ const CARD_COND = {
   },
   // '여행'은 항공권/호텔/기타가 섞인 카테고리라, 보수적으로 1배를 적용하고 조건을 알려준다.
   amexplat:{ travel:{portalOnly:'Amex Travel', fallback:1, why:'여기선 보수적으로 1배로 잡았어요 — <b>항공권을 항공사 사이트나 Amex Travel에서 사는 거라면 실제로는 5배</b>라 이 카드가 1위가 돼요. 호텔은 Amex Travel 예약 시에만 5배, 그 외 여행은 1배예요'} },
+  // Target RedCard 는 Target 전용이다. 다른 판매처에서는 0% — 쓸 수 없는 카드를 1위로 올리면 안 된다.
+  targetred:{
+    general:{merchant:['target'], fallback:0, why:'<b>Target에서만 쓸 수 있는 카드</b>예요 — 다른 곳에서는 결제가 안 돼요'},
+    online:{merchant:['target'], fallback:0, why:'<b>Target에서만 쓸 수 있는 카드</b>예요 — 다른 곳에서는 결제가 안 돼요'},
+  },
+  // Custom Cash 는 한 달에 **한 카테고리만** 5% 다. 어느 쪽일지 모르므로 1배로 두고 사실만 알린다.
+  citicustom:{
+    general:{warn:true, why:'이 카드는 <b>그 달 가장 많이 쓴 카테고리 하나</b>에만 5%예요(월 $500 한도). 5% 대상에 <b>전자제품·백화점·일반 온라인쇼핑은 없어요</b> — 그래서 여기선 1%로 잡았어요'},
+    online:{warn:true, why:'이 카드는 <b>그 달 가장 많이 쓴 카테고리 하나</b>에만 5%예요(월 $500 한도). 5% 대상에 <b>일반 온라인쇼핑은 없어요</b> — 그래서 여기선 1%로 잡았어요'},
+  },
   amexgold:{
     grocery:{cap:25000, capBase:1, why:'4배는 <b>미국 슈퍼마켓</b>만 (Walmart·Target·코스트코 제외) · 연 $25,000 한도 — 초과분 1배'},
     dining:{cap:50000, capBase:1, why:'외식 4배는 연 $50,000 한도 — 초과분 1배'},
