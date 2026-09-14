@@ -441,10 +441,13 @@ https://www.walmart.com/ip/...
     <div style="margin-top:8px">
       <label data-i18n="site.portal">어느 링크로 들어갈까요 <span class="muted" style="font-weight:600">— 캐시백 포털 (카드와 무관하게 추가 적립)</span></label>
       <div class="portalbtns" id="sitePortalBtns"></div>
-      <div class="grid g3" style="margin-top:6px">
+      <!-- ⚠️ Capital One Shopping 칸을 뺐다 (2026-09-14 사용자 결정).
+           CAPTCHA 로 자동 수집이 안 돼서 우리가 값을 못 채우는데, 자동 입력된 두 칸 옆에
+           빈 0 이 놓이면 **"CapOne 은 0%"로 읽힌다** — 우리가 제일 싫어하는 "0% vs 모름"이다.
+           전체 포털 비교는 아래 CashbackMonitor 링크가 계속 맡는다. -->
+      <div class="grid g2" style="margin-top:6px">
         <div><label data-i18n="site.rk">Rakuten 캐시백 %</label><input id="rkPct" type="number" min="0" step="0.5" value="0"></div>
         <div><label data-i18n="site.tcb">TopCashback 캐시백 %</label><input id="tcbPct" type="number" min="0" step="0.5" value="0"></div>
-        <div><label>Capital One Shopping %</label><input id="capPct" type="number" min="0" step="0.5" value="0"></div>
       </div>
       <p class="muted" id="siteBaseline" style="margin:6px 0 0"></p>
       <p class="muted" id="portalWinner" style="margin:8px 0 0"></p>
@@ -1197,9 +1200,9 @@ Object.assign(STRINGS.en, {
   'site.rcpt.amt': 'Estimated charge',
   'site.rcpt.offer': '🎁 <b>{card}</b> offer',
   'site.rcpt.portal': '🔗 Go in through <b>{portal}</b>',
-  'site.rcpt.portal.tag': '{best}% cashback · RK {rk}% · TCB {tcb}% · CapOne {cap}%',
+  'site.rcpt.portal.tag': '{best} cashback · RK {rk} · TCB {tcb}',
   'site.rcpt.noPortal': '🔗 Portal cashback',
-  'site.allZero': 'all three are 0%',
+  'site.allZero': 'both are 0%',
   'site.unchecked': 'not checked yet',
   'site.rcpt.payWith': '💳 Pay with <b>{card}</b>',
   'site.rcpt.payWith.tag': '{pct}% cashback on {cat}',
@@ -1213,8 +1216,8 @@ Object.assign(STRINGS.en, {
   'site.noData.sub': 'Check it on CashbackMonitor below and type it in.',
   'site.rateVolatile': 'Today’s real % moves constantly — compare every portal: ',
   'site.guessLink': 'guessed link; if it 404s, search "{store}" directly',
-  'site.winner': '⚖️ Rakuten <b>{rk}%</b> vs TopCashback <b>{tcb}%</b> vs Capital One Shopping <b>{cap}%</b> → <span class="winner">take {pick}</span>',
-  'site.winner.tie': '⚖️ All three at {pct}% — take whichever one works',
+  'site.winner': '⚖️ Rakuten <b>{rk}</b> vs TopCashback <b>{tcb}</b> → <span class="winner">take {pick}</span>',
+  'site.winner.tie': '⚖️ Both at {pct} — take whichever one works',
   'site.winner.empty': 'Enter the portals’ cashback % and we’ll pick one. (Check them on CashbackMonitor above.)',
   'site.recognized': '✅ <b>{name}</b> recognized — category: {cat}',
   'site.typoFixed': '🔎 Read as ‘<b>{name}</b>’ (typo corrected) — category: {cat} · pick it yourself if that’s wrong',
@@ -1695,6 +1698,17 @@ function baselineFor(key){
   if(!b) return null;
   const { cap, ...rest } = b;      // ← cap 을 통째로 뺀다. 0 으로 바꾸지 않는다
   return rest;
+}
+// 사이트 모드에서 %를 찍을 때 **"최대"를 끝까지 달고 간다.** (2026-09-14 지인 피드백)
+// 문제: base 에 upTo 가 있어도 자동입력은 숫자만 넣어서, 결론이 "TopCashback 15%"로 단정했다.
+// 실제 TopCashback Best Buy 는 카테고리 표라 대부분 구매는 그 근처도 못 간다 —
+// 천장값으로 달러를 계산하면 결론이 낙관적으로 틀린다(v0.20 "틀린 값은 없는 것보다 나쁘다").
+// 114곳 중 28곳(24%)이 upTo 라 예외가 아니다.
+// ⚠️ 사용자가 값을 직접 고쳤으면 "최대"를 붙이지 않는다 — 그건 우리 천장값이 아니라 그 사람의 숫자다.
+function sitePctText(base, val){
+  const n = +val || 0;
+  const isOurs = base && base.upTo && base.pct != null && +base.pct === n;
+  return (isOurs ? t('rate.upTo','최대 ') : '') + n + '%';
 }
 function fmtBase(b){ if(!b) return "—"; if(b.listed===false) return t('rate.none','없음'); if(b.flat!=null) return t('rate.flat','${v} 고정',{v:b.flat}); if(b.pct==null) return t('rate.checkSelf','직접 확인'); return (b.upTo?t('rate.upTo','최대 '):"")+b.pct+"%"; }
 // Rakuten·TopCashback 만 매일 자동 수집한다(asOf).
@@ -2957,10 +2971,8 @@ function computeSite(){
     const g=b=>(b&&b.listed!==false&&b.pct!=null)?b.pct:0;
     document.getElementById('rkPct').value = base?g(base.rk):0;
     document.getElementById('tcbPct').value = base?g(base.tcb):0;
-    // ⚠️ capPct 입력칸은 **남긴다** — 사용자가 자기 눈으로 본 값을 넣는 자리이지
-    //    우리가 인용하는 요율이 아니다. 다만 **우리 스냅샷으로 자동 채우지 않는다.**
-    //    자동 채움이 곧 인용이다. 이 경계를 "일관성" 명목으로 지우지 말 것.
-    document.getElementById('capPct').value = 0;
+    // (2026-09-14) CapOne 칸은 제거됐다. 예전 주석의 "자동 채움이 곧 인용이다"는 원칙은
+    //    그대로 유효하다 — 다만 이제 채울 칸 자체가 없다.
     if(fz) autoApplied['site:'+fz.key]=true;
   }
   if(base && PORTAL_RATES.asOf && !autoApplied['site:'+fz.key]){
@@ -2969,8 +2981,11 @@ function computeSite(){
     if(base.tcb&&base.tcb.pct!=null&&base.tcb.listed!==false && (+v('tcbPct')||0)===0) document.getElementById('tcbPct').value=base.tcb.pct;
   }
   renderSiteOfpHint();       // 사이트·금액이 바뀌면 붙여넣어 둔 오퍼 제안도 같이 바뀌어야 한다
-  const cp=+v('capPct')||0, rp=+v('rkPct')||0, tp=+v('tcbPct')||0;
+  const cp=0,   // CapOne 칸 제거 — 비교에서 빠진다
+     rp=+v('rkPct')||0, tp=+v('tcbPct')||0;
   const pBest=Math.max(cp,rp,tp);
+  // 이긴 쪽의 스냅샷 — sitePctText 가 "최대"를 붙일지 판정하는 데 쓴다. **영수증(위)보다 먼저 선언해야 한다.**
+  const pBestBase = (base && (pBest===rp ? base.rk : (pBest===tp ? base.tcb : null))) || null;
   const pName= pBest<=0 ? '' : (tp===pBest?'TopCashback':(rp===pBest?'Rakuten':'Capital One Shopping'));
   const rec=document.getElementById('siteRec');
   if(!CARDS.length){ rec.innerHTML=`<p class="muted">${t('site.pickCard','위 👛 내 카드에서 카드를 골라 주세요.')}</p>`; }
@@ -3005,8 +3020,8 @@ function computeSite(){
   let html=`<div class="receipt">`+
     `<div class="line"><span class="lab">${t('site.rcpt.amt','결제 예상액')}</span><span>${money(amt)}</span></div>`+
     (best.offer>0?`<div class="line"><span class="lab">${t('site.rcpt.offer','🎁 <b>{card}</b> 오퍼',{card:best.c.short})} <span class="tag">${t('rcpt.offer.tag','statement credit — 청구서에서 차감')}</span></span><span class="minus">−${money(best.offer)}</span></div>`:``)+
-    (pBest>0?`<div class="line"><span class="lab">${t('site.rcpt.portal','🔗 <b>{portal}</b> 링크로 입장',{portal:pName})} <span class="tag">${t('site.rcpt.portal.tag','캐시백 {best}% · RK {rk}% · TCB {tcb}% · CapOne {cap}%',{best:pBest,rk:rp,tcb:tp,cap:cp})}</span></span><span class="minus">−${money(portalVal)}<span class="pending">&nbsp;*</span></span></div>`:
-      `<div class="line"><span class="lab">${t('site.rcpt.noPortal','🔗 포털 캐시백')} <span class="tag">${(rp||tp||cp)?t('site.allZero','세 곳 모두 0%'):t('site.unchecked','아직 미확인')}</span></span><span>—</span></div>`)+
+    (pBest>0?`<div class="line"><span class="lab">${t('site.rcpt.portal','🔗 <b>{portal}</b> 링크로 입장',{portal:pName})} <span class="tag">${t('site.rcpt.portal.tag','캐시백 {best} · RK {rk} · TCB {tcb}',{best:sitePctText(pBestBase,pBest),rk:sitePctText(base&&base.rk,rp),tcb:sitePctText(base&&base.tcb,tp)})}</span></span><span class="minus">−${money(portalVal)}<span class="pending">&nbsp;*</span></span></div>`:
+      `<div class="line"><span class="lab">${t('site.rcpt.noPortal','🔗 포털 캐시백')} <span class="tag">${(rp||tp)?t('site.allZero','두 곳 다 0%'):t('site.unchecked','아직 미확인')}</span></span><span>—</span></div>`)+
     (isCashCard?`<div class="line"><span class="lab">${t('site.rcpt.payWith','💳 <b>{card}</b> 로 결제',{card:best.c.short})} <span class="tag">${t('site.rcpt.payWith.tag','{cat} {pct}% 캐시백',{cat:catName(cat),pct:fmtMult(best.mult)})}</span></span><span class="minus">−${money(best.val)}</span></div>`:``)+
     `<div class="line ${ptsVal>0?'subtotal':'total'}"><span>${t('rcpt.net','실제 부담')} <span class="tag">${t('rcpt.net.tag','현금 기준')}</span></span><span>${money(netCash)}</span></div>`+
     (ptsVal>0?`<div class="line ptsline"><span class="lab">✈️ <b>${best.c.short}</b> ${t('site.rcpt.mult','{mult}배',{mult:fmtMult(best.mult)})} <span class="pill ${TYPE[best.type].cls}">${curLabel(best.type)}</span> <span class="tag">${t('site.rcpt.pts.tag','청구액은 안 줄어듦 — {cpp}¢ 가정한 추정치',{cpp:best.cv})}</span></span><span class="minus">(${money(ptsVal)})</span></div>`:``)+
@@ -3064,16 +3079,15 @@ function computeSite(){
   const cbmUrl=`https://www.cashbackmonitor.com/cashback-store/${pt.cbm}/`;
   document.getElementById('sitePortalBtns').innerHTML=
     `<a class="pbtn rk" href="${rkUrl}" target="_blank">Rakuten ↗<small>${t('portal.via','여기 경유 후 사이트로')}</small></a>`+
-    `<a class="pbtn tcb" href="${tcbUrl}" target="_blank">TopCashback ↗<small>${t('portal.via','여기 경유 후 사이트로')}</small></a>`+
-    `<a class="pbtn cap" href="${capUrl}" target="_blank">Capital One Shopping ↗<small>${t('portal.via','여기 경유 후 사이트로')}</small></a>`;
+    `<a class="pbtn tcb" href="${tcbUrl}" target="_blank">TopCashback ↗<small>${t('portal.via','여기 경유 후 사이트로')}</small></a>`;
   document.getElementById('siteCompare').innerHTML=
     t('site.rateVolatile','오늘 실제 %는 수시로 바뀜 — 전체 포털 비교: ')+`<a href="${cbmUrl}" target="_blank">CashbackMonitor</a>`+
     (pt.known?'':` <span style="color:var(--warn)">— ${t('site.guessLink','추정 링크, 안 열리면 "{store}" 직접 검색',{store:store||t('site.storeNamePh','사이트명')})}</span>`);
 
   const wEl=document.getElementById('portalWinner');
   if(pBest>0){
-    if(!(cp===rp&&rp===tp)) wEl.innerHTML=t('site.winner','⚖️ Rakuten <b>{rk}%</b> vs TopCashback <b>{tcb}%</b> vs Capital One Shopping <b>{cap}%</b> → <span class="winner">{pick} 선택</span>',{rk:rp,tcb:tp,cap:cp,pick:pName});
-    else wEl.innerHTML=t('site.winner.tie','⚖️ 셋 다 {pct}% — 아무 쪽이나 (되는 걸로)',{pct:cp});
+    if(rp!==tp) wEl.innerHTML=t('site.winner','⚖️ Rakuten <b>{rk}</b> vs TopCashback <b>{tcb}</b> → <span class="winner">{pick} 선택</span>',{rk:sitePctText(base&&base.rk,rp),tcb:sitePctText(base&&base.tcb,tp),pick:pName});
+    else wEl.innerHTML=t('site.winner.tie','⚖️ 둘 다 {pct} — 아무 쪽이나 (되는 걸로)',{pct:sitePctText(base&&base.rk,rp)});
   } else {
     wEl.innerHTML=t('site.winner.empty','포털들의 캐시백 %를 넣으면 비교해서 정해 드릴게요. (위 CashbackMonitor로 확인)');
   }
@@ -3677,7 +3691,7 @@ const LSKEY="purchOpt_v06";
 function saveState(){ try{ localStorage.setItem(LSKEY, JSON.stringify({
   mode, myWallet, cppValues, pname:v('pname'), cat:v('cat'), taxPct:v('taxPct'),
   customCards: customCards.map(c=>({id:c.id,name:c.name,cur:c.cur,mults:c.mults})),
-  siteStore:v('siteStore'), siteCat:v('siteCat'), siteAmt:v('siteAmt'), capPct:v('capPct'), rkPct:v('rkPct'), tcbPct:v('tcbPct'), siteOffers,
+  siteStore:v('siteStore'), siteCat:v('siteCat'), siteAmt:v('siteAmt'), rkPct:v('rkPct'), tcbPct:v('tcbPct'), siteOffers,
   offerWallet,   // 붙여넣기로 읽은 오퍼 (파싱 결과만 — 원문은 저장하지 않는다)
   scenarios: scenarios.map(s=>({store:s.store,domain:s.domain,price:s.price,ship:s.ship,coupon:s.coupon,portalPct:s.portalPct,portalName:s.portalName,portalUpTo:s.portalUpTo,portalUnknown:s.portalUnknown,offers:s.offers,lastChecked:s.lastChecked}))
 })); }catch(e){} }
@@ -3690,7 +3704,7 @@ function loadState(){ try{ const s=JSON.parse(localStorage.getItem(LSKEY)); if(!
   if(s.taxPct!=null) document.getElementById('taxPct').value=s.taxPct;
   if(s.siteStore!=null) document.getElementById('siteStore').value=s.siteStore;
   if(s.siteCat!=null) document.getElementById('siteCat').value=s.siteCat;
-  if(s.capPct!=null) document.getElementById('capPct').value=s.capPct;
+  /* capPct 칸 제거됨 — 옛 저장값은 무시한다 */
   if(s.rkPct!=null) document.getElementById('rkPct').value=s.rkPct;
   if(s.tcbPct!=null) document.getElementById('tcbPct').value=s.tcbPct;
   if(s.siteAmt!=null) document.getElementById('siteAmt').value=s.siteAmt;
@@ -3742,7 +3756,7 @@ function prefillFromQuery(searchStr){
   let siteHit=false;
   if(q.has('sstore')){ document.getElementById('siteStore').value=q.get('sstore'); siteHit=true; }
   if(q.has('scat')){ document.getElementById('siteCat').value=q.get('scat'); siteHit=true; }
-  if(q.has('cap')){ document.getElementById('capPct').value=+q.get('cap')||0; siteHit=true; }
+  if(q.has('cap')){ siteHit=true; }   // 옛 딥링크 호환 — 값은 더 이상 안 쓴다
   if(q.has('rk')){ document.getElementById('rkPct').value=+q.get('rk')||0; siteHit=true; }
   if(q.has('tcb')){ document.getElementById('tcbPct').value=+q.get('tcb')||0; siteHit=true; }
   if(q.has('samt')){ document.getElementById('siteAmt').value=+q.get('samt')||0; siteHit=true; }
@@ -3848,7 +3862,7 @@ function init(){
     computeSite();
   });
   document.getElementById('siteCat').addEventListener('change',computeSite);
-  ['capPct','rkPct','tcbPct','siteAmt'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input',computeSite); });
+  ['rkPct','tcbPct','siteAmt'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input',computeSite); });
 
   recompute();
   setMode(mode);

@@ -468,7 +468,6 @@ window.__fuzz = (function () {
         document.getElementById('siteAmt').value = p.sc.price;
         document.getElementById('rkPct').value = Math.round(G.between(0, 15));
         document.getElementById('tcbPct').value = Math.round(G.between(0, 15));
-        document.getElementById('capPct').value = Math.round(G.between(0, 15));
         siteOffers = {};
         p.wallet.forEach(id => { if (G.chance(0.15)) siteOffers[id] = Math.round(G.between(5, 100)); });
         computeSite();
