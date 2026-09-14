@@ -33,7 +33,7 @@
     line-height:1.5;-webkit-font-smoothing:antialiased}
   .wrap{max-width:900px;margin:0 auto;padding:20px 16px 64px}
   h1{font-size:var(--t-hero);margin:0 0 4px;letter-spacing:-.5px}
-  .sub{color:var(--ink-2);font-size:var(--t-body);margin:0 0 18px;max-width:56ch}
+  .sub{color:var(--ink-2);font-size:var(--t-body);margin:0 0 18px;max-width:48em}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
     padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
   /* h2는 제목 줄, 그 옆 .tag는 부제 — flex-wrap으로 좁은 화면에서 부제가 아래로 */
@@ -225,7 +225,7 @@
   .langtog button:hover{background:#e4e8ec}
   .langtog button.on{background:#fff;color:var(--accent);box-shadow:var(--shadow)}
   .langtog button.on:hover{background:#fff}
-  .tagline{font-size:var(--t-body);color:var(--ink-2);margin:0 0 18px;max-width:56ch}
+  .tagline{font-size:var(--t-body);color:var(--ink-2);margin:0 0 18px;max-width:48em}
   .tagline b{color:var(--ink)}
 
   /* ===== 접는 카드 — "선택 사항"이 첫 화면을 먹지 않게 (진단 §1) =====
@@ -308,8 +308,8 @@
   <p class="tagline" data-i18n="brand.tagline"><b>다 빼고 나면, 실제로 얼마.</b> 캐시백·카드 적립까지 뺀 <b>실제 부담</b>으로 비교해요.</p>
 
   <div class="modebar">
-    <button id="modeProduct" type="button" class="on" data-i18n="mode.product">🛒 상품 모드 <small style="font-weight:600;font-size:11px;opacity:.8">가격으로 실제 부담</small></button>
-    <button id="modeSite" type="button" data-i18n="mode.site">🏬 사이트 모드 <small style="font-weight:600;font-size:11px;opacity:.8">가격 없이 카드+링크</small></button>
+    <button id="modeProduct" type="button" class="on" data-i18n="mode.product">🛒 상품 모드</button>
+    <button id="modeSite" type="button" data-i18n="mode.site">🏬 사이트 모드</button>
   </div>
 
   <!-- 1. 여기서 시작 — v0.32 재배치.
@@ -323,9 +323,9 @@
     <!-- 입력 수단 3개. 설명문을 각자 달지 않는다 — 고른 뒤에 해당 패널에서 말한다.
          📷·📊 는 조건이 맞을 때만 켜진다(아래 글루). ⌨️ 는 항상 있다 — 폴백이라서. -->
     <div class="pickrow" id="pickRow">
-      <label class="pick" id="visionBtn" for="visionFile" hidden data-i18n="pick.photo">📷 사진 찍기</label>
+      <label class="pick" id="visionBtn" for="visionFile" hidden data-i18n="pick.photo.file">📷 사진 넣기</label>
       <input type="file" id="visionFile" accept="image/*" capture="environment" hidden>
-      <label class="pick" id="scanBtn" for="scanFile" hidden data-i18n="pick.barcode">📊 바코드</label>
+      <label class="pick" id="scanBtn" for="scanFile" hidden data-i18n="pick.barcode.file">📊 바코드 넣기</label>
       <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
       <button class="pick" id="typeBtn" type="button" data-i18n="pick.type">⌨️ 직접 넣기</button>
     </div>
@@ -356,7 +356,7 @@ https://www.walmart.com/ip/...
         <button id="fillBtn" type="button" data-i18n="start.compare">비교 시작</button>
         <span class="muted" id="pasteMsg"></span>
       </div>
-      <p class="cpp-note" data-i18n="start.note">URL마다 <b>판매처 칸이 자동으로 만들어지고 캐시백 %도 채워져요</b>. 다만 <b>가격은 직접 넣는 경우가 많아요</b> — 아마존·월마트 같은 큰 곳은 자동조회를 막아둬서 저희가 못 읽어요. 가격만 넣으면 나머지는 그대로 계산돼요. <b>카드는 없어도 돼요</b>.<br>
+      <p class="cpp-note" data-i18n="start.note"><b>가격은 직접 넣는 경우가 많아요</b> — 아마존·월마트 같은 큰 곳이 자동조회를 막아둬서요. <b>카드는 없어도 돼요.</b><br>
         🔒 가격을 대신 읽어오려면 <b>붙여넣은 상품 URL만</b> 조회 서버로 나가요 — <a href="#disclosures" onclick="openDisclosures(event)">자세히</a>.</p>
     </div>
   </div>
@@ -431,7 +431,7 @@ https://www.walmart.com/ip/...
         </select>
       </div>
     </div>
-    <div style="margin-top:10px;max-width:260px">
+    <div style="margin-top:10px;max-width:380px">
       <label data-i18n="site.amt">대충 얼마 쓸 것 같아요? ($) <span class="muted" style="font-weight:600">— 영수증·오퍼 비교용</span></label>
       <input id="siteAmt" type="number" min="0" step="10" value="100">
     </div>
@@ -827,8 +827,8 @@ Object.assign(STRINGS.en, {
   'issuer.custom': 'Added by you',
 
   // ── 모드 ─────────────────────────────────────────────────────────
-  'mode.product': '🛒 Product mode <small style="font-weight:600;font-size:11px;opacity:.8">net cost from a price</small>',
-  'mode.site': '🏬 Store mode <small style="font-weight:600;font-size:11px;opacity:.8">card + link, no price</small>',
+  'mode.product': '🛒 Product mode',
+  'mode.site': '🏬 Store mode',
 
   // ── 1. 시작 ──────────────────────────────────────────────────────
   'start.title': 'Start here',
@@ -837,7 +837,9 @@ Object.assign(STRINGS.en, {
   // v0.32 — 입력 수단 3개를 한 줄에
   'start.q': 'What are you looking for?',
   'pick.photo': '📷 Take a photo',
-  'pick.barcode': '📊 Barcode',
+  'pick.photo.file': '📷 Add a photo',
+  'pick.barcode': '📊 Scan a barcode',
+  'pick.barcode.file': '📊 Add a barcode photo',
   'pick.type': '⌨️ Type it',
   'pick.tip': '📷 Frame the <b>model name or brand</b> and it finds it much better — for a <b>TV or appliance, shoot the shelf price card</b>',
   'demo.clear': 'Clear the example',
@@ -845,7 +847,7 @@ Object.assign(STRINGS.en, {
   'start.paste.label': 'Seller <b>URLs</b>, one per line (one is enough)',
   'start.paste.ph': 'https://www.amazon.com/dp/...\nhttps://www.walmart.com/ip/...\nhttps://www.target.com/p/...\n— or paste the product title and $price as-is',
   'start.compare': 'Compare',
-  'start.note': 'Each URL <b>becomes a seller row with the cashback % filled in</b>. <b>You will usually have to type the price yourself</b> — big retailers like Amazon and Walmart block automated lookups, so we cannot read it. Type the price and everything else still works. <b>Cards are not required.</b><br>🔒 To read a price for you, <b>only the product URL you pasted</b> goes to our fetcher — <a href="#disclosures" onclick="openDisclosures(event)">details</a>.',
+  'start.note': '<b>You will usually have to type the price yourself</b> — big retailers like Amazon and Walmart block automated lookups. <b>Cards are not required.</b><br>🔒 To read a price for you, <b>only the product URL you pasted</b> goes to our fetcher — <a href="#disclosures" onclick="openDisclosures(event)">details</a>.',
   'scan.btn': '📊 Scan a barcode',
 
   // ── 상품 정보 ────────────────────────────────────────────────────
@@ -3766,6 +3768,7 @@ function shareWallet(){
 
 // ===== 초기화 =====
 function init(){
+  applyPickLabels();   // 기기에 맞는 키로 먼저 갈아끼운다(폰이면 '찍기') — applyI18n 보다 앞서야 한다
   applyI18n();   // 정적 마크업의 한국어를 STRINGS.ko로 수집 + 활성 언어로 교체
   applyBrand();  // 워드마크·타이틀·aria-label을 BRAND 한 곳에서 주입 (i18n 뒤에 와야 title이 맞다)
   const seededDefault=()=>{ scenarios=[ blankScenario({store:"lululemon", domain:"lululemon.com", price:98}) ]; };
@@ -3858,6 +3861,29 @@ function openDisclosures(e){
   const box=document.getElementById('disclosures'); if(!box) return;
   const d=box.querySelector('details'); if(d) d.open=true;
   box.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+// 기기에 따라 버튼이 하는 일이 다르다 → 라벨도 달라야 한다. (2026-09-14 지인 피드백)
+// `capture="environment"` 는 **폰에서만** 카메라를 연다. 데스크톱에서는 그냥 파일 선택기라
+// "사진 찍기"가 거짓말이 된다 — 누르면 카메라가 아니라 탐색기가 뜬다.
+// 기준은 화면 크기가 아니라 `pointer: coarse` 다. 창을 좁힌 데스크톱은 여전히 파일 선택기이고,
+// 큰 태블릿은 여전히 카메라다. 물어야 할 것은 "좁은가"가 아니라 "손가락으로 찍는 기기인가"다.
+// ⚠️ 없는 키는 조용히 한국어로 폴백하므로, 영어 키를 빠뜨리면 여기서 한글이 샌다(키 4개 다 있다).
+// ⚠️ **textContent 를 덮어쓰면 안 된다** — applyI18n() 이 나중에 돌면서 data-i18n 으로 되돌린다.
+//    (실제로 그렇게 썼다가 모바일에서 라벨이 안 바뀌는 걸 확인했다.)
+//    대신 **키를 바꾼다.** 그러면 applyI18n 이 알아서 그리고, 언어 토글에도 따라온다.
+//    마크업 기본값은 데스크톱 문구라 폰에서만 갈아끼우면 된다.
+function applyPickLabels(){
+  let coarse=false;
+  try{ coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches; }catch(e){}
+  if(!coarse) return;                       // 데스크톱 = 마크업 기본값(넣기) 그대로
+  // ⚠️ 키만 바꾸면 안 된다. applyI18n 은 **한국어를 마크업에서 수집**하므로(사전에 복사하지
+  //    않는 설계), 키만 갈면 옛 한국어("넣기")가 새 키로 수집돼 그대로 남는다.
+  //    → 키와 한국어 텍스트를 **같이** 바꾼다. 영어는 STRINGS.en 이 이미 갖고 있다.
+  const swap=(id,key,ko)=>{ const el=document.getElementById(id);
+    if(el){ el.setAttribute('data-i18n',key); el.textContent=ko; } };
+  swap('visionBtn','pick.photo','📷 사진 찍기');   // 폰 = 카메라가 실제로 열린다 → "찍기"
+  swap('scanBtn','pick.barcode','📊 바코드 찍기');
 }
 
 // 촬영 요령(`#pickTip`)은 **사진 버튼이 있고 + 붙여넣기 칸이 닫혀 있을 때만** 보인다.
