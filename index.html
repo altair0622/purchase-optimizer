@@ -3860,6 +3860,19 @@ function openDisclosures(e){
   box.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
+// 촬영 요령(`#pickTip`)은 **사진 버튼이 있고 + 붙여넣기 칸이 닫혀 있을 때만** 보인다.
+// 예전엔 사진 기능이 켜지면 한 번 보이고 다시 안 숨었다. 그래서 ⌨️ 직접 넣기를 눌러
+// URL 을 치는 중에도 "모델명이 보이게 찍으세요"가 입력칸 바로 위에 남아 있었다 —
+// **지금 하는 일과 다른 걸 말하는 자리**다. (2026-09-14 사용자 스크린샷에서 발견.
+// P11 로 이 줄이 두 줄로 길어지면서 눈에 띄었다. 길어진 게 원인이 아니라 드러낸 것뿐이다.)
+let pickTipOk = false;
+function syncPickTip(){
+  const tip = document.getElementById('pickTip');
+  const panel = document.getElementById('typePanel');
+  if(!tip) return;
+  tip.hidden = !pickTipOk || !(panel && panel.hidden);
+}
+
 // ===== ⌨️ 직접 넣기 토글 (v0.32) =====
 // 붙여넣기 칸은 예전엔 첫 화면을 통째로 먹고 있었다. 이제 눌러야 펼쳐진다.
 // ⚠️ 📷·📊 가 둘 다 없으면(파일 프로토콜·키 미설정·구형 브라우저) 이 페이지는
@@ -3868,7 +3881,7 @@ function openDisclosures(e){
 (function(){
   const btn=document.getElementById('typeBtn'), panel=document.getElementById('typePanel');
   if(!btn||!panel) return;
-  const open=(on)=>{ panel.hidden=!on; btn.classList.toggle('on',on); };
+  const open=(on)=>{ panel.hidden=!on; btn.classList.toggle('on',on); syncPickTip(); };
   btn.addEventListener('click',()=>{
     const willOpen=panel.hidden;
     open(willOpen);
@@ -3903,7 +3916,7 @@ function openDisclosures(e){
   if(!btn||!inp||location.protocol==='file:'||!PRICE_API) return;
 
   const CAP='pa_vision_on';
-  const show=()=>{ btn.hidden=false; const tip=document.getElementById('pickTip'); if(tip) tip.hidden=false; };
+  const show=()=>{ btn.hidden=false; pickTipOk=true; syncPickTip(); };
   let cached=null; try{ cached=sessionStorage.getItem(CAP); }catch(e){}
   if(cached==='1') show();
   else if(cached!=='0'){
