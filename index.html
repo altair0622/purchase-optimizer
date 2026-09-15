@@ -1409,6 +1409,7 @@ Object.assign(STRINGS.en, {
   // ⭐ 조건절이 핵심이다 — "가격이 같다면"을 떼면 그 순간 거짓말이 된다.
   // ⭐ 범위("저희가 고른 이 N곳 중에서는")도 마찬가지다 — 떼면 "파는 모든 곳 중 1등"으로 읽힌다.
   //    ⚠️ KO/EN 양쪽 키를 **같이** 고쳐야 한다. 한쪽만 고치면 영어판만 조용히 옛 주장을 계속한다.
+  'reco.ifSame.upTo': '<b>Among the {n} sellers we picked</b> — <b>{store}</b> looks highest today. But that store pays <b>different rates by product category</b>, so we will not put a number in for you — open the link and check.',
   'reco.ifSame': '<b>Among the {n} sellers we picked</b> — if the prices match, today <b>{store}</b> comes out best at <b>{rate}</b> cashback.',
   'reco.poolNote': 'We haven’t checked whether these {n} sellers carry it.',
   'reco.thenPrice': 'Type the prices and we’ll check the real net cost.',
@@ -1912,7 +1913,10 @@ function portalLinksHTML(store, domain){
   return lk(`https://www.cashbackmonitor.com/cashback-store/${cbm}/`,'CashbackMonitor',cbm)+
     ` · `+lk(`https://www.rakuten.com/shop/${rk}`,'Rakuten',rk)+
     ` · `+lk(`https://www.topcashback.com/${tcb}/`,'TopCashback',tcb)+
-    ` · `+lk(`https://capitaloneshopping.com/s/${cap}/coupon`,'Capital One Shopping',cap)+
+    // ⚠️ Capital One Shopping 을 뺐다(2026-09-14). 요율을 자동으로 못 읽어(CAPTCHA) 비교에
+    //    못 쓰는데 링크만 남겨두면, 사용자가 눌러 확인하고 돌아와도 넣을 칸이 없다.
+    //    사이트 모드에서 먼저 뺐는데 여기가 남아 있었다 — 사용자 실사용 스크린샷에서 발견.
+    //    전체 포털 비교는 맨 앞의 CashbackMonitor 링크가 계속 맡는다.
     (known?"":` <span style="color:var(--warn)">${t('portal.guessed','— 추정 링크(안 열리면 "{store}" 검색)',{store:store})}</span>`);
 }
 
@@ -2621,7 +2625,10 @@ let lastRecognition=null;   // {query, top, n} — 결론 카드가 이걸 보�
 function bestRateFor(key){
   const b=baselineFor(key); let best={pct:0,upTo:false,flat:0,portal:''};
   if(!b) return best;
-  [['rk','Rakuten'],['cap','Capital One Shopping'],['tcb','TopCashback']].forEach(([k,name])=>{
+  // ⚠️ CapOne 을 뺐다(2026-09-14). rates.json 의 cap 값은 **수동 스냅샷**이라 45일 묵어 있었고,
+  //    그걸로 추천 순위를 매기면 "오늘 여기가 제일 높아요"가 낡은 값에 기대게 된다.
+  //    자동 갱신되는 둘만 본다 — 사이트 모드·포털 링크에서 먼저 뺐는데 여기가 남아 있었다.
+  [['rk','Rakuten'],['tcb','TopCashback']].forEach(([k,name])=>{
     const e=b[k]; if(!e||e.listed===false) return;
     const pct=+e.pct||0, flat=+e.flat||0;
     if(pct>best.pct) best={pct:pct,upTo:!!e.upTo,flat:0,portal:name};
@@ -2711,8 +2718,14 @@ function recoPendingHTML(){
   const r=lastRecognition, rate=r.top?recoRateText(r.top):null;
   return '<b>'+recoEsc(r.query)+'</b> <span class="tag">'+t('reco.made','판매처 {n}곳 만들었어요',{n:r.n})+'</span><br>'+
     (rate
-      ? t('reco.ifSame','<b>저희가 고른 이 {n}곳 중에서는</b> — 가격이 같다면 오늘 <b>{store}</b>가 캐시백 <b>{rate}</b>로 제일 유리해요.',
-          {n:r.n,store:recoEsc(r.topStore),rate:rate})+'<br>'+
+      ? (r.top&&r.top.upTo
+          // ⚠️ "최대 N%" 를 결과로 약속하지 않는다. 그 가게는 카테고리마다 요율이 달라
+          //    하나의 숫자가 없다(2026-09-14 실측: TopCashback Best Buy 는 10·8·최대15·10 이 공존).
+          //    사이트 모드에서 먼저 고쳤는데 이 경로가 남아 있었다 — 사용자 실사용 스크린샷에서 발견.
+          ? t('reco.ifSame.upTo','<b>저희가 고른 이 {n}곳 중에서는</b> — 오늘 <b>{store}</b>의 캐시백이 제일 높아 보여요. 다만 이 가게는 <b>상품 카테고리마다 캐시백이 달라서</b> 숫자를 대신 적지 않을게요 — 링크로 들어가 확인해 주세요.',
+              {n:r.n,store:recoEsc(r.topStore)})
+          : t('reco.ifSame','<b>저희가 고른 이 {n}곳 중에서는</b> — 가격이 같다면 오늘 <b>{store}</b>가 캐시백 <b>{rate}</b>로 제일 유리해요.',
+              {n:r.n,store:recoEsc(r.topStore),rate:rate}))+'<br>'+
         '<span class="tag">'+t('reco.thenPrice','가격을 넣으면 실제 순비용으로 확인해 드려요.')+'</span>'
       : '<span style="color:var(--warn)">'+t('reco.noRate','이 판매처들의 오늘 캐시백을 아직 몰라요 — 가격과 함께 확인해 주세요.')+'</span>')+
     // 요율을 알든 모르든 항상 붙는다 — 이건 요율에 대한 단서가 아니라 **후보 풀에 대한 사실**이다.
@@ -3039,7 +3052,7 @@ function computeSite(){
   const pBest=Math.max(cp,rp,tp);
   // 이긴 쪽의 스냅샷 — sitePctText 가 "최대"를 붙일지 판정하는 데 쓴다. **영수증(위)보다 먼저 선언해야 한다.**
   const pBestBase = (base && (pBest===rp ? base.rk : (pBest===tp ? base.tcb : null))) || null;
-  const pName= pBest<=0 ? '' : (tp===pBest?'TopCashback':(rp===pBest?'Rakuten':'Capital One Shopping'));
+  const pName= pBest<=0 ? '' : (tp===pBest?'TopCashback':'Rakuten');
   const rec=document.getElementById('siteRec');
   if(!CARDS.length){
     // ⚠️ 예전엔 여기서 추천 자리를 통째로 "카드를 골라 주세요"로 덮었다.
