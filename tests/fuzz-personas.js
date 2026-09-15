@@ -1838,11 +1838,16 @@ window.__fuzz = (function () {
     const withUpTo = [], withFlat = [];
     for (const k in PORTAL_RATES.stores) {
       const b = baselineFor(k); if (!b) continue;
-      const rk = b.rk || {}, tc = b.tcb || {};
-      const best = Math.max((rk.listed !== false && rk.pct) || 0, (tc.listed !== false && tc.pct) || 0);
-      if (!(best > 0)) continue;
-      const up = ((tc.pct || 0) === best) ? !!tc.upTo : !!rk.upTo;
-      (up ? withUpTo : withFlat).push(k);
+      // ⚠️ **이긴 포털의 플래그만 본다.** 예전엔 rk·tcb 둘만 놓고 값과 upTo 를 따로 판정했는데,
+      //    셋째 포털(BeFrugal)이 붙자 그게 곧바로 오탐이 됐다 — Lowe's 는 tcb 가 ≤4% 지만
+      //    실제 1위는 bf 의 **확정** 6% 라서, 시나리오에 '최대'가 안 붙는 게 맞다.
+      //    그런데 옛 규칙은 "스냅샷 어딘가에 upTo 가 있으면 시나리오에도 있어야 한다"로 읽혀
+      //    올바른 동작을 실패로 불렀다. 계산기와 **같은 방식으로**(한 번에 1위를 고르고
+      //    그 포털의 플래그를 쓴다) 판정해야 한다. 동점이면 rk → tcb → bf.
+      const cand = [b.rk, b.tcb, b.bf].map(x => ({ x: x || {}, p: ((x && x.listed !== false && x.pct)) || 0 }));
+      const win = cand.reduce((a, c) => c.p > a.p ? c : a);
+      if (!(win.p > 0)) continue;
+      (win.x.upTo ? withUpTo : withFlat).push(k);
     }
     checks++;
     if (!withUpTo.length) bad.push('★ 스냅샷에 upTo 인 판매처가 하나도 없다 — 이 검사가 아무것도 안 보고 있다');

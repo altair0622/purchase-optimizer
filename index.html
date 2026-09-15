@@ -139,6 +139,7 @@
   .pbtn.cap{background:#004879}
   .pbtn.rk{background:#e0115f}
   .pbtn.tcb{background:#00808c}
+  .pbtn.bf{background:#199402}
   .pbtn small{display:block;font-size:11px;font-weight:600;opacity:.85;margin-top:2px}
   .winner{font-weight:800;color:var(--accent)}
   /* 지갑(온보딩) */
@@ -445,9 +446,10 @@ https://www.walmart.com/ip/...
            CAPTCHA 로 자동 수집이 안 돼서 우리가 값을 못 채우는데, 자동 입력된 두 칸 옆에
            빈 0 이 놓이면 **"CapOne 은 0%"로 읽힌다** — 우리가 제일 싫어하는 "0% vs 모름"이다.
            전체 포털 비교는 아래 CashbackMonitor 링크가 계속 맡는다. -->
-      <div class="grid g2" style="margin-top:6px">
+      <div class="grid g3" style="margin-top:6px">
         <div><label data-i18n="site.rk">Rakuten 캐시백 %</label><input id="rkPct" type="number" min="0" step="0.5" value="0"></div>
         <div><label data-i18n="site.tcb">TopCashback 캐시백 %</label><input id="tcbPct" type="number" min="0" step="0.5" value="0"></div>
+        <div><label data-i18n="site.bf">BeFrugal 캐시백 %</label><input id="bfPct" type="number" min="0" step="0.5" value="0"></div>
       </div>
       <p class="muted" id="siteBaseline" style="margin:6px 0 0"></p>
       <p class="muted" id="portalWinner" style="margin:8px 0 0"></p>
@@ -951,7 +953,7 @@ Object.assign(STRINGS.en, {
   'rate.checkSelf': 'check it yourself',
   'rate.upTo': 'up to ',
   'rate.stamp': 'Rakuten and TopCashback auto-updated {auto} · Capital One manual {manual}',
-  'rate.stamp2': 'Rakuten·TopCashback auto-updated {auto}',
+  'rate.stamp3': 'Rakuten·TopCashback·BeFrugal auto-updated {auto}',
   'rate.old30': '· {d} days old — don’t trust it, check it',
   'rate.old14': '· {d} days old',
 
@@ -1193,6 +1195,7 @@ Object.assign(STRINGS.en, {
   'site.portal': 'Which link should you go in through <span class="muted" style="font-weight:600">— cashback portals (stacks on top of your card)</span>',
   'site.rk': 'Rakuten cashback %',
   'site.tcb': 'TopCashback cashback %',
+  'site.bf': 'BeFrugal cashback %',
   'site.what.title': '💡 What is a cashback portal?',
   'site.what.body': 'Portals like Rakuten and Capital One Shopping pay you <b>1–10% of the purchase in cash</b> when you <b>route through them</b> (click a button above) and then check out at the same store as usual. Signing up is free, and it <b>stacks with your card’s earnings</b>.<br>It does <b>not arrive right away</b> — typically 30–90 days, and <b>you lose it if tracking fails or you return the item.</b><br>What matters more: when two stores carry the same item, <b>the one with the higher cashback % can end up cheaper overall</b>. That comparison is what this calculator is for (🛒 Product mode does it precisely).',
   'site.offer.title': '🎁 Cards with an offer at this site',
@@ -1206,6 +1209,7 @@ Object.assign(STRINGS.en, {
   'site.upTo.why': 'This store’s cashback <b>varies by product category</b> — there is no single number, so we will not put one in for you. Check the rate there, type it above, and we’ll do the math.',
   'portal.someUpTo': 'some are not fixed',
   'portal.upTo.warn': '⚠️ <b>“Up to” is a ceiling.</b> This store pays different rates by category, so there is no single number — open the link, see today’s rate, and type it above.',
+  'portal.range.warn': '⚠️ <b>Where a range is shown, there is no single number.</b> The rate differs by product category — open the link, find the rate for <b>what you are actually buying</b>, and type it above. We did not auto-fill it.',
   'site.route.portal': 'Go in through the <b>{portal}</b> link and pay with <b>{card}</b>',
   'site.route.direct': 'Pay with <b>{card}</b>',
   'site.noPortal': 'No portal carries this site (all three are 0%)',
@@ -1227,10 +1231,10 @@ Object.assign(STRINGS.en, {
   'site.flipped': '🎁 <b>The offer changed the ranking</b> — on earn rate alone {card} wins, but the {v} offer covers the gap.',
   'site.noData': '⚠️ No cashback % on file — the <b>0% above is "unknown," not "no cashback."</b>',
   'site.noData.sub': 'Check it on CashbackMonitor below and type it in.',
-  'site.rateVolatile': 'We only watch Rakuten and TopCashback. To see the other 40-odd portals → ',
+  'site.rateVolatile3': 'We only watch Rakuten, TopCashback and BeFrugal. To see the other 40-odd portals → ',
   'site.guessLink': 'guessed link; if it 404s, search "{store}" directly',
-  'site.winner': '⚖️ Rakuten <b>{rk}</b> vs TopCashback <b>{tcb}</b> → <span class="winner">take {pick}</span>',
-  'site.winner.tie': '⚖️ Both at {pct} — take whichever one works',
+  'site.winner3': '⚖️ Rakuten <b>{rk}</b> · TopCashback <b>{tcb}</b> · BeFrugal <b>{bf}</b> → <span class="winner">take {pick}</span>',
+  'site.winner.tie3': '⚖️ All three at {pct} — take whichever one works',
   'site.winner.empty': 'Enter the portals’ cashback % and we’ll pick one. (Check them on CashbackMonitor above.)',
   'site.recognized': '✅ <b>{name}</b> recognized — category: {cat}',
   'site.typoFixed': '🔎 Read as ‘<b>{name}</b>’ (typo corrected) — category: {cat} · pick it yourself if that’s wrong',
@@ -1691,28 +1695,28 @@ const REFERRALS = { rakuten:"https://www.rakuten.com/r/ALTAIR42", topcashback:"h
 // 이 내장 스냅샷은 폴백 — 배포본(GitHub Pages)은 rates.json을 로드해 덮어씀.
 // rates.json의 Rakuten 값은 GitHub Actions가 매일 자동 갱신(scripts/update-rates.mjs).
 // CapOne Shopping은 CAPTCHA로 자동 수집 불가 → 수동 갱신: Claude에게 "포털 기본율 스냅샷 갱신해줘".
-const PORTAL_RATES = { asOf:"2026-07-31", capAsOf:"2026-07-31", stores:{
-  crateandbarrel:{rk:{pct:0,listed:true},    cap:{pct:0,listed:true},          tcb:{pct:0,listed:true}},
-  cb2:{rk:{pct:2,upTo:true,listed:true},     cap:{pct:0.5,listed:true},        tcb:{pct:null,listed:false}},
-  westelm:{rk:{pct:0,listed:true},           cap:{pct:0,listed:true},          tcb:{pct:null,listed:false}},
-  potterybarn:{rk:{pct:0,listed:true},       cap:{pct:0,listed:true},          tcb:{pct:null,listed:false}},
-  wayfair:{rk:{pct:0,listed:true},           cap:{pct:0,listed:true},          tcb:{pct:0,listed:true}},
-  ikea:{rk:{pct:2,listed:true},              cap:{pct:0.5,upTo:true,listed:true}, tcb:{pct:4,upTo:true,listed:true}},
-  homedepot:{rk:{pct:0,listed:true},         cap:{pct:0.5,listed:true},        tcb:{pct:12,upTo:true,listed:true}},
-  lowes:{rk:{pct:0,listed:true},             cap:{pct:0,listed:true},          tcb:{pct:0,listed:true}},
-  target:{rk:{pct:1,listed:true},            cap:{pct:0.5,listed:true},        tcb:{pct:2,listed:true}},
-  walmart:{rk:{pct:0,listed:true},           cap:{pct:1,listed:true},          tcb:{pct:15,upTo:true,listed:true}},
-  macys:{rk:{pct:6,listed:true},             cap:{pct:2,upTo:true,listed:true}, tcb:{pct:8,upTo:true,listed:true}},
-  amazon:{rk:{pct:null,flat:5,listed:true},  cap:{pct:0,listed:true},          tcb:{pct:null,listed:false}},
-  bestbuy:{rk:{pct:7,upTo:true,listed:true}, cap:{pct:0.5,listed:true},        tcb:{pct:12,listed:true}},
-  apple:{rk:{pct:2,listed:true},             cap:{pct:0.5,listed:true},        tcb:{pct:4,upTo:true,listed:true}},
-  nike:{rk:{pct:8,listed:true},              cap:{pct:2,listed:true},          tcb:{pct:10,listed:true}},
-  crocs:{rk:{pct:3,listed:true},             cap:{pct:2,listed:true},          tcb:{pct:0,listed:true}},
-  costco:{rk:{pct:0,listed:true},            cap:{pct:0,listed:true},          tcb:{pct:0,listed:true}},
-  lululemon:{rk:{pct:0,listed:true},         cap:{pct:1,listed:true},          tcb:{pct:0,listed:true}},
-  sephora:{rk:{pct:2,listed:true},           cap:{pct:2,listed:true},          tcb:{pct:4,listed:true}},
-  nordstrom:{rk:{pct:2,listed:true},         cap:{pct:0,listed:true},          tcb:{pct:0,listed:true}},
-  ulta:{rk:{pct:2,listed:true},              cap:{pct:2,listed:true},          tcb:{pct:4,listed:true}},
+const PORTAL_RATES = { asOf:"2026-09-15", capAsOf:"2026-07-31", stores:{
+  crateandbarrel:{rk:{pct:0,listed:true}, cap:{pct:0,listed:true}, tcb:{pct:0,listed:true}, bf:{pct:0,listed:true}},
+  cb2:{rk:{pct:2,upTo:true,listed:true}, cap:{pct:0.5,listed:true}, tcb:{pct:null,listed:false}, bf:{pct:9,min:4.5,upTo:true,listed:true}},
+  westelm:{rk:{pct:0,listed:true}, cap:{pct:0,listed:true}, tcb:{pct:null,listed:false}, bf:{pct:0,listed:true}},
+  potterybarn:{rk:{pct:0,listed:true}, cap:{pct:0,listed:true}, tcb:{pct:null,listed:false}, bf:{pct:0,listed:true}},
+  wayfair:{rk:{pct:0,listed:true}, cap:{pct:0,listed:true}, tcb:{pct:0,listed:true}, bf:{pct:0,listed:true}},
+  ikea:{rk:{pct:2,listed:true}, cap:{pct:0.5,upTo:true,listed:true}, tcb:{pct:0,listed:true}, bf:{pct:0,listed:true}},
+  homedepot:{rk:{pct:0,listed:true}, cap:{pct:0.5,listed:true}, tcb:{pct:10,upTo:true,listed:true}, bf:{pct:10.1,min:1.26,upTo:true,listed:true}},
+  lowes:{rk:{pct:1,listed:true}, cap:{pct:0,listed:true}, tcb:{pct:4,upTo:true,listed:true}, bf:{pct:6,listed:true}},
+  target:{rk:{pct:1,listed:true}, cap:{pct:0.5,listed:true}, tcb:{pct:2,listed:true}, bf:{pct:0.1,listed:true}},
+  walmart:{rk:{pct:0,listed:true}, cap:{pct:1,listed:true}, tcb:{pct:8,upTo:true,listed:true}, bf:{pct:18,min:0,upTo:true,listed:true}},
+  macys:{rk:{pct:2,listed:true}, cap:{pct:2,upTo:true,listed:true}, tcb:{pct:7,upTo:true,listed:true}, bf:{pct:10,listed:true}},
+  amazon:{rk:{pct:null,flat:5,listed:true}, cap:{pct:0,listed:true}, tcb:{pct:0,listed:true}, bf:{pct:0,listed:true}},
+  bestbuy:{rk:{pct:10,upTo:true,listed:true}, cap:{pct:0.5,listed:true}, tcb:{pct:15,upTo:true,listed:true}, bf:{pct:4,min:2,upTo:true,listed:true}},
+  apple:{rk:{pct:2,listed:true}, cap:{pct:0.5,listed:true}, tcb:{pct:4,upTo:true,listed:true}, bf:{pct:0,listed:true}},
+  nike:{rk:{pct:10,listed:true}, cap:{pct:2,listed:true}, tcb:{pct:10,listed:true}, bf:{pct:10,listed:true}},
+  crocs:{rk:{pct:3,listed:true}, cap:{pct:2,listed:true}, tcb:{pct:0,listed:true}, bf:{pct:7,listed:true}},
+  costco:{rk:{pct:0,listed:true}, cap:{pct:0,listed:true}, tcb:{pct:0,listed:true}, bf:{pct:0,listed:true}},
+  lululemon:{rk:{pct:0,listed:true}, cap:{pct:1,listed:true}, tcb:{pct:0,listed:true}, bf:{pct:0,listed:true}},
+  sephora:{rk:{pct:2,listed:true}, cap:{pct:2,listed:true}, tcb:{pct:2.5,listed:true}, bf:{pct:5,listed:true}},
+  nordstrom:{rk:{pct:0,listed:true}, cap:{pct:0,listed:true}, tcb:{pct:0,listed:true}, bf:{pct:0,listed:true}},
+  ulta:{rk:{pct:2,listed:true}, cap:{pct:2,listed:true}, tcb:{pct:4,listed:true}, bf:{pct:7,listed:true}},
 } };
 // ⭐ 우리가 **인용하는** 기본 포털은 Rakuten·TopCashback 둘뿐이다 (v0.37).
 //
@@ -1752,11 +1756,16 @@ function sitePctText(base, val){
   const isOurs = base && base.upTo && base.pct != null && +base.pct === n;
   return (isOurs ? t('rate.upTo','최대 ') : '') + n + '%';
 }
-function fmtBase(b){ if(!b) return "—"; if(b.listed===false) return t('rate.none','없음'); if(b.flat!=null) return t('rate.flat','${v} 고정',{v:b.flat}); if(b.pct==null) return t('rate.checkSelf','직접 확인'); return (b.upTo?t('rate.upTo','최대 '):"")+b.pct+"%"; }
+// min 이 있으면 **범위로 말한다.** "최대 4%" 보다 "2%~4%" 가 훨씬 쓸모 있다 —
+// 앞의 것은 "그래서 얼마냐"에 답을 못 하지만, 뒤의 것은 최소한 바닥을 알려준다.
+// (2026-09-14 BeFrugal 부서 요율표에서 바닥값을 같이 가져오게 되면서 생긴 표현)
+function fmtBase(b){ if(!b) return "—"; if(b.listed===false) return t('rate.none','없음'); if(b.flat!=null) return t('rate.flat','${v} 고정',{v:b.flat}); if(b.pct==null) return t('rate.checkSelf','직접 확인');
+  if(b.min!=null && b.min!==b.pct) return b.min+"%~"+b.pct+"%";
+  return (b.upTo?t('rate.upTo','최대 '):"")+b.pct+"%"; }
 // Rakuten·TopCashback 만 매일 자동 수집한다(asOf).
 // ⚠️ CapOne 의 수동 날짜(capAsOf)를 여기 섞지 않는다 — **기본 계산에 안 들어가는 값**의
 //    날짜를 같이 보여주면 "이 숫자들이 그날 것"으로 읽힌다.
-function ratesStamp(){ return t('rate.stamp2','Rakuten·TopCashback {auto} 자동갱신',{auto:PORTAL_RATES.asOf}); }
+function ratesStamp(){ return t('rate.stamp3','Rakuten·TopCashback·BeFrugal {auto} 자동갱신',{auto:PORTAL_RATES.asOf}); }
 // 스냅샷이 오래되면 명시적으로 경고 — 캐시백률은 수시로 바뀌므로 오래된 값은 틀린 값에 가깝다
 function rateAgeWarn(){
   // ⚠️ capAsOf 를 더 이상 보지 않는다. CapOne 은 기본 계산에서 빠졌는데 그 수동 날짜가
@@ -1873,7 +1882,12 @@ const STORES={};
 //   `rk:null` 처럼 **명시적 null = 그 포털에 미등재** — 링크를 아예 안 만든다(추정 링크가 더 나쁘다).
 STORE_LIST.forEach(e=>{ const name=e[0],cat=e[1],o=e[2]||{}; const k=o.key||normStore(name); if(STORES[k]) return;
   const s=slug(name); const pick=(f)=>(f in o)?o[f]:s;   // null 이면 null 그대로 (||s 로 되살리면 안 됨)
-  STORES[k]={name,cat,cbm:pick('cbm'),rk:pick('rk'),tcb:pick('tcb'),cap:o.cap||(k+".com")}; });
+  // ⚠️ BeFrugal 만 기본 슬러그가 다르다 — **대시를 안 쓴다**(home-depot ✗ / homedepot ✓).
+  //    그래서 slug(name) 이 아니라 normStore(name) 이 기본값이다. 키(k)를 쓰면 안 된다:
+  //    key 오버라이드가 있는 곳(bedbath 등)에서 이름과 어긋난다.
+  //    같은 규칙이 scripts/portal-parse.mjs 의 bfSlug 에도 있다(브라우저/노드라 공유가 안 된다).
+  const bfDef=normStore(name); const pickBf=()=>('bf' in o)?o.bf:bfDef;
+  STORES[k]={name,cat,cbm:pick('cbm'),rk:pick('rk'),tcb:pick('tcb'),bf:pickBf(),cap:o.cap||(k+".com")}; });
 // 키가 4자 미만이면 시작 일치만(오탐 방지: rei가 oreilly에 걸리는 것 등), 4자 이상이면 포함 일치
 function storeKeyHit(h,k){ return k.length<4 ? h.startsWith(k) : h.includes(k); }
 function matchStore(hint){ const h=normStore(hint); for(const k in STORES){ if(storeKeyHit(h,k)) return {key:k,...STORES[k]}; } return null; }
@@ -1899,13 +1913,14 @@ function prettyDomain(d){ return (d||"").replace(/\.(com|net|org|co|us|shop).*$/
 
 function portalTargets(store, domain){
   const hit = matchStore(domain) || matchStore(store);
-  if(hit){ return {known:true, cbm:hit.cbm, rk:hit.rk, tcb:hit.tcb,
+  if(hit){ return {known:true, cbm:hit.cbm, rk:hit.rk, tcb:hit.tcb, bf:hit.bf,
     cap:(domain&&domain.includes(hit.key))?domain:(hit.cap||hit.key+".com")}; }
-  const s=slug(store)||"store"; return {known:false, cbm:s, rk:s, tcb:s, cap:domain||(s+".com")};
+  // 미등록 판매처의 BeFrugal 추정 슬러그는 **대시를 뺀다** — 그게 BeFrugal 규칙이다.
+  const s=slug(store)||"store"; return {known:false, cbm:s, rk:s, tcb:s, bf:s.replace(/-/g,''), cap:domain||(s+".com")};
 }
 function portalLinksHTML(store, domain){
   // ⚠️ 이전 이름은 t 였다 — 전역 t()(i18n)를 가려서 pt 로 바꿨다.
-  const pt=portalTargets(store,domain); const {cbm,rk,tcb,cap,known}=pt;
+  const pt=portalTargets(store,domain); const {cbm,rk,tcb,bf,cap,known}=pt;
   // 슬러그가 null = 그 포털에 상점이 없다고 실측된 곳 → 링크 대신 '미등재'로 알린다.
   // 없는 줄 모르고 눌렀다가 홈이나 엉뚱한 상점에 떨어지는 게 제일 나쁘다.
   const lk=(url,label,s)=> s ? `<a href="${url}" target="_blank">${label}</a>`
@@ -1913,6 +1928,8 @@ function portalLinksHTML(store, domain){
   return lk(`https://www.cashbackmonitor.com/cashback-store/${cbm}/`,'CashbackMonitor',cbm)+
     ` · `+lk(`https://www.rakuten.com/shop/${rk}`,'Rakuten',rk)+
     ` · `+lk(`https://www.topcashback.com/${tcb}/`,'TopCashback',tcb)+
+    // ⚠️ BeFrugal 은 `/store/` 다 — 복수형 `/stores/` 로 만들면 전부 404 로 떨어진다.
+    ` · `+lk(`https://www.befrugal.com/store/${bf}/`,'BeFrugal',bf)+
     // ⚠️ Capital One Shopping 을 뺐다(2026-09-14). 요율을 자동으로 못 읽어(CAPTCHA) 비교에
     //    못 쓰는데 링크만 남겨두면, 사용자가 눌러 확인하고 돌아와도 넣을 칸이 없다.
     //    사이트 모드에서 먼저 뺐는데 여기가 남아 있었다 — 사용자 실사용 스크린샷에서 발견.
@@ -2385,9 +2402,15 @@ function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id)
     // 기본율 자동 입력 — 이 시나리오+판매처 조합당 1회, 비어 있을 때만
     if(ratesLive && !sc.portalUnknown && !autoApplied['sc'+sc.id+':'+hit.key] && (+sc.portalPct||0)===0){
       autoApplied['sc'+sc.id+':'+hit.key]=true;
-      const rkp=(base.rk&&base.rk.listed!==false&&base.rk.pct)||0;
-      const tcbp=(base.tcb&&base.tcb.listed!==false&&base.tcb.pct)||0;
-      const bestP=Math.max(rkp,tcbp);     // ⚠️ CapOne 은 자동 수집이 안 되므로 후보가 아니다
+      // ⚠️ 이긴 포털을 **한 번만** 고른다. 예전엔 값·upTo·이름을 각각 따로 판정해서
+      //    셋째 포털이 붙자마자 어긋났다 — BeFrugal 이 1위인데 upTo 는 Rakuten 것을 읽어
+      //    Home Depot(≤10.1%)의 '최대' 표시가 통째로 사라졌다(runUpTo 가 잡아냈다).
+      //    값과 플래그와 이름은 **같은 한 곳**에서 나와야 한다. 동점이면 rk → tcb → bf.
+      //    ⚠️ CapOne 은 자동 수집이 안 되므로 후보가 아니다.
+      const cands=[['Rakuten',base.rk],['TopCashback',base.tcb],['BeFrugal',base.bf]]
+        .map(([nm,b])=>({nm, b, p:(b&&b.listed!==false&&b.pct)||0}));
+      const win=cands.reduce((a,c)=>c.p>a.p?c:a);
+      const bestP=win.p;
       if(bestP>0){ sc.portalPct=bestP;
         // ⭐ **upTo 를 같이 실어 나른다.** 여기서 버려지고 있었다 (P8-b).
         //    Walmart/TopCashback 은 `Up to 8%` 인데 시나리오엔 `8` 만 들어가서,
@@ -2395,15 +2418,17 @@ function updatePortalLinks(sc){ const p=document.getElementById('plinks-'+sc.id)
         //    사용자 실사용 보고: *"Walmart 이 8%여서 TopCashback 으로 들어왔는데 up to 야…"*
         //    이 도구가 upTo 를 버리지 않고 살려온 이유가 정확히 이것이다 —
         //    **최대치를 확정치처럼 쓰면 그게 곧 거짓말이 된다.**
-        sc.portalUpTo=(tcbp===bestP) ? !!(base.tcb&&base.tcb.upTo) : !!(base.rk&&base.rk.upTo);
-        sc.portalName=(tcbp===bestP?'TopCashback':'Rakuten')+t('portal.baseSuffix',' (기본율)');
+        sc.portalUpTo=!!(win.b&&win.b.upTo);
+        sc.portalName=win.nm+t('portal.baseSuffix',' (기본율)');
         const card=document.getElementById('scard-'+sc.id);
         if(card){ card.querySelector('.s-portal').value=bestP; card.querySelector('.s-portalname').value=sc.portalName; }
       }
     }
-    const bestBase=Math.max((base.rk&&base.rk.listed!==false&&base.rk.pct)||0,(base.tcb&&base.tcb.listed!==false&&base.tcb.pct)||0);
-    // ⚠️ 인용하는 요율은 **매일 자동 갱신되는 두 곳뿐**이다. CapOne 은 자동 수집이 안 돼서 뺐다.
-    extra=`<br>${t('portal.base','📊 기본율')} <span class="tag">${ratesStamp()}${rateAgeWarn()}</span>: Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b> <span class="tag">${sc.portalUnknown?'':t('portal.autoBest','— 높은 쪽 자동 반영')}</span>`+loginCtaHTML();
+    const bestBase=Math.max((base.rk&&base.rk.listed!==false&&base.rk.pct)||0,
+                            (base.tcb&&base.tcb.listed!==false&&base.tcb.pct)||0,
+                            (base.bf&&base.bf.listed!==false&&base.bf.pct)||0);
+    // ⚠️ 인용하는 요율은 **매일 자동 갱신되는 세 곳뿐**이다. CapOne 은 자동 수집이 안 돼서 뺐다.
+    extra=`<br>${t('portal.base','📊 기본율')} <span class="tag">${ratesStamp()}${rateAgeWarn()}</span>: Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b> · BeFrugal <b>${fmtBase(base.bf)}</b> <span class="tag">${sc.portalUnknown?'':t('portal.autoBest','— 높은 쪽 자동 반영')}</span>`+loginCtaHTML();
     if(sc.portalUnknown){
       extra+=`<br><span class="nodata">${t('portal.needCheck','⚠️ <b>이 판매처는 캐시백 % 확인 필요</b> — 지금 빈 칸은 <b>"0%"가 아니라 "모름"이에요.</b> 캐시백이 없다는 뜻이 아니에요.')}</span>`+
         ` <span class="tag">${t('portal.needCheck.sub','위 링크에서 오늘 캐시백 %를 확인하고 직접 넣어 주세요.')}</span>`+
@@ -3031,6 +3056,7 @@ function computeSite(){
     const g=b=>(b&&b.listed!==false&&b.pct!=null&&!b.upTo)?b.pct:0;   // upTo 는 비워 둔다(위 주석)
     document.getElementById('rkPct').value = base?g(base.rk):0;
     document.getElementById('tcbPct').value = base?g(base.tcb):0;
+    document.getElementById('bfPct').value = base?g(base.bf):0;
     // (2026-09-14) CapOne 칸은 제거됐다. 예전 주석의 "자동 채움이 곧 인용이다"는 원칙은
     //    그대로 유효하다 — 다만 이제 채울 칸 자체가 없다.
     if(fz) autoApplied['site:'+fz.key]=true;
@@ -3045,14 +3071,19 @@ function computeSite(){
     const fillable = b => b && b.pct!=null && b.listed!==false && !b.upTo;
     if(fillable(base.rk)  && (+v('rkPct')||0)===0)  document.getElementById('rkPct').value=base.rk.pct;
     if(fillable(base.tcb) && (+v('tcbPct')||0)===0) document.getElementById('tcbPct').value=base.tcb.pct;
+    //    BeFrugal 은 여기가 더 중요하다 — 카테고리별로 갈려도 제목에 "Up to" 를 안 붙여서
+    //    **천장값이 확정값처럼 생겼다.** upTo 면 똑같이 비워 둔다.
+    if(fillable(base.bf)  && (+v('bfPct')||0)===0)  document.getElementById('bfPct').value=base.bf.pct;
   }
   renderSiteOfpHint();       // 사이트·금액이 바뀌면 붙여넣어 둔 오퍼 제안도 같이 바뀌어야 한다
   const cp=0,   // CapOne 칸 제거 — 비교에서 빠진다
-     rp=+v('rkPct')||0, tp=+v('tcbPct')||0;
-  const pBest=Math.max(cp,rp,tp);
+     rp=+v('rkPct')||0, tp=+v('tcbPct')||0, bp=+v('bfPct')||0;
+  const pBest=Math.max(cp,rp,tp,bp);
   // 이긴 쪽의 스냅샷 — sitePctText 가 "최대"를 붙일지 판정하는 데 쓴다. **영수증(위)보다 먼저 선언해야 한다.**
-  const pBestBase = (base && (pBest===rp ? base.rk : (pBest===tp ? base.tcb : null))) || null;
-  const pName= pBest<=0 ? '' : (tp===pBest?'TopCashback':'Rakuten');
+  // ⚠️ 동점이면 **먼저 오는 쪽**을 집는다(rk → tcb → bf). 아래 pName 과 순서가 같아야
+  //    "이름은 A인데 '최대' 표시는 B 기준" 같은 어긋남이 안 생긴다.
+  const pBestBase = (base && (pBest===rp ? base.rk : (pBest===tp ? base.tcb : (pBest===bp ? base.bf : null)))) || null;
+  const pName= pBest<=0 ? '' : (rp===pBest?'Rakuten':(tp===pBest?'TopCashback':'BeFrugal'));
   const rec=document.getElementById('siteRec');
   if(!CARDS.length){
     // ⚠️ 예전엔 여기서 추천 자리를 통째로 "카드를 골라 주세요"로 덮었다.
@@ -3132,22 +3163,30 @@ function computeSite(){
   }
 
   // ⚠️ 이전 이름은 t 였다. 전역 t() (i18n)를 함수 전체에서 TDZ로 가려 버려서 pt 로 바꿨다.
-  const pt = fz ? {known:true, cbm:fz.cbm, rk:fz.rk, tcb:fz.tcb, cap:fz.key+".com"} : portalTargets(store,'');
+  const pt = fz ? {known:true, cbm:fz.cbm, rk:fz.rk, tcb:fz.tcb, bf:fz.bf, cap:fz.key+".com"} : portalTargets(store,'');
 
   // 기본율 표시 (+되돌리기)
   const bEl=document.getElementById('siteBaseline');
   if(base && PORTAL_RATES.asOf){
     const rkOk=base.rk&&base.rk.pct!=null&&base.rk.listed!==false;
     const tcbOk=base.tcb&&base.tcb.pct!=null&&base.tcb.listed!==false;
-    bEl.innerHTML=`${t('portal.base','📊 기본율')} <span class="tag">${ratesStamp()}${rateAgeWarn()}</span> <b>${(base.rk&&base.rk.upTo)||(base.tcb&&base.tcb.upTo)?t('portal.someUpTo','일부는 확정값이 아니에요'):t('portal.autoFilled','자동 입력됨')}</b>: Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b>`+
-      (((base.rk&&base.rk.upTo)||(base.tcb&&base.tcb.upTo))?`<br><span class="nodata">${t('portal.upTo.warn','⚠️ <b>"최대"는 천장값이에요.</b> 이 가게는 상품 카테고리마다 캐시백이 달라서 하나의 숫자가 없어요 — 링크로 들어가 오늘 %를 보고 위에 넣어 주세요.')}</span>`:``)+
-      ((rkOk||tcbOk)?` <button class="mini" type="button" id="fillBase">${t('portal.revert','↺ 기본율로 되돌리기')}</button>`:``)+
+    const bfOk=base.bf&&base.bf.pct!=null&&base.bf.listed!==false;
+    const anyUpTo=!!((base.rk&&base.rk.upTo)||(base.tcb&&base.tcb.upTo)||(base.bf&&base.bf.upTo));
+    // 범위(min)를 아는 곳이 하나라도 있으면 경고를 그쪽 문구로 바꾼다 —
+    // "직접 확인하세요"보다 "2%~4%인데 어디쯤인지는 들어가 봐야 안다"가 더 많은 걸 알려준다.
+    const anyRange=!!((base.rk&&base.rk.min!=null)||(base.tcb&&base.tcb.min!=null)||(base.bf&&base.bf.min!=null));
+    bEl.innerHTML=`${t('portal.base','📊 기본율')} <span class="tag">${ratesStamp()}${rateAgeWarn()}</span> <b>${anyUpTo?t('portal.someUpTo','일부는 확정값이 아니에요'):t('portal.autoFilled','자동 입력됨')}</b>: Rakuten <b>${fmtBase(base.rk)}</b> · TopCashback <b>${fmtBase(base.tcb)}</b> · BeFrugal <b>${fmtBase(base.bf)}</b>`+
+      (anyUpTo?`<br><span class="nodata">${anyRange
+        ? t('portal.range.warn','⚠️ <b>범위로 적힌 곳은 하나의 숫자가 없어요.</b> 상품 카테고리마다 캐시백이 달라서 그래요 — 링크로 들어가 <b>내가 살 물건의 %</b>를 보고 위에 넣어 주세요. 자동 입력은 안 했어요.')
+        : t('portal.upTo.warn','⚠️ <b>"최대"는 천장값이에요.</b> 이 가게는 상품 카테고리마다 캐시백이 달라서 하나의 숫자가 없어요 — 링크로 들어가 오늘 %를 보고 위에 넣어 주세요.')}</span>`:``)+
+      ((rkOk||tcbOk||bfOk)?` <button class="mini" type="button" id="fillBase">${t('portal.revert','↺ 기본율로 되돌리기')}</button>`:``)+
       loginCtaHTML();
     const fb=document.getElementById('fillBase');
     if(fb) fb.addEventListener('click',()=>{
       // upTo 는 되돌리기로도 넣지 않는다 — 천장값을 계산에 쓰지 않기로 한 결정과 같은 이유
       if(rkOk && !base.rk.upTo) document.getElementById('rkPct').value=base.rk.pct;
       if(tcbOk && !base.tcb.upTo) document.getElementById('tcbPct').value=base.tcb.pct;
+      if(bfOk && !base.bf.upTo) document.getElementById('bfPct').value=base.bf.pct;
       computeSite();
     });
   } else {
@@ -3158,18 +3197,28 @@ function computeSite(){
   const capUrl=`https://capitaloneshopping.com/s/${pt.cap}/coupon`;
   const rkUrl=`https://www.rakuten.com/shop/${pt.rk}`;
   const tcbUrl=`https://www.topcashback.com/${pt.tcb}/`;
+  const bfUrl=`https://www.befrugal.com/store/${pt.bf}/`;   // ⚠️ /store/ 다. /stores/ 는 전부 404.
   const cbmUrl=`https://www.cashbackmonitor.com/cashback-store/${pt.cbm}/`;
+  // 슬러그가 null = 그 포털에 없다고 실측된 곳 → **버튼을 만들지 않는다.**
+  // 없는 줄 모르고 눌렀다가 홈이나 엉뚱한 상점에 떨어지는 게 제일 나쁘다
+  // (아래 portalLinksHTML 의 '미등재' 처리와 같은 원칙).
+  // 🔴 이 가드가 없어서 Patagonia 는 `topcashback.com/null/` 로 가고 있었다 —
+  //    BeFrugal 버튼을 붙이다 드러난 옛 버그다. 세 포털에 같은 규칙을 적용한다.
+  const pbtn=(cls,url,label,slug)=> slug
+    ? `<a class="pbtn ${cls}" href="${url}" target="_blank">${label} ↗<small>${t('portal.via','여기 경유 후 사이트로')}</small></a>`
+    : `<span class="pbtn" style="background:var(--muted,#888);cursor:default" title="${t('portal.notListed.title','이 포털엔 이 판매처가 없어요(직접 확인했어요)')}">${t('portal.notListed','{portal} 미등재',{portal:label})}</span>`;
   document.getElementById('sitePortalBtns').innerHTML=
-    `<a class="pbtn rk" href="${rkUrl}" target="_blank">Rakuten ↗<small>${t('portal.via','여기 경유 후 사이트로')}</small></a>`+
-    `<a class="pbtn tcb" href="${tcbUrl}" target="_blank">TopCashback ↗<small>${t('portal.via','여기 경유 후 사이트로')}</small></a>`;
+    pbtn('rk',rkUrl,'Rakuten',pt.rk)+pbtn('tcb',tcbUrl,'TopCashback',pt.tcb)+pbtn('bf',bfUrl,'BeFrugal',pt.bf);
   document.getElementById('siteCompare').innerHTML=
-    t('site.rateVolatile','저희는 Rakuten·TopCashback 둘만 봐요. 나머지 40여 개 포털까지 보려면 → ')+`<a href="${cbmUrl}" target="_blank">CashbackMonitor</a>`+
+    t('site.rateVolatile3','저희는 Rakuten·TopCashback·BeFrugal 셋만 봐요. 나머지 40여 개 포털까지 보려면 → ')+`<a href="${cbmUrl}" target="_blank">CashbackMonitor</a>`+
     (pt.known?'':` <span style="color:var(--warn)">— ${t('site.guessLink','추정 링크, 안 열리면 "{store}" 직접 검색',{store:store||t('site.storeNamePh','사이트명')})}</span>`);
 
   const wEl=document.getElementById('portalWinner');
   if(pBest>0){
-    if(rp!==tp) wEl.innerHTML=t('site.winner','⚖️ Rakuten <b>{rk}</b> vs TopCashback <b>{tcb}</b> → <span class="winner">{pick} 선택</span>',{rk:sitePctText(base&&base.rk,rp),tcb:sitePctText(base&&base.tcb,tp),pick:pName});
-    else wEl.innerHTML=t('site.winner.tie','⚖️ 둘 다 {pct} — 아무 쪽이나 (되는 걸로)',{pct:sitePctText(base&&base.rk,rp)});
+    // 셋이 전부 같으면 "아무 쪽이나", 아니면 셋을 나란히 놓고 1위를 찍는다.
+    if(rp===tp && tp===bp) wEl.innerHTML=t('site.winner.tie3','⚖️ 셋 다 {pct} — 아무 쪽이나 (되는 걸로)',{pct:sitePctText(base&&base.rk,rp)});
+    else wEl.innerHTML=t('site.winner3','⚖️ Rakuten <b>{rk}</b> · TopCashback <b>{tcb}</b> · BeFrugal <b>{bf}</b> → <span class="winner">{pick} 선택</span>',
+      {rk:sitePctText(base&&base.rk,rp),tcb:sitePctText(base&&base.tcb,tp),bf:sitePctText(base&&base.bf,bp),pick:pName});
   } else {
     wEl.innerHTML=t('site.winner.empty','포털들의 캐시백 %를 넣으면 비교해서 정해 드릴게요. (위 CashbackMonitor로 확인)');
   }
@@ -3773,7 +3822,7 @@ const LSKEY="purchOpt_v06";
 function saveState(){ try{ localStorage.setItem(LSKEY, JSON.stringify({
   mode, myWallet, cppValues, pname:v('pname'), cat:v('cat'), taxPct:v('taxPct'),
   customCards: customCards.map(c=>({id:c.id,name:c.name,cur:c.cur,mults:c.mults})),
-  siteStore:v('siteStore'), siteCat:v('siteCat'), siteAmt:v('siteAmt'), rkPct:v('rkPct'), tcbPct:v('tcbPct'), siteOffers,
+  siteStore:v('siteStore'), siteCat:v('siteCat'), siteAmt:v('siteAmt'), rkPct:v('rkPct'), tcbPct:v('tcbPct'), bfPct:v('bfPct'), siteOffers,
   offerWallet,   // 붙여넣기로 읽은 오퍼 (파싱 결과만 — 원문은 저장하지 않는다)
   scenarios: scenarios.map(s=>({store:s.store,domain:s.domain,price:s.price,ship:s.ship,coupon:s.coupon,portalPct:s.portalPct,portalName:s.portalName,portalUpTo:s.portalUpTo,portalUnknown:s.portalUnknown,offers:s.offers,lastChecked:s.lastChecked}))
 })); }catch(e){} }
@@ -3789,6 +3838,7 @@ function loadState(){ try{ const s=JSON.parse(localStorage.getItem(LSKEY)); if(!
   /* capPct 칸 제거됨 — 옛 저장값은 무시한다 */
   if(s.rkPct!=null) document.getElementById('rkPct').value=s.rkPct;
   if(s.tcbPct!=null) document.getElementById('tcbPct').value=s.tcbPct;
+  if(s.bfPct!=null) document.getElementById('bfPct').value=s.bfPct;
   if(s.siteAmt!=null) document.getElementById('siteAmt').value=s.siteAmt;
   // 구버전은 siteOffers가 true/false였다 → 숫자로 정규화(true는 금액 미상이라 0)
   if(s.siteOffers && typeof s.siteOffers==='object'){ siteOffers={};
@@ -3841,6 +3891,7 @@ function prefillFromQuery(searchStr){
   if(q.has('cap')){ siteHit=true; }   // 옛 딥링크 호환 — 값은 더 이상 안 쓴다
   if(q.has('rk')){ document.getElementById('rkPct').value=+q.get('rk')||0; siteHit=true; }
   if(q.has('tcb')){ document.getElementById('tcbPct').value=+q.get('tcb')||0; siteHit=true; }
+  if(q.has('bf')){ document.getElementById('bfPct').value=+q.get('bf')||0; siteHit=true; }
   if(q.has('samt')){ document.getElementById('siteAmt').value=+q.get('samt')||0; siteHit=true; }
   // soff=freedomu:25,hilton:50 (구형 soff=freedomu,hilton 도 허용 — 금액 0으로)
   if(q.has('soff')){ siteOffers={}; q.get('soff').split(',').map(x=>x.trim()).filter(Boolean).forEach(tok=>{
@@ -3944,7 +3995,7 @@ function init(){
     computeSite();
   });
   document.getElementById('siteCat').addEventListener('change',computeSite);
-  ['rkPct','tcbPct','siteAmt'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input',computeSite); });
+  ['rkPct','tcbPct','bfPct','siteAmt'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('input',computeSite); });
 
   recompute();
   setMode(mode);
