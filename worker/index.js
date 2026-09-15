@@ -2,7 +2,7 @@
  * price-proxy — 계산기가 쓰는 Cloudflare Worker. 엔드포인트 2개.
  *
  *   GET  /?url=<상품 URL>    → 상품 페이지에서 "가격만" 뽑아 JSON
- *   GET  /rate?store=<슬러그> → Rakuten·TopCashback 캐시백 요율을 그 한 곳만 라이브 조회 (v0.29)
+ *   GET  /rate?store=<슬러그> → Rakuten·TopCashback·BeFrugal 캐시백 요율을 그 한 곳만 라이브 조회 (v0.29)
  *   POST /vision              → 사진에서 "검색어 후보"를 뽑아 JSON (v0.31)
  *
  * 왜 만들었나
@@ -15,7 +15,7 @@
  *  1) HTML을 그대로 돌려주지 않고 **필요한 값만 파싱해서 반환**한다.
  *     → 아무나 쓸 수 있는 범용 오픈 프록시가 되는 걸 막고, 응답도 훨씬 작아진다.
  *  2) SSRF 차단 — 사설/내부 IP와 클라우드 메타데이터 주소는 거부한다.
- *     `/rate` 는 한 발 더 나가서 **목적지가 두 도메인으로 고정**돼 있다(아래).
+ *     `/rate` 는 한 발 더 나가서 **목적지가 세 도메인으로 고정**돼 있다(아래).
  *  3) 캐시 — 같은 상품/상점을 여러 번 열어도 원 사이트엔 한 번만 간다.
  *
  * ===== 프라이버시 (이 파일이 근거다) =====
@@ -96,7 +96,7 @@ const MAX_REDIRECTS = 5;
 const FETCH_TIMEOUT = 12_000;
 
 // ===== /rate — 온디맨드 요율 조회 =====
-// 목적지는 **이 표에 적힌 두 도메인으로 고정**이다. 사용자가 주는 건 URL이 아니라
+// 목적지는 **이 표에 적힌 세 도메인으로 고정**이다. 사용자가 주는 건 URL이 아니라
 // 슬러그 하나뿐이고, 그 슬러그는 [a-z0-9-] 로만 이루어져야 통과한다(RATE_SLUG).
 // 그래서 `/?url=` 쪽처럼 "임의의 호스트를 검사해서 거른다"가 아니라
 // **애초에 다른 곳으로 갈 수 있는 문자열을 만들 수 없다.** 공격면이 한 단계 좁다.
@@ -105,6 +105,9 @@ const RATE_PORTALS = [
     url: s => `https://www.rakuten.com/shop/${s}`, parse: parseRakuten },
   { key: 'tcb', hosts: ['www.topcashback.com', 'topcashback.com'],
     url: s => `https://www.topcashback.com/${s}/`, parse: parseTopcashback },
+  // ⚠️ BeFrugal 은 `/store/` 다 — 복수형 `/stores/` 로 찌르면 전부 404 다.
+  { key: 'bf',  hosts: ['www.befrugal.com', 'befrugal.com'],
+    url: s => `https://www.befrugal.com/store/${s}/`, parse: parseBefrugal },
 ];
 // 앞뒤가 영숫자이고 가운데만 하이픈. 점·슬래시·콜론·@·% 가 없으니 경로를 벗어날 수 없다.
 const RATE_SLUG = /^[a-z0-9](?:[a-z0-9-]{0,58}[a-z0-9])?$/;
@@ -203,7 +206,8 @@ export default {
 //   { pct: 0,    listed: true,  status: 'listed-zero' }  등재돼 있는데 캐시백 0% (쿠폰만)
 //   { pct: null, listed: false, status: 'no-page' }      그 슬러그로는 상점 페이지가 없음
 //   { pct: null, listed: null,  status: 'lookup-failed', error } 조회 실패 = **모름**
-// `upTo: true`(≤N%), `flat: 5`($ 고정)는 rates.json 과 같은 뜻·같은 이름이다.
+// `upTo: true`(≤N%), `flat: 5`($ 고정), `min: 2`(부서별로 갈릴 때의 바닥값)는
+//   rates.json 과 같은 뜻·같은 이름이다.
 async function handleRate(rawStore, ctx, cors) {
   const store = String(rawStore == null ? '' : rawStore).trim().toLowerCase();
   if (!store) return json({ error: 'store 파라미터가 필요해' }, 400, cors);
@@ -316,6 +320,37 @@ function parseTopcashback(html) {
   if (/Page not found|Page Not Found/i.test(html)) return { pct: null, listed: false, status: 'no-page' };
   if (/<h1[^>]*>[^<]*Cash Back Offers/i.test(html)) return { pct: 0, listed: true, status: 'listed-zero' };
   return rateFailed('요율 요소를 못 찾았어');          // ← 0% 아님. 모름이다.
+}
+
+// BeFrugal — Rakuten 처럼 <title> 에 요율이 실린다("Nike 10.0% Cash Back + 25 Coupons…").
+//
+// 🔴 **제목만 믿으면 안 된다.** Rakuten·TopCashback 은 카테고리별로 요율이 갈리면 제목에
+//    "Up to" 를 붙이는데 **BeFrugal 은 안 붙인다.** 제목이 "Best Buy 4.0% Cash Back" 이어도
+//    실제는 가전 4% · 기타 3% · **노트북 2%** 다. 그 숫자는 확정값이 아니라 **천장값**이다.
+//    → 본문의 부서 요율표(cash-back-department-row)가 있으면 upTo=true 로 표시하고
+//      min(부서 최소값)을 같이 돌려준다. 2026-09-14 실측: 110곳 중 17곳이 이 경우.
+//
+// ⚠️ 본문 전체에서 %를 긁으면 안 된다 — 모든 상점 페이지에 인기 상점 캐러셀(남의 가게 타일)이
+//    박혀 있어 Macy's 10% 같은 남의 숫자가 딸려 온다.
+// (파서는 scripts/portal-parse.mjs 와 같은 규칙이다. 규칙이 바뀌면 세 곳을 같이 고쳐야 한다.)
+function parseBefrugal(html) {
+  const m = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+  const title = m ? m[1].replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&#x2B;/g, '+').replace(/\s+/g, ' ').trim() : '';
+  if (!title) return rateFailed('타이틀을 못 찾았어');
+  if (/^BeFrugal$/i.test(title)) return { pct: null, listed: false, status: 'no-page' };
+  // 상점 페이지인지 확인 — 마크업이 바뀌었는데 조용히 0% 로 떨어지면 '안 준다'는 거짓말이 된다.
+  if (!/<h1[^>]*>[^<]*Coupons[^<]*<\/h1>/i.test(html)) return rateFailed('상점 페이지가 아니야');
+
+  const depts = [...html.matchAll(/cash-back-departments-value[^>]*>\s*([\d.]+)\s*%/gi)].map(x => +x[1]);
+  let r = title.match(/(\d+(?:\.\d+)?)%\s*Cash Back/i);
+  if (r) {
+    const out = { pct: +r[1], listed: true, status: 'found' };
+    if (depts.length) { out.upTo = true; out.min = Math.min(...depts); }
+    return out;
+  }
+  r = title.match(/\$(\d+(?:\.\d+)?)\s*Cash Back/i);
+  if (r) return { pct: null, flat: +r[1], listed: true, status: 'found' };
+  return { pct: 0, listed: true, status: 'listed-zero' };   // 등재됐지만 지금 캐시백 0
 }
 
 // ===== /vision — 사진에서 "검색어 후보"를 뽑는다 (v0.31) =====

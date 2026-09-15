@@ -342,9 +342,10 @@ for (const [label, body, expect] of PARSE_CASES) {
 const PINNED = [
   /^https:\/\/www\.rakuten\.com\/shop\/[a-z0-9-]{1,60}$/,
   /^https:\/\/www\.topcashback\.com\/[a-z0-9-]{1,60}\/$/,
+  /^https:\/\/www\.befrugal\.com\/store\/[a-z0-9-]{1,60}\/$/,
 ];
 // 1b) 리다이렉트를 따라간 뒤에도 **호스트는 이 집합을 벗어나면 안 된다** (경로는 포털이 정한다)
-const PINNED_HOSTS = new Set(['www.rakuten.com', 'rakuten.com', 'www.topcashback.com', 'topcashback.com']);
+const PINNED_HOSTS = new Set(['www.rakuten.com', 'rakuten.com', 'www.topcashback.com', 'topcashback.com', 'www.befrugal.com', 'befrugal.com']);
 const offPortalHost = u => { try { return !PINNED_HOSTS.has(new URL(u).hostname.toLowerCase()) || new URL(u).protocol !== 'https:'; } catch { return true; } };
 const rstats = { n: 0, accepted: 0, rejected: 0, egress: 0 };
 
@@ -361,12 +362,16 @@ function withConsoleSpy(fn) {
 }
 
 // 포털별 응답을 골라주는 responder
+// BeFrugal 본문은 opt.bfBody 로 준다. 안 주면 "요율 없는 정상 상점 페이지"가 기본이라
+// 기존 rk/tcb 케이스들이 bf 때문에 흔들리지 않는다.
+const BF_BLANK = '<html><head><title>x</title></head><body><h1>x Coupons &amp; Deals</h1></body></html>';
 function portalResponder(rkBody, tcbBody, opt = {}) {
   return (u) => {
+    const isBf = /befrugal\.com/.test(u);
     const isRk = /rakuten\.com/.test(u);
-    const body = isRk ? rkBody : tcbBody;
-    const st = (isRk ? opt.rkStatus : opt.tcbStatus) || 200;
-    const loc = isRk ? opt.rkLocation : opt.tcbLocation;
+    const body = isBf ? (opt.bfBody || BF_BLANK) : isRk ? rkBody : tcbBody;
+    const st = (isBf ? opt.bfStatus : isRk ? opt.rkStatus : opt.tcbStatus) || 200;
+    const loc = isBf ? opt.bfLocation : isRk ? opt.rkLocation : opt.tcbLocation;
     if (loc) return new Response('', { status: st === 200 ? 302 : st, headers: { Location: loc } });
     return new Response(body, { status: st, headers: { 'content-type': 'text/html' } });
   };
@@ -415,7 +420,8 @@ for (const s of EVIL_SLUGS) {
       add('/rate 가 못 박힌 포털 URL 밖으로 요청을 보냈다', { store: s.slice(0, 60), 나간요청: u });
     }
     // 불변식 1-b — 경로에 박힌 슬러그는 입력에서 온 것이어야 한다(변환으로 새로 생기면 안 됨)
-    const seg = u.replace(/^https:\/\/[^/]+\/(?:shop\/)?/, '').replace(/\/$/, '');
+    // 포털마다 경로 접두사가 다르다: rakuten /shop/<슬러그> · tcb /<슬러그>/ · befrugal /store/<슬러그>/
+    const seg = u.replace(/^https:\/\/[^/]+\/(?:shop\/|store\/)?/, '').replace(/\/$/, '');
     if (!s.toLowerCase().includes(seg)) {
       add('/rate 가 입력에 없는 슬러그로 요청했다', { store: s.slice(0, 60), 슬러그: seg });
     }
@@ -427,8 +433,8 @@ for (const s of EVIL_SLUGS) {
   // 불변식 3 — 받아들였으면 정확히 포털 2곳. 단 캐시 히트면 0곳이 맞다
   //   (EVIL_SLUGS 에는 'nike' / 'NIKE' / ' nike ' 처럼 같은 슬러그로 정규화되는 입력이 일부러 들어 있다.
   //    두 번째부터 0곳이 되는 것 자체가 정규화가 일관됐다는 증거이므로 실패로 세지 않는다.)
-  if (res.status === 200 && !(sent.length === 2 || (sent.length === 0 && j.cached === true))) {
-    add('/rate 가 포털 2곳이 아닌 횟수로 요청했다', { store: s.slice(0, 60), 횟수: sent.length, cached: !!j.cached });
+  if (res.status === 200 && !(sent.length === 3 || (sent.length === 0 && j.cached === true))) {
+    add('/rate 가 포털 3곳이 아닌 횟수로 요청했다', { store: s.slice(0, 60), 횟수: sent.length, cached: !!j.cached });
   }
   // 불변식 4 — CORS 반사 금지
   const ao = res.headers.get('Access-Control-Allow-Origin');
@@ -485,6 +491,12 @@ for (const [label, loc, shouldFollow] of [
 // 개수만 세는 검사로는 "못 찾음"과 "0%"의 혼동을 못 잡는다. 그게 이 엔드포인트 최악의
 // 실패 모드(조용히 0% 를 돌려주면 계산기가 그 판매처를 잘못 깎는다)라서 값을 직접 고정한다.
 const RK_TITLE = t => `<html><head><title>${t}</title></head><body></body></html>`;
+// BeFrugal 상점 페이지의 최소 형태 — <title> 에 요율, <h1> 이 상점 페이지 표지, 그리고 부서표(선택)
+const BF_PAGE = (title, extra = '') =>
+  `<html><head><title>${title}</title></head><body><h1> Store Coupons &amp; Deals </h1>${extra}</body></html>`;
+const BF_DEPTS = rows => '<div class="Cashback-Department-Contents">' + rows.map(([v, d]) =>
+  `<div class="cash-back-department-row"><div class="cash-back-departments-value">${v}</div>` +
+  `<div class="cash-back-departments-department">${d}</div></div>`).join('') + '</div>';
 const RATE_CASES = [
   // [라벨, rk 본문, tcb 본문, 기대 rk, 기대 tcb]
   ['Rakuten 기본 %', RK_TITLE('Nike Coupons, Promo Codes &amp; 8% Cash Back - August 2026 | Rakuten'), '',
@@ -527,6 +539,68 @@ const RATE_CASES = [
   ['포털 500 = 모름(0% 아님)', '', '',
     { pct: null, listed: null, status: 'lookup-failed' }, { pct: null, listed: null, status: 'lookup-failed' },
     { rkStatus: 500, tcbStatus: 503 }],
+
+  // --- BeFrugal (v0.38) — 기대값은 opt.wantBf, 본문은 opt.bfBody 로 준다 ---
+  ['BF 기본 %', '', '', null, null,
+    { bfBody: BF_PAGE('Nike 10.0% Cash Back &#x2B; 25  Coupons, Promo Codes &amp; Deals'),
+      wantBf: { pct: 10, listed: true, status: 'found' } }],
+  ['BF 소수점', '', '', null, null,
+    { bfBody: BF_PAGE('Home Depot 10.1% Cash Back &#x2B; 98  Coupons, Promo Codes &amp; Deals'),
+      wantBf: { pct: 10.1, listed: true, status: 'found' } }],
+  // 🔴 이 프로젝트가 BeFrugal 에서 가장 틀리기 쉬운 자리.
+  // BeFrugal 은 카테고리별로 요율이 갈려도 제목에 "Up to" 를 **안 붙인다.** 제목만 믿으면
+  // 노트북 2% 짜리를 4% 로 단정하게 된다. 부서표를 보고 upTo·min 을 채우는지 못 박는다.
+  ['BF 부서 분할 = 제목에 Up to 가 없어도 천장값(upTo+min)', '', '', null, null,
+    { bfBody: BF_PAGE('Best Buy 4.0% Cash Back &#x2B; 25  Coupons, Promo Codes &amp; Deals',
+        BF_DEPTS([['4%', 'Appliances'], ['3%', 'Other (Exclusions Apply. See Terms)'], ['2%', 'Laptops']])),
+      wantBf: { pct: 4, listed: true, status: 'found', upTo: true, min: 2 } }],
+  ['BF 부서 분할 · 바닥이 0', '', '', null, null,
+    { bfBody: BF_PAGE('Walmart 18.0% Cash Back &#x2B; 49  Coupons, Promo Codes &amp; Deals',
+        BF_DEPTS([['18%', 'Flash Deals'], ['4.5%', 'Apparel'], ['0%', 'Gift Cards']])),
+      wantBf: { pct: 18, listed: true, status: 'found', upTo: true, min: 0 } }],
+  // 부서 한 칸이 %가 아니라 **$ 금액**일 수 있다. min 은 % 끼리만 비교해야 한다 —
+  // $3.67 과 6.96% 는 비교할 수 있는 수가 아닌데 섞으면 "최소 3.67%" 라는 없는 말이 만들어진다.
+  // 값은 Booking.com 실측 그대로다(2026-09-14). **$ 값이 % 바닥보다 낮아야 이 검사가 실제로 문다** —
+  // 처음엔 Walmart 의 $15.00 을 썼는데 그건 바닥(3%)보다 커서 안 걸러도 min 이 안 바뀌었다.
+  ['BF 부서에 $ 금액이 섞여도 min 은 % 끼리만', '', '', null, null,
+    { bfBody: BF_PAGE('Booking.com 11.0% Cash Back &#x2B; Coupons, Promo Codes &amp; Deals',
+        BF_DEPTS([['11%', 'Attractions'], ['7.33%', 'Accommodations'], ['6.96%', 'Airport Taxis'],
+                  ['$3.67', 'Flights']])),
+      wantBf: { pct: 11, listed: true, status: 'found', upTo: true, min: 6.96 } }],
+  ['BF $ 고정', '', '', null, null,
+    { bfBody: BF_PAGE('Instacart $5.00 Cash Back &#x2B; 8  Coupons, Promo Codes &amp; Deals'),
+      wantBf: { pct: null, flat: 5, listed: true, status: 'found' } }],
+  ['BF 요율 없는 제목 = 진짜 0% (상점 페이지는 맞음)', '', '', null, null,
+    { bfBody: BF_PAGE('Crate &amp; Barrel Cash Back &#x2B; Coupons, Promo Codes &amp; Deals'),
+      wantBf: { pct: 0, listed: true, status: 'listed-zero' } }],
+  ['BF Cash Back 이라는 말조차 없는 제목 = 진짜 0%', '', '', null, null,
+    { bfBody: BF_PAGE("Today&#x27;s Top Amazon Coupons &amp; Deals"),
+      wantBf: { pct: 0, listed: true, status: 'listed-zero' } }],
+  // ⚠️ 모든 BeFrugal 상점 페이지에 **다른 가게 타일**(인기 상점 캐러셀)이 박혀 있다.
+  // 본문에서 % 를 긁으면 Macy's 10% 가 Amazon 요율로 둔갑한다 — 실제로 한 번 당한 자리다.
+  ['BF 남의 가게 타일의 %에 속지 않는다', '', '', null, null,
+    { bfBody: BF_PAGE("Today&#x27;s Top Amazon Coupons &amp; Deals",
+        '<li><a href="/store/macys/"><img alt="Macy&#x27;s" />' +
+        '<span class="txt-bold txt-under-store">10%</span>' +
+        '<span class="txt-small txt-under-store"> Cash Back</span></a></li>'),
+      wantBf: { pct: 0, listed: true, status: 'listed-zero' } }],
+  ['BF 404 껍데기(제목이 BeFrugal 뿐) = 페이지 없음', '', '', null, null,
+    { bfBody: '<html><head><title>BeFrugal</title></head><body></body></html>',
+      wantBf: { pct: null, listed: false, status: 'no-page' } }],
+  // 상점 페이지 표지(h1)가 없으면 = 마크업이 바뀐 것. 0% 로 떨어지면 '안 준다'는 거짓말이 된다.
+  ['BF 상점 페이지가 아님 = 모름(0% 아님)', '', '', null, null,
+    { bfBody: '<html><head><title>BeFrugal Blog</title></head><body>hello</body></html>',
+      wantBf: { pct: null, listed: null, status: 'lookup-failed' } }],
+  ['BF 제목 없음 = 모름', '', '', null, null,
+    { bfBody: '<html><body><h1>x Coupons &amp; Deals</h1></body></html>',
+      wantBf: { pct: null, listed: null, status: 'lookup-failed' } }],
+  ['BF 404 = 페이지 없음', '', '', null, null,
+    { bfStatus: 404, wantBf: { pct: null, listed: false, status: 'no-page' } }],
+  ['BF 500 = 모름(0% 아님)', '', '', null, null,
+    { bfStatus: 500, wantBf: { pct: null, listed: null, status: 'lookup-failed' } }],
+  ['BF 봇차단 = 모름 + 차단이라고 말함', '', '', null, null,
+    { bfBody: '<html><h1>Robot or human?</h1></html>',
+      wantBf: { pct: null, listed: null, status: 'lookup-failed', errorHas: '봇 차단' } }],
 ];
 const rateParseTable = [];
 let gi = 0;
@@ -536,10 +610,10 @@ for (const [label, rkBody, tcbBody, wantRk, wantTcb, opt] of RATE_CASES) {
   });
   const j = await res.json();
   const rows = [];
-  for (const [key, want] of [['rk', wantRk], ['tcb', wantTcb]]) {
+  for (const [key, want] of [['rk', wantRk], ['tcb', wantTcb], ['bf', (opt || {}).wantBf]]) {
     if (!want) continue;
     const got = j[key] || {};
-    for (const f of ['pct', 'listed', 'status', 'upTo', 'flat']) {
+    for (const f of ['pct', 'listed', 'status', 'upTo', 'flat', 'min']) {
       const w = f in want ? want[f] : undefined;
       const g = f in got ? got[f] : undefined;
       if (JSON.stringify(w) !== JSON.stringify(g)) {
@@ -556,8 +630,9 @@ for (const [label, rkBody, tcbBody, wantRk, wantTcb, opt] of RATE_CASES) {
   const raw = (rkBody || tcbBody);
   const text = JSON.stringify(j);
   if (raw.length > 20 && text.includes(raw.slice(0, 20))) add('/rate 응답에 원본 HTML 이 들어갔다', { 케이스: label });
-  rateParseTable.push({ 케이스: label, rk: j.rk && j.rk.status, tcb: j.tcb && j.tcb.status,
+  rateParseTable.push({ 케이스: label, rk: j.rk && j.rk.status, tcb: j.tcb && j.tcb.status, bf: j.bf && j.bf.status,
                         rk값: j.rk && (j.rk.flat != null ? '$' + j.rk.flat : j.rk.pct), tcb값: j.tcb && j.tcb.pct,
+                        bf값: j.bf && (j.bf.flat != null ? '$' + j.bf.flat : (j.bf.min != null ? j.bf.min + '~' + j.bf.pct : j.bf.pct)),
                         ok: rows.length === 0 ? 'ok' : rows.join(' / ') });
   rstats.n++;
 }

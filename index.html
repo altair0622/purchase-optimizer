@@ -1815,42 +1815,42 @@ const STORE_LIST=[
   ["Wayfair","general"], ["IKEA","general"], ["Overstock","general"],
   ["Bed Bath & Beyond","general",{key:"bedbath",rk:"bedbathandbeyond",cap:"bedbathandbeyond.com"}], ["Ashley Furniture","general",{rk:"ashleyfurniture"}],
   ["Home Depot","general",{rk:"homedepot"}], ["Lowe's","general"], ["Ace Hardware","general",{rk:"acehardware"}],
-  ["Michaels","general",{rk:null,tcb:"michaels-stores"}], ["Joann","general",{rk:null,tcb:null,cbm:null}],
+  ["Michaels","general",{rk:null,tcb:"michaels-stores"}], ["Joann","general",{bf:null,rk:null,tcb:null,cbm:null}],
   // 대형마트·클럽·백화점
-  ["Target","general"], ["Walmart","general"], ["Costco","general"],
-  ["Sam's Club","general",{rk:"samsclub"}], ["BJ's Wholesale","general",{key:"bjs",rk:null,tcb:null,cbm:"bjs-wholesale-club"}],
+  ["Target","general"], ["Walmart","general"], ["Costco","general",{bf:"costcowholesale"}],
+  ["Sam's Club","general",{rk:"samsclub"}], ["BJ's Wholesale","general",{bf:"bjs",key:"bjs",rk:null,tcb:null,cbm:"bjs-wholesale-club"}],
   ["Macy's","general"], ["Kohl's","general"], ["JCPenney","general"],
   ["Nordstrom Rack","general",{rk:"nordstromrack"}], ["Nordstrom","general"],
-  ["Bloomingdale's","general"], ["Saks Fifth Avenue","general",{key:"saks",rk:"saksfifthavenue",cap:"saksfifthavenue.com"}], ["Neiman Marcus","general",{rk:"neimanmarcus"}],
+  ["Bloomingdale's","general"], ["Saks Fifth Avenue","general",{bf:"saks",key:"saks",rk:"saksfifthavenue",cap:"saksfifthavenue.com"}], ["Neiman Marcus","general",{rk:"neimanmarcus"}],
   // 패션·의류·잡화
   ["Gap","general"], ["Old Navy","general",{rk:"oldnavy"}], ["Banana Republic","general",{rk:"bananarepublic",cap:"bananarepublic.gap.com"}], ["J.Crew","general",{rk:"jcrew",tcb:"jcrew"}],
   ["Abercrombie & Fitch","general",{key:"abercrombie",rk:"abercrombie",tcb:null}], ["American Eagle","general",{rk:"americaneagle"}],
-  ["Urban Outfitters","general",{rk:"urbanoutfitters"}], ["Anthropologie","general",{rk:null}], ["Free People","general",{rk:"freepeople"}],
+  ["Urban Outfitters","general",{rk:"urbanoutfitters"}], ["Anthropologie","general",{rk:null}], ["Free People","general",{bf:null,rk:"freepeople"}],
   // ⚠️ key 는 normStore(이름)에 **포함되는 문자열**이어야 matchStore 가 찾는다.
   //    "H&M" 은 normStore 에서 "handm" 이 되는데 key 를 "hm" 으로 둬서 자기 항목에
   //    영영 매칭되지 않았다(미등록 취급 → 추정 링크·카테고리 없음). B&H Photo 도 같은 이유.
   ["H&M","general",{key:"handm",cap:"hm.com",rk:null,tcb:"h-and-m",cbm:"hm"}], ["Zara","general",{tcb:null,cbm:null}], ["Uniqlo","general",{tcb:null}],
-  ["ASOS","online",{tcb:"asos-us"}], ["Shein","online",{rk:"sheinside",tcb:"shein-us"}], ["Levi's","general"],
-  ["Ralph Lauren","general",{rk:"ralphlauren",tcb:null,cbm:null}], ["Tommy Hilfiger","general",{rk:"tommyhilfiger"}], ["Calvin Klein","general",{rk:"calvinklein"}],
+  ["ASOS","online",{tcb:"asos-us"}], ["Shein","online",{rk:"sheinside",tcb:"shein-us"}], ["Levi's","general",{bf:"levi"}],
+  ["Ralph Lauren","general",{bf:null,rk:"ralphlauren",tcb:null,cbm:null}], ["Tommy Hilfiger","general",{rk:"tommyhilfiger"}], ["Calvin Klein","general",{rk:"calvinklein"}],
   ["Coach","general"], ["Kate Spade","general",{rk:"katespade"}], ["Michael Kors","general",{rk:"michaelkors"}], ["Tory Burch","general",{rk:"toryburch"}],
   ["Victoria's Secret","general",{rk:"victoriassecret",tcb:null}],
   // 신발·스포츠·아웃도어
   ["Nike","online"], ["adidas","online"], ["New Balance","general",{rk:"newbalance"}], ["Under Armour","general",{rk:"underarmour"}],
   ["Puma","general"], ["Reebok","general"], ["Foot Locker","general",{rk:"footlocker"}], ["Finish Line","general",{rk:"finishline"}],
-  ["DSW","general",{tcb:"dsw-us"}], ["Zappos","online"], ["Steve Madden","general",{rk:"stevemadden"}], ["Crocs","online"],
-  ["Athleta","general"], ["lululemon","general"], ["Columbia","general",{rk:"columbiasportswear",tcb:"columbia-sportswear"}],
-  ["The North Face","general",{key:"northface",rk:"thenorthface",cap:"thenorthface.com"}], ["Patagonia","general",{tcb:null}],
-  ["Dick's Sporting Goods","general",{rk:"dickssportinggoods"}], ["REI","general",{tcb:null}], ["Fanatics","general",{tcb:null}],
+  ["DSW","general",{bf:"dswshoes",tcb:"dsw-us"}], ["Zappos","online"], ["Steve Madden","general",{rk:"stevemadden"}], ["Crocs","online"],
+  ["Athleta","general"], ["lululemon","general",{bf:"lululemonathletica"}], ["Columbia","general",{rk:"columbiasportswear",tcb:"columbia-sportswear"}],
+  ["The North Face","general",{bf:"northface",key:"northface",rk:"thenorthface",cap:"thenorthface.com"}], ["Patagonia","general",{bf:null,tcb:null}],
+  ["Dick's Sporting Goods","general",{bf:"dicks",rk:"dickssportinggoods"}], ["REI","general",{tcb:null}], ["Fanatics","general",{tcb:null}],
   // 전자·테크
-  ["Amazon","online",{rk:"amazon.com"}], ["Best Buy","online",{rk:"bestbuy"}], ["Apple","online"],
+  ["Amazon","online",{rk:"amazon.com"}], ["Best Buy","online",{rk:"bestbuy"}], ["Apple","online",{bf:"applestore"}],
   ["Samsung","online"], ["Dell","online",{rk:"delltechnologies",tcb:null}], ["HP","online",{key:"hp"}], ["Lenovo","online",{tcb:"lenovo-us"}],
-  ["Microsoft","online",{rk:null,tcb:null}], ["Newegg","online"], ["GameStop","online",{tcb:null}], ["Adorama","online"],
-  ["B&H Photo","online",{key:"bandhphoto",rk:null,tcb:null,cbm:"bh-photo-video",cap:"bhphotovideo.com"}], ["Bose","online",{tcb:"bose-us"}], ["Logitech","online"],
+  ["Microsoft","online",{bf:"microsoftstore",rk:null,tcb:null}], ["Newegg","online"], ["GameStop","online",{tcb:null}], ["Adorama","online"],
+  ["B&H Photo","online",{bf:"bandh",key:"bandhphoto",rk:null,tcb:null,cbm:"bh-photo-video",cap:"bhphotovideo.com"}], ["Bose","online",{tcb:"bose-us"}], ["Logitech","online"],
   ["Garmin","online",{tcb:null}], ["Dyson","online"],
   // 뷰티·약국·헬스
-  ["Sephora","general"], ["Ulta Beauty","general",{key:"ulta",cbm:"ulta",tcb:"ulta-beauty",rk:"ultabeauty"}],
+  ["Sephora","general"], ["Ulta Beauty","general",{bf:"ulta",key:"ulta",cbm:"ulta",tcb:"ulta-beauty",rk:"ultabeauty"}],
   ["Bath & Body Works","general",{key:"bathandbody",rk:"bathandbodyworks",cap:"bathandbodyworks.com"}],
-  ["GNC","general"], ["Vitamin Shoppe","general",{rk:"vitaminshoppe"}], ["iHerb","online"],
+  ["GNC","general"], ["Vitamin Shoppe","general",{bf:"thevitaminshoppe",rk:"vitaminshoppe"}], ["iHerb","online"],
   ["Walgreens","drugstore"], ["CVS","drugstore",{tcb:"cvs-pharmacy"}], ["Rite Aid","drugstore",{rk:"riteaid",tcb:null}],
   // 키즈·완구·펫
   ["Carter's","general"], ["LEGO","online"],
@@ -1860,7 +1860,7 @@ const STORE_LIST=[
   ["eBay","online"], ["Etsy","online",{tcb:null}], ["AliExpress","online",{cap:"aliexpress.us"}], ["Temu","online"],
   // 식료품·여행·가방
   ["Instacart","grocery"],
-  ["Expedia","travel"], ["Hotels.com","travel",{key:"hotels",rk:"hotels",cbm:"hotels"}], ["Booking.com","travel",{key:"booking",rk:"booking",cbm:"booking"}], ["Priceline","travel"],
+  ["Expedia","travel"], ["Hotels.com","travel",{bf:"hotels",key:"hotels",rk:"hotels",cbm:"hotels"}], ["Booking.com","travel",{bf:"booking",key:"booking",rk:"booking",cbm:"booking"}], ["Priceline","travel"],
   ["Samsonite","general"], ["Tumi","general",{rk:"tumiluggage"}],
 ];
 const STORES={};

@@ -1,4 +1,4 @@
-// 포털(Rakuten · TopCashback) 공개 페이지에서 캐시백 기본율을 읽는 **공용 파서**.
+// 포털(Rakuten · TopCashback · BeFrugal) 공개 페이지에서 캐시백 기본율을 읽는 **공용 파서**.
 //
 // 왜 따로 뺐나: `update-rates.mjs`(매일 rates.json 갱신)와 `probe-rates.mjs`(요율이 언제
 // 바뀌는지 재는 측정)가 **같은 파싱 규칙**을 써야 한다. 복사하면 두 벌이 갈라진다 —
@@ -12,7 +12,7 @@
 //
 // ⚠️ 워커(`worker/index.js`)의 `/rate` 에도 같은 규칙이 있다. 그쪽은 Cloudflare 런타임이라
 //    이 파일을 import 할 수 없어서 별도로 존재한다 — **규칙이 바뀌면 세 곳을 같이 고쳐야 한다.**
-//    (worker/index.js 의 parseRakuten·parseTopcashback 주석에도 같은 경고가 있다.)
+//    (worker/index.js 의 parseRakuten·parseTopcashback·parseBefrugal 주석에도 같은 경고가 있다.)
 
 import { readFileSync } from 'node:fs';
 
@@ -77,6 +77,57 @@ export async function fetchTcb(slug) {
   return parseTcbHtml(await fetchHtml(`https://www.topcashback.com/${slug}/`));
 }
 
+// BeFrugal 상점 페이지 → {pct,upTo,min,flat}.
+//
+// 주소는 **`/store/<slug>/` 다. `/stores/` 가 아니다** — 복수형으로 찌르면 전부 404 가 돌아오고
+// 그걸 '차단됐다'로 오독하기 딱 좋다(2026-09-14에 실제로 그럴 뻔했다).
+//
+// 요율은 Rakuten 과 똑같이 <title> 에 실린다:
+//   "Nike 10.0% Cash Back + 25  Coupons, Promo Codes & Deals"      → 10%
+//   "Instacart $5.00 Cash Back + 8  Coupons, ..."                   → flat($ 고정)
+//   "Crate & Barrel Cash Back + Coupons, ..."  (숫자 없음)          → 0% (등재됐으나 캐시백 없음)
+//   "Today's Top Amazon Coupons & Deals"       (Cash Back 자체 없음) → 0%
+//
+// 🔴 **그런데 제목만 믿으면 17곳에서 틀린다.** Rakuten·TopCashback 은 카테고리별로 요율이
+//    갈리면 제목에 "Up to" 를 붙여주는데, **BeFrugal 은 안 붙인다.**
+//      제목: "Best Buy 4.0% Cash Back"   실제: 가전 4% · 기타 3% · **노트북 2%**
+//    그래서 제목 숫자는 사실상 **천장값**이고, 그걸 확정값처럼 쓰면 결론이 낙관적으로 틀린다
+//    (v0.20 "틀린 값은 없는 것보다 나쁘다"). 2026-09-14 실측: 110곳 중 17곳(15%)이 이 경우.
+//
+//    판정은 본문의 **부서 요율표**(cash-back-department-row)로 한다. 있으면 upTo=true 이고
+//    min=부서 최소값을 같이 싣는다 → 화면이 "2%~4%" 까지 말할 수 있다(그냥 "직접 확인"보다 낫다).
+//    실측 교차검증: BeFrugal 자신의 A–Z 디렉터리가 "up to 4%" 라고 적는 곳과 부서표가 있는 곳이
+//    **110곳 전부 일치**했고, 제목 숫자 = 부서 최대값도 17곳 전부 일치했다.
+//
+// ⚠️ 본문 전체에서 %를 긁으면 안 된다 — 모든 상점 페이지에 **다른 가게 타일**(인기 상점 캐러셀)이
+//    박혀 있어서 Macy's 10% 같은 남의 숫자가 딸려 온다. Amazon 페이지에서 9% 가 잡혔던 게 이것이다.
+export function parseBfHtml(html) {
+  if (!html) return null;
+  const t = html.match(/<title>([^<]*)<\/title>/i);
+  const title = t ? t[1].replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&#x2B;/g, '+') : '';
+  if (!title || /^\s*BeFrugal\s*$/i.test(title)) return null;        // 상점 없음(404 껍데기)
+  // 상점 페이지인지 확인 — 이게 없으면 파싱 실패로 보고 이전 값을 유지한다.
+  // (마크업이 바뀌었는데 조용히 "0%" 로 떨어지면 '안 준다'는 거짓말이 된다.)
+  if (!/<h1[^>]*>[^<]*Coupons[^<]*<\/h1>/i.test(html)) return null;
+
+  // 부서별 요율표가 있으면 = 하나의 숫자가 없는 가게
+  const depts = [...html.matchAll(/cash-back-departments-value[^>]*>\s*([\d.]+)\s*%/gi)].map(m => +m[1]);
+
+  let m = title.match(/(\d+(?:\.\d+)?)%\s*Cash Back/i);
+  if (m) {
+    const r = { pct: +m[1], listed: true };
+    if (depts.length) { r.upTo = true; r.min = Math.min(...depts); }
+    return r;
+  }
+  m = title.match(/\$(\d+(?:\.\d+)?)\s*Cash Back/i);                  // Instacart 류 $ 고정
+  if (m) return { pct: null, flat: +m[1], listed: true };
+  return { pct: 0, listed: true };                                    // 등재됐지만 지금 캐시백 0
+}
+
+export async function fetchBf(slug) {
+  return parseBfHtml(await fetchHtml(`https://www.befrugal.com/store/${slug}/`));
+}
+
 // ---------------------------------------------------------------------------
 // 판매처 목록 — update-rates 와 probe-rates 가 **같은 표**를 본다
 // ---------------------------------------------------------------------------
@@ -88,6 +139,7 @@ export async function fetchTcb(slug) {
 // 슬러그는 scripts/check-links.mjs 로 실측 검증된 값이고, 명시적 null = 그 포털 미등재다.
 const SRC = new URL('../index.html', import.meta.url);
 const slug = s => (s || '').toLowerCase().replace(/&/g, 'and').replace(/'/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const bfSlug = s => (s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');   // BeFrugal: 대시 없음
 const normStore = s => (s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
 export function loadStores() {
   const html = readFileSync(SRC, 'utf8');
@@ -101,7 +153,10 @@ export function loadStores() {
     seen.add(k);
     const d = slug(name);
     const pick = f => (f in o) ? o[f] : d;           // null 이면 null 그대로 (미등재)
-    out.push([k, pick('rk'), pick('tcb')]);
+    // BeFrugal 의 슬러그 규칙은 **대시를 쓰지 않는다**(homedepot · crateandbarrel).
+    // rk/tcb 의 기본값(대시 형태)과 달라서 기본 생성기를 따로 둔다.
+    const bfPick = ('bf' in o) ? o.bf : bfSlug(name);
+    out.push([k, pick('rk'), pick('tcb'), bfPick]);
   }
   return out;
 }
