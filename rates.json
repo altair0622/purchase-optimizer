@@ -211,7 +211,7 @@
   },
   "acehardware": {
    "rk": {
-    "pct": 10,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -325,7 +325,7 @@
   },
   "samsclub": {
    "rk": {
-    "pct": 10,
+    "pct": 4,
     "listed": true,
     "upTo": true
    },
@@ -510,7 +510,7 @@
   },
   "gap": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -766,7 +766,7 @@
   },
   "levis": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -774,7 +774,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 2,
+    "pct": 0,
     "listed": true
    },
    "bf": {
@@ -928,7 +928,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 10,
+    "pct": 8,
     "listed": true
    },
    "cap": {
@@ -946,7 +946,7 @@
   },
   "adidas": {
    "rk": {
-    "pct": 10,
+    "pct": 6,
     "listed": true,
     "upTo": true
    },
@@ -955,12 +955,12 @@
     "listed": true
    },
    "tcb": {
-    "pct": 11,
+    "pct": 10,
     "listed": true,
     "upTo": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 6,
     "listed": true
    }
   },
@@ -984,7 +984,7 @@
   },
   "underarmour": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1002,7 +1002,7 @@
   },
   "puma": {
    "rk": {
-    "pct": 10,
+    "pct": 3,
     "listed": true
    },
    "cap": {
@@ -1010,8 +1010,9 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 18,
+    "listed": true,
+    "upTo": true
    },
    "bf": {
     "pct": 20,
@@ -1040,7 +1041,7 @@
   },
   "footlocker": {
    "rk": {
-    "pct": 10,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1098,7 +1099,7 @@
   },
   "zappos": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1188,7 +1189,7 @@
   },
   "columbia": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1206,7 +1207,7 @@
   },
   "northface": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1386,10 +1387,10 @@
     "listed": false
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 4,
     "listed": true,
     "upTo": true,
-    "min": 1.2
+    "min": 2
    }
   },
   "hp": {
@@ -1542,7 +1543,7 @@
   },
   "logitech": {
    "rk": {
-    "pct": 3,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1578,7 +1579,7 @@
   },
   "dyson": {
    "rk": {
-    "pct": 10,
+    "pct": 1,
     "listed": true
    },
    "cap": {
@@ -1596,15 +1597,16 @@
   },
   "sephora": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 8,
+    "listed": true,
+    "upTo": true
    },
    "cap": {
     "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 2.5,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -1686,7 +1688,7 @@
   },
   "iherb": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1851,9 +1853,8 @@
   },
   "staples": {
    "rk": {
-    "pct": 10,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": null,
@@ -1870,9 +1871,8 @@
   },
   "officedepot": {
    "rk": {
-    "pct": 10,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": null,
@@ -1954,14 +1954,15 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 12,
+    "listed": true,
+    "upTo": true
    },
    "bf": {
-    "pct": 11,
+    "pct": 8,
     "listed": true,
     "upTo": true,
-    "min": 5.5
+    "min": 1
    }
   },
   "temu": {
@@ -2006,7 +2007,7 @@
   },
   "expedia": {
    "rk": {
-    "pct": 10,
+    "pct": 3,
     "listed": true,
     "upTo": true
    },
@@ -2028,7 +2029,7 @@
   },
   "hotels": {
    "rk": {
-    "pct": 10,
+    "pct": 3,
     "listed": true,
     "upTo": true
    },
@@ -2071,7 +2072,7 @@
   },
   "priceline": {
    "rk": {
-    "pct": 10,
+    "pct": 4,
     "listed": true,
     "upTo": true
    },
