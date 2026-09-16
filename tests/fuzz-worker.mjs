@@ -29,13 +29,18 @@ writeFileSync(copy, readFileSync(SRC));
 // 본문(text)만 저장하고 match 마다 새로 만들어야 한다. (처음에 clone 을 저장했다가
 // "Body has already been read" 예외 19건이 나왔는데, 그건 워커 버그가 아니라 이 스텁 버그였다.)
 const cacheStore = new Map();
+const cacheMeta = new Map();
 globalThis.caches = {
   default: {
     async match(req) {
       const hit = cacheStore.get(req.url);
       return hit === undefined ? undefined : new Response(hit, { headers: { 'content-type': 'application/json' } });
     },
-    async put(req, res) { cacheStore.set(req.url, await res.text()); },
+    async put(req, res) {
+      // max-age 는 스텁이 만료에 쓰진 않지만 **TTL 판단 자체를 검사**하려면 기록해야 한다.
+      cacheMeta.set(req.url, res.headers.get('cache-control') || '');
+      cacheStore.set(req.url, await res.text());
+    },
   },
 };
 const ctx = { waitUntil: p => { if (p && p.catch) p.catch(() => {}); } };
@@ -1155,6 +1160,204 @@ const corsTable = [];
   }
 }
 
+// ===== 7) /sellers — "이 물건 어디서 파나" =====
+// ⚠️ 이 엔드포인트는 **검색어를 제3자(Brave)로 내보내고 돈이 나간다.** 그래서 검사가
+//    세 방향이다: (a) 목적지를 못 바꾸는가 (b) 키가 새지 않는가 (c) 캐시가 실제로 돈을 아끼는가.
+const SKEY = 'brave-secret-key-DO-NOT-LEAK';
+const sstats = { n: 0, egress: 0 };
+const sellersTable = [];
+const consoleBeforeSellers = consoleCalls.length;
+
+function braveResponder(payload, status = 200) {
+  return async () => new Response(JSON.stringify(payload), {
+    status, headers: { 'content-type': 'application/json' },
+  });
+}
+const BRAVE_OK = {
+  web: { results: [
+    { title: 'Weber Spirit E-310 - The Home Depot', url: 'https://www.homedepot.com/p/12345',
+      description: '이 문자열이 응답에 나오면 S-4 위반이다' },
+    { title: 'Weber at Lowes', url: 'https://www.lowes.com/pd/999' },
+    { title: 'Ace', url: 'https://www.acehardware.com/x' },
+    { title: 'dupe', url: 'https://homedepot.com/p/other' },
+    { title: 'bad', url: 'not a url' },
+  ] },
+};
+
+// ⚠️ 캐시 쓰기는 ctx.waitUntil 로 나간다. 공용 ctx 스텁은 그 promise 를 기다리지 않아서,
+//    다음 호출이 **캐시가 아직 안 써진 상태**를 보고 "캐시 미스"로 잡혔다(2026-09-16).
+//    그건 제품이 아니라 스케줄러를 검사한 것이다 → 여기서만 waitUntil 을 실제로 기다린다.
+const sellersPending = [];
+const sellersCtx = { waitUntil: p => { sellersPending.push(Promise.resolve(p).catch(() => {})); } };
+
+async function callSellers(q, opts = {}) {
+  fetchLog = [];
+  responder = opts.responder || braveResponder(BRAVE_OK);
+  const qs = q === null ? '' : '?q=' + encodeURIComponent(q);
+  const req = new Request('https://w.dev/sellers' + qs,
+    { method: opts.method || 'GET', headers: opts.origin ? { Origin: opts.origin } : {} });
+  const env = ('key' in opts) ? (opts.key === null ? {} : { BRAVE_KEY: opts.key }) : { BRAVE_KEY: SKEY };
+  const res = await withConsoleSpy(() => worker.fetch(req, env, sellersCtx));
+  await Promise.all(sellersPending.splice(0));
+  sstats.egress += fetchLog.length;
+  return { res, sent: fetchLog.slice() };
+}
+
+// --- 7a) 키가 없으면 조용히 빈 답. 돈 나가는 요청을 하지 않는다 ---
+{
+  const r = await callSellers('weber spirit e-310', { key: null });
+  const j = await r.res.json();
+  sstats.n++;
+  if (r.sent.length) add('/sellers 가 키 없이 외부 요청을 보냈다', { 나간요청: r.sent[0] });
+  if (r.res.status !== 200) add('/sellers 가 키 없을 때 200 이 아니다 (계산기가 에러를 띄운다)', { status: r.res.status });
+  if (j.status !== 'no-key') add('/sellers 가 키 없음을 no-key 로 알리지 않았다', { status: j.status });
+  if (!Array.isArray(j.sellers) || j.sellers.length) add('/sellers 가 키 없이 판매처를 지어냈다', { sellers: j.sellers });
+}
+
+// --- 7b) 적대적 검색어로 목적지를 바꿀 수 있는가 ---
+// q 는 사진 인식 결과라 사용자가 통제한다. URL 에 그대로 들어가므로 여기서 호스트를
+// 바꿀 수 있으면 우리 워커가 아무 데나 쏘는 도구가 된다.
+const EVIL_Q = [
+  'weber', ' weber ', 'WEBER', '../../etc/passwd', 'a&count=1000', 'a#frag',
+  'a?x=1', 'https://evil.com/', '//evil.com', '169.254.169.254',
+  'x'.repeat(500), '한글 제품명', 'a%00b', 'a b  c',
+];
+for (const q of EVIL_Q) {
+  const r = await callSellers(q);
+  sstats.n++;
+  for (const u of r.sent) {
+    let host = '';
+    try { host = new URL(u).hostname; } catch (e) { host = '(파싱불가)'; }
+    if (host !== 'api.search.brave.com') {
+      add('★ /sellers 가 Brave 밖으로 요청을 보냈다', { q: q.slice(0, 40), 나간요청: u.slice(0, 120) });
+    }
+  }
+  sellersTable.push({ q: q.slice(0, 24), 나간요청수: r.sent.length });
+}
+
+// --- 7c) 🔴 키가 응답으로 새는가 ---
+// 키는 헤더로만 나가야 한다. 에러 경로에서 메시지에 섞여 돌아오는 사고가 흔하다.
+for (const [label, resp] of [
+  ['정상', braveResponder(BRAVE_OK)],
+  ['401', braveResponder({ error: 'unauthorized token ' + SKEY }, 401)],
+  ['429', braveResponder({ error: 'rate limited' }, 429)],
+  ['500', braveResponder({ error: 'oops ' + SKEY }, 500)],
+  ['예외', async () => { throw new Error('boom ' + SKEY); }],
+]) {
+  const r = await callSellers('키유출검사 ' + label, { responder: resp });
+  const text = await r.res.text();
+  sstats.n++;
+  if (text.includes(SKEY)) add('★ /sellers 응답에 API 키가 들어갔다', { 케이스: label, 응답: text.slice(0, 120) });
+  if (r.res.status !== 200) add('/sellers 가 실패를 200 으로 알리지 않았다', { 케이스: label, status: r.res.status });
+}
+
+// --- 7d) 상태를 뭉개지 않는가 (0건과 "못 물어봤다"는 다르다) ---
+for (const [label, resp, want] of [
+  ['401 → bad-key', braveResponder({}, 401), 'bad-key'],
+  ['429 → rate-limited', braveResponder({}, 429), 'rate-limited'],
+  ['500 → lookup-failed', braveResponder({}, 500), 'lookup-failed'],
+  ['빈결과 → ok', braveResponder({ web: { results: [] } }), 'ok'],
+]) {
+  const r = await callSellers('상태검사 ' + label, { responder: resp });
+  const j = await r.res.json();
+  sstats.n++;
+  if (j.status !== want) add('/sellers 가 실패 사유를 구분하지 못했다', { 케이스: label, 기대: want, 실제: j.status });
+}
+
+// --- 7e) 응답에 호스트만 있는가 (S-4) ---
+{
+  const r = await callSellers('weber spirit e-310');
+  const text = await r.res.text();
+  const j = JSON.parse(text);
+  sstats.n++;
+  if (text.includes('S-4 위반')) add('/sellers 응답에 검색 결과 설명문이 들어갔다 (S-4 위반)', { 응답: text.slice(0, 200) });
+  if (text.includes('Home Depot')) add('/sellers 응답에 검색 결과 제목이 들어갔다 (S-4 위반)', { 응답: text.slice(0, 200) });
+  // 호스트당 하나. www 유무만 다른 중복과 깨진 URL 은 빠져야 한다.
+  const want = [
+    { host: 'homedepot.com', url: 'https://www.homedepot.com/p/12345' },
+    { host: 'lowes.com', url: 'https://www.lowes.com/pd/999' },
+    { host: 'acehardware.com', url: 'https://www.acehardware.com/x' },
+  ];
+  if (JSON.stringify(j.sellers) !== JSON.stringify(want)) {
+    add('/sellers 판매처 추출이 틀리다 (호스트당 1개 · www 중복제거 · 깨진 URL 건너뛰기)',
+        { 기대: want, 실제: j.sellers });
+  }
+}
+
+// --- 7f) 캐시 — 이게 비용을 정한다 ---
+// 대소문자·여분 공백만 다른 질의가 따로 세면 같은 상품에 돈을 두 번 낸다.
+{
+  const a = await callSellers('Dyson  V15   Detect');
+  const b = await callSellers('  dyson v15 detect ');
+  const ja = await a.res.json(), jb = await b.res.json();
+  sstats.n++;
+  if (ja.cached) add('/sellers 1차 조회가 캐시 히트로 나왔다 (하니스 상태 오염)', {});
+  if (!jb.cached || b.sent.length) {
+    add('★ /sellers 캐시가 대소문자·공백만 다른 질의를 놓쳤다 (같은 상품에 돈을 두 번 낸다)',
+        { cached: !!jb.cached, 외부요청: b.sent.length });
+  }
+  const c = await callSellers('Dyson V15 Detect', { origin: 'https://priceafter.com' });
+  const jc = await c.res.json();
+  sstats.n++;
+  if (!jc.cached || c.sent.length) {
+    add('/sellers 캐시가 상품 단위 공용이 아니다 — 오리진이 다르면 새로 조회한다 (S-3 위반)',
+        { cached: !!jc.cached, 외부요청: c.sent.length });
+  }
+  const d = await callSellers('완전히 다른 상품');
+  sstats.n++;
+  if ((await d.res.json()).cached) add('/sellers 가 다른 상품인데 캐시를 재사용했다', {});
+  // 실패를 30일 캐시하면 일시적 장애가 "모름"으로 굳는다. 스텁은 만료를 흉내내지 않으므로
+  // **히트 여부가 아니라 실제로 써진 max-age** 를 본다 — 그게 이 판단의 진짜 위치다.
+  const ttlOf = key => {
+    const url = 'https://sellers.internal/q/' + encodeURIComponent(key);
+    const m = /max-age=(\d+)/.exec(cacheMeta.get(url) || '');
+    return m ? +m[1] : null;
+  };
+  const f1 = await callSellers('실패ttl검사', { responder: braveResponder({}, 500) });
+  const jf1 = await f1.res.json();
+  sstats.n++;
+  if (jf1.status !== 'lookup-failed') add('/sellers 실패캐시 준비가 틀림', { status: jf1.status });
+  const failTtl = ttlOf('실패ttl검사'), okTtl = ttlOf('dyson v15 detect');
+  if (failTtl === null || failTtl > 300) {
+    add('/sellers 가 실패를 길게 캐시한다 — 일시적 장애가 "모름"으로 굳는다', { 실패maxAge: failTtl });
+  }
+  if (okTtl === null || okTtl < 86400) {
+    add('/sellers 성공 캐시가 너무 짧다 — 같은 상품에 돈을 반복해서 낸다', { 성공maxAge: okTtl });
+  }
+}
+
+// --- 7g) 입력 없음 · POST · CORS ---
+{
+  const noQ = await callSellers(null);
+  sstats.n++;
+  if (noQ.res.status !== 400) add('/sellers 가 q 없이도 400 이 아니다', { status: noQ.res.status });
+  if (noQ.sent.length) add('/sellers 가 q 없이 외부 요청을 보냈다', {});
+
+  const blank = await callSellers('   ');
+  sstats.n++;
+  if (blank.res.status !== 400) add('/sellers 가 공백뿐인 q 를 받아들였다', { status: blank.res.status });
+  if (blank.sent.length) add('/sellers 가 공백뿐인 q 로 외부 요청을 보냈다', {});
+
+  const post = await callSellers('weber', { method: 'POST' });
+  sstats.n++;
+  if (post.res.status !== 405) add('/sellers 가 POST 를 405 로 막지 않았다', { status: post.res.status });
+  if (post.sent.length) add('/sellers 가 POST 인데 외부 요청을 보냈다', {});
+
+  for (const o of ['https://priceafter.com', 'https://evil.com']) {
+    const r = await callSellers('cors 검사 ' + o, { origin: o });
+    const ao = r.res.headers.get('access-control-allow-origin');
+    sstats.n++;
+    if (ao === 'https://evil.com') add('★ /sellers 가 허용목록 밖 오리진을 반사했다', { 오리진: o, ACAO: ao });
+    if (!LEGIT_ORIGINS.includes(ao)) add('/sellers CORS Allow-Origin 이 허용 목록 밖', { allowOrigin: ao });
+  }
+}
+
+// --- 7h) 로그 (S-1) ---
+if (consoleCalls.length > consoleBeforeSellers) {
+  add('/sellers 처리 중 console 로그가 남았다 (프라이버시 조건 S-1 위반)',
+      { 건수: consoleCalls.length - consoleBeforeSellers, 예: consoleCalls[consoleBeforeSellers] });
+}
+
 console.log(JSON.stringify({
   검사수: stats.n,
   실패: fails.length,
@@ -1174,5 +1377,7 @@ console.log(JSON.stringify({
   운영도메인CORS: corsTable,
   vision검사수: vstats.n,
   vision: visionTable,
+  sellers검사수: sstats.n,
+  sellers: { 외부요청: sstats.egress, 표: sellersTable },
   실패목록: fails,
 }, null, 1));

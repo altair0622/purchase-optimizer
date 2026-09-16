@@ -1,9 +1,10 @@
 /**
- * price-proxy — 계산기가 쓰는 Cloudflare Worker. 엔드포인트 2개.
+ * price-proxy — 계산기가 쓰는 Cloudflare Worker. 엔드포인트 4개.
  *
  *   GET  /?url=<상품 URL>    → 상품 페이지에서 "가격만" 뽑아 JSON
  *   GET  /rate?store=<슬러그> → Rakuten·TopCashback·BeFrugal 캐시백 요율을 그 한 곳만 라이브 조회 (v0.29)
  *   POST /vision              → 사진에서 "검색어 후보"를 뽑아 JSON (v0.31)
+ *   GET  /sellers?q=<상품명>  → 그 상품을 취급하는 것으로 보이는 **호스트 목록** (v0.38)
  *
  * 왜 만들었나
  *  - 계산기는 정적 페이지(GitHub Pages)라 상품 사이트를 직접 못 부른다(CORS).
@@ -115,6 +116,26 @@ const RATE_CACHE_SECONDS = 21_600;  // 6시간 — 포털 기본율은 하루 �
 const RATE_FAIL_CACHE_SECONDS = 120; // 실패는 짧게만 — 일시적 실패가 6시간 눌러앉으면 안 된다
 const RATE_MAX_HTML = 300_000;       // 요율은 <title>·요율 요소에 있다. 상품 페이지만큼 읽을 이유가 없다
 
+// ===== /sellers — "이 물건을 어디서 파나" =====
+// 왜 이게 있나: 상품 모드는 지금까지 **고정된 4곳**(Amazon·BestBuy·Walmart·Target)에서
+// 캐시백 1등을 골랐고, **그 물건을 거기서 파는지는 확인하지 않았다.** 그릴을 찍으면
+// Best Buy 가 나온다(실제로 안 판다). 실측 근거: 리서치/판매처찾기-DDG-실측-2026-09-14.md
+//
+// 왜 검색엔진 스크래핑이 아니라 키 인증 API 인가: DuckDuckGo 는 답이 좋았지만
+// **워커에서 단발 2~3/10** 만 통과한다. Workers 는 모든 사용자 요청이 공유 출구 IP 로
+// 나가고 DDG 는 IP 로 센다 — 버그가 아니라 구조라서 사용자가 늘수록 나빠진다.
+//
+// 🔴 남용 방어는 **여기 코드가 아니라 Brave 콘솔**이다(V-2 와 같은 이유 — 요청자를
+//    식별하지 않으므로 IP 레이트리밋을 코드로 못 넣는다). Brave 쪽에서
+//    **auto-reload 를 끄고** 월 상한을 걸어 둔다. 프리페이드라 넣지 않은 돈은 못 쓴다.
+const BRAVE_ENDPOINT = 'https://api.search.brave.com/res/v1/web/search';
+const SELLERS_TIMEOUT = 6_000;
+const SELLERS_MAX_Q = 80;              // 검색어 길이 상한. 길다고 결과가 좋아지지 않는다
+const SELLERS_MAX_HOSTS = 20;
+const SELLERS_CACHE_SECONDS = 2_592_000;  // 30일 — 한 상품의 판매처 집합은 주 단위로도 잘 안 변한다.
+                                          // 이 캐시가 비용을 사실상 0으로 만든다(같은 상품은 몇 명이 찍어도 1회).
+const SELLERS_FAIL_CACHE_SECONDS = 120;   // 실패는 짧게만. /rate 와 같은 이유 — "모름"이 30일 눌러앉으면 안 된다
+
 export default {
   async fetch(request, env, ctx) {
     // ⚠️ headers.get 을 부르는 곳은 여기 하나뿐이다 (P-2). IP·쿠키·UA·request.cf 는 안 읽는다.
@@ -136,6 +157,9 @@ export default {
     if (request.method !== 'GET') return json({ error: 'GET만 지원해' }, 405, cors);
     if (path === '/rate') {
       return handleRate(reqUrl.searchParams.get('store'), ctx, cors);
+    }
+    if (path === '/sellers') {
+      return handleSellers(reqUrl.searchParams.get('q'), env, ctx, cors);
     }
 
     const target = reqUrl.searchParams.get('url');
@@ -254,6 +278,106 @@ async function lookupRate(portal, store) {
   }
 }
 const rateFailed = why => ({ pct: null, listed: null, status: 'lookup-failed', error: why });
+
+// ===== /sellers 구현 =====
+// 프라이버시 (S-n 은 위 P-n 과 같은 뜻이다):
+//  S-1. 로그 없음 — 이 파일의 console.* 는 여전히 0개다.
+//  S-2. 요청자 식별 없음 — headers.get 은 Origin 한 곳뿐. 여기서도 안 읽는다.
+//  S-3. 캐시 키는 **정규화한 검색어 하나**다. 오리진·IP 가 안 섞이므로 사용자 단위 캐시가
+//       생길 수 없고, 같은 상품을 물어본 모두가 같은 항목을 공유한다.
+//  S-4. 🔴 **검색어가 제3자(Brave)로 나간다.** /rate 는 매장 이름이었는데 여기는 **상품 이름**이라
+//       더 구체적이다. 숨기지 않고 적는다 — 화면 고지에도 같은 말이 들어가야 한다.
+//       대신 응답에는 **호스트 이름만** 남긴다(제목·설명·URL 전문을 돌려주지 않는다).
+async function handleSellers(rawQ, env, ctx, cors) {
+  const q = normalizeQuery(rawQ);
+  if (!q) return json({ error: 'q 파라미터가 필요해' }, 400, cors);
+
+  const cacheKey = new Request('https://sellers.internal/q/' + encodeURIComponent(q));
+  const cache = caches.default;
+  const cached = await cache.match(cacheKey);
+  if (cached) return json({ ...(await cached.json()), cached: true }, 200, cors);
+
+  const key = String((env && env.BRAVE_KEY) || '').trim();
+  // 키가 없으면 **조용히 빈 답**을 준다. 500 을 던지면 계산기가 에러를 띄우는데,
+  // 이 기능은 없어도 되는 보너스다 — 없으면 예전 동작(고정 4곳)으로 떨어지면 된다.
+  if (!key) return json({ q, sellers: [], status: 'no-key' }, 200, cors);
+
+  let out;
+  try {
+    const url = BRAVE_ENDPOINT + '?q=' + encodeURIComponent(q) +
+                '&count=20&country=US&search_lang=en&safesearch=off';
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), SELLERS_TIMEOUT);
+    let res;
+    try {
+      res = await fetch(url, {
+        headers: { 'Accept': 'application/json', 'X-Subscription-Token': key },
+        signal: ctrl.signal,
+      });
+    } finally { clearTimeout(timer); }
+
+    if (res.status === 429) out = { q, sellers: [], status: 'rate-limited' };
+    else if (res.status === 401 || res.status === 403) out = { q, sellers: [], status: 'bad-key' };
+    else if (!res.ok) out = { q, sellers: [], status: 'lookup-failed', error: 'HTTP ' + res.status };
+    else out = { q, sellers: hostsFromBrave(await res.json()), status: 'ok' };
+  } catch (e) {
+    // 🔴 예외 메시지에 키가 섞여 나올 수 있다 — 런타임이 요청 정보를 메시지에 담는 경우가 있다.
+    //    하니스가 실제로 잡았다(2026-09-16). 사유는 유용하니 버리지 말고 **키만 지운다.**
+    out = { q, sellers: [], status: 'lookup-failed', error: scrubKey((e && e.message) || String(e), key) };
+  }
+  out.checkedAt = new Date().toISOString();
+
+  const ok = out.status === 'ok' && out.sellers.length > 0;
+  ctx.waitUntil(cache.put(cacheKey, new Response(JSON.stringify(out), {
+    headers: {
+      'content-type': 'application/json',
+      'cache-control': 'max-age=' + (ok ? SELLERS_CACHE_SECONDS : SELLERS_FAIL_CACHE_SECONDS),
+    },
+  })));
+  return json(out, 200, cors);
+}
+
+// 키가 응답으로 새지 않게 한다. 빈 키로 split/join 하면 문자열이 폭발하므로 길이를 확인한다.
+function scrubKey(msg, key) {
+  const m = String(msg);
+  return (key && key.length >= 8) ? m.split(key).join('***') : m;
+}
+
+// 검색어 정규화 — 캐시 적중률이 여기서 결정된다. 대소문자·여분 공백만 다른 요청이
+// 따로 세면 같은 상품에 돈을 두 번 낸다.
+function normalizeQuery(raw) {
+  return String(raw == null ? '' : raw)
+    .replace(/[\x00-\x1f\x7f]/g, ' ')   // 제어문자 제거
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+    .slice(0, SELLERS_MAX_Q);
+}
+
+// 응답에서 **호스트 + 그 호스트의 첫 결과 URL** 만 뽑는다. 제목·설명은 버린다(S-4).
+//
+// 왜 URL 까지 돌려주나: 계산기에는 이미 "상품 URL 을 넣으면 판매처·가격이 자동으로 채워지는"
+// 경로가 있다(fillMultiUrls). 호스트만 주면 사용자가 그 가게에서 **다시 검색**해야 하는데,
+// 그건 사용자가 지적한 바로 그 문제다 — *"파는 곳을 알려줘야지 그냥 나열은 왜 하는거지?"*
+// 호스트당 **하나만** 남긴다. 같은 가게의 결과 여러 개는 답을 늘리지 않는다.
+//
+// 순서는 검색 순위 그대로 둔다 — 계산기가 캐시백 순으로 다시 정렬하지만,
+// 동률일 때 검색 상위가 앞에 오는 게 낫다.
+function hostsFromBrave(body) {
+  const rows = (body && body.web && Array.isArray(body.web.results)) ? body.web.results : [];
+  const out = [], seen = new Set();
+  for (const r of rows) {
+    let u;
+    try { u = new URL(String(r && r.url || '')); } catch (e) { continue; }
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') continue;
+    const host = u.hostname.toLowerCase().replace(/^www\./, '');
+    if (!host || seen.has(host)) continue;
+    seen.add(host);
+    out.push({ host, url: u.href });
+    if (out.length >= SELLERS_MAX_HOSTS) break;
+  }
+  return out;
+}
 
 // 리다이렉트를 따라가되 **그 포털의 도메인 밖으로는 한 발도 안 나간다.**
 // `/?url=` 쪽 fetchFollowing 은 "사설 IP가 아니면 통과"지만, 여기선 목적지가 이미 정해져
