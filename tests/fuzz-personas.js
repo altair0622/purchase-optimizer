@@ -1475,8 +1475,12 @@ window.__fuzz = (function () {
           bad.push('[' + lang + '] 결론에 실제 만든 판매처 수(' + L.n + ')가 없다: ' + JSON.stringify(concl.slice(0, 160)));
 
         checks++;
-        // 조건절은 **여전히 있어야 한다** — 범위를 추가한 것이지 조건절을 대체한 게 아니다
-        if (!/가격이 같다면|prices match/i.test(concl))
+        // 조건절은 **여전히 있어야 한다** — 범위를 추가한 것이지 조건절을 대체한 게 아니다.
+        // ⚠️ 단 하나의 예외: upTo 갈래는 **금액 비교를 아예 하지 않는다**(숫자를 대신 적지
+        //    않겠다고 말한다). 지킬 주장이 없으므로 조건절이 없는 게 맞다. 그 갈래는
+        //    "숫자를 안 쓰겠다"는 말이 실제로 있는지를 대신 검사한다 — 면제가 아니라 대체다.
+        const noNumberClaim = /숫자를 대신 적지 않을게요|will not put a number|won’t put a number|won't put a number/i.test(concl);
+        if (!/가격이 같다면|prices match/i.test(concl) && !noNumberClaim)
           bad.push('[' + lang + '] ★ "가격이 같다면" 조건절이 사라졌다 — 범위는 조건절의 대체품이 아니다');
       }
     } catch (e) {
@@ -1778,7 +1782,11 @@ window.__fuzz = (function () {
       // ③ ofp.why.* 기능 키가 전부 살아 있는가 — **소스에서 직접 확인한다.**
       //    STRINGS.ko 로 보면 그 턴에 호출되지 않은 키는 수집이 안 돼 있어서 헛돈다.
       {
-        const idx = await (await fetch('/index.html?cb=' + Date.now())).text();
+        // ⚠️ 예전엔 '/index.html' 로 고정돼 있었다. 정적 서버를 저장소 루트에서 띄우면
+        //    그 경로가 404 라 본문이 빈 채로 **8건이 통째로 헛돌았다**(2026-09-16).
+        //    검사 대상은 언제나 **지금 열려 있는 문서**다 — 그걸 읽는다.
+        const idx = await (await fetch(location.pathname + '?cb=' + Date.now())).text();
+        if (idx.length < 50000) bad.push('★ 검사 대상 문서를 못 읽었다(' + idx.length + '자) — 이 검사는 무효다');
         for (const k of OFP_KEEP) {
           checks++;
           // 코드 사용처 + 영어 사전, 최소 두 번 나와야 한다. 한쪽만 지워도 잡힌다.
@@ -1965,6 +1973,105 @@ window.__fuzz = (function () {
   }
 
   // 전부 한 번에
+  // ===== 검색으로 찾은 판매처로 갈아끼우기 (/sellers) =====
+  // 이 경로는 **비동기 + 네트워크**라 지금까지 검사 사각이었다. fetch 를 갈아끼워서 검사한다.
+  // 검사 대상 셋: (a) 못 찾으면 화면을 건드리지 않는가 (b) 찾으면 문구가 정확해지는가
+  //              (c) 늦게 온 답이 **다른 상품 화면을 덮지 않는가**
+  async function runSellers() {
+    const bad = []; let checks = 0;
+    const realFetch = window.fetch;
+    const stub = (payload, delayMs) => async (url) => {
+      const u = String(url);
+      if (u.indexOf('/sellers') >= 0) {
+        if (delayMs) await new Promise(r => setTimeout(r, delayMs));
+        return new Response(JSON.stringify(payload), { headers: { 'content-type': 'application/json' } });
+      }
+      // 가격 조회는 이 검사의 대상이 아니다 — 조용히 실패시킨다(제품이 그걸 감당해야 한다)
+      return new Response(JSON.stringify({ price: null, status: 0 }), { headers: { 'content-type': 'application/json' } });
+    };
+    const reset = () => { myWallet = ['wfactivecash']; CARDS = activeCards(); taxPct = 0; autoApplied = {}; };
+    const concl = () => document.getElementById('finalConclusion').innerText;
+
+    try {
+      // (a) 우리가 아는 가게가 1곳뿐 → 비교가 성립하지 않는다. 화면을 그대로 둬야 한다.
+      setLangForTest('ko'); reset();
+      window.fetch = stub({ sellers: [
+        { host: 'homedepot.com', url: 'https://www.homedepot.com/p/1' },
+        { host: 'brickset.com', url: 'https://brickset.com/x' },       // 우리 목록에 없음 → 버려야
+        { host: 'somerandomblog.net', url: 'https://somerandomblog.net/y' },
+      ] });
+      let r = await (applyRecognizedProduct('Weber Spirit E-310').pending);
+      checks++;
+      if (!/확인하지 않았어요/.test(concl()))
+        bad.push('★ 판매처를 못 찾았는데 "확인하지 않았다" 고지가 사라졌다: ' + JSON.stringify(concl().slice(0, 140)));
+      checks++;
+      if (/검색에서 이 상품 페이지가 잡힌 곳/.test(concl()))
+        bad.push('★ 1곳만 찾고도 "검색에서 잡힌 곳"이라고 말했다 — 비교가 성립하지 않는다');
+
+      // (b) 우리가 아는 가게 4곳 → 갈아끼우고, 잘린 1곳을 말해야 한다
+      reset();
+      window.fetch = stub({ sellers: [
+        { host: 'homedepot.com',   url: 'https://www.homedepot.com/p/1' },
+        { host: 'lowes.com',       url: 'https://www.lowes.com/pd/2' },
+        { host: 'acehardware.com', url: 'https://www.acehardware.com/p/3' },
+        { host: 'walmart.com',     url: 'https://www.walmart.com/ip/4' },
+        { host: 'reviewsite.org',  url: 'https://reviewsite.org/z' },
+      ] });
+      await (applyRecognizedProduct('Weber Spirit E-310').pending);
+      checks++;
+      if (!/검색에서 이 상품 페이지가 잡힌 곳/.test(concl()))
+        bad.push('★ 판매처를 찾았는데 문구가 안 바뀌었다: ' + JSON.stringify(concl().slice(0, 140)));
+      checks++;
+      if (/확인하지 않았어요/.test(concl()))
+        bad.push('★ 검색으로 찾고도 "확인하지 않았다"가 남았다 — 두 문장이 동시에 서 있다');
+      checks++;
+      if (!/재고까지는 확인하지 못했어요/.test(concl()))
+        bad.push('★ 검색에 잡힌 것을 "판다"로 말했다 — 재고 미확인 고지가 없다');
+      checks++;
+      // 4곳 찾고 3곳만 만들었으면 **뺐다고 말해야 한다**(조용한 누락 금지)
+      if (!/1곳 더 있었는데/.test(concl()))
+        bad.push('★ 캐시백이 낮아 뺀 판매처를 말하지 않았다: ' + JSON.stringify(concl().slice(0, 200)));
+      checks++;
+      if (scenarios.length !== 3) bad.push('판매처 칸 수가 3이 아니다: ' + scenarios.length);
+      checks++;
+      // 우리 목록에 없는 호스트가 판매처로 들어오면 안 된다
+      if (scenarios.some(sc => /reviewsite|brickset/i.test(sc.store + ' ' + sc.domain)))
+        bad.push('★ 우리가 요율을 모르는 곳이 판매처로 들어왔다: ' + scenarios.map(s => s.store).join(','));
+
+      // (c) 🔴 늦게 온 답이 **다음 상품 화면을 덮으면 안 된다**
+      reset();
+      window.fetch = stub({ sellers: [
+        { host: 'homedepot.com', url: 'https://www.homedepot.com/p/OLD' },
+        { host: 'lowes.com',     url: 'https://www.lowes.com/pd/OLD' },
+      ] }, 60);
+      const slow = applyRecognizedProduct('느린 상품').pending;
+      window.fetch = stub({ sellers: [] });                 // 다음 상품은 못 찾는 상황
+      const fast = applyRecognizedProduct('나중 상품').pending;
+      await Promise.all([slow, fast]);
+      checks++;
+      if (document.getElementById('pname').value !== '나중 상품')
+        bad.push('★ 늦게 온 답이 상품 이름을 덮었다: ' + document.getElementById('pname').value);
+      checks++;
+      if (scenarios.some(sc => /home ?depot|lowe/i.test(sc.store)))
+        bad.push('★ 늦게 온 답이 다음 상품의 판매처를 덮었다: ' + scenarios.map(s => s.store).join(','));
+
+      // (d) 조회가 통째로 실패해도 화면은 답을 준다
+      reset();
+      window.fetch = async () => { throw new Error('network down'); };
+      const rf = applyRecognizedProduct('망한 조회 상품');
+      await rf.pending;
+      checks++;
+      if (!rf.ok || scenarios.length === 0) bad.push('★ 조회 실패가 화면을 비웠다 — 실패는 조용히 넘어가야 한다');
+      checks++;
+      if (!/확인하지 않았어요/.test(concl()))
+        bad.push('★ 조회 실패 후 고지가 사라졌다: ' + JSON.stringify(concl().slice(0, 140)));
+    } finally {
+      window.fetch = realFetch;
+      setLangForTest('ko');
+    }
+    return { mode: 'sellers', 검사: checks, 실패: bad.length, 상세: bad };
+  }
+
   function all(opt) {
     opt = opt || {};
     const seed = opt.seed == null ? 42 : opt.seed;
@@ -1982,7 +2089,7 @@ window.__fuzz = (function () {
 
   // koLeak 은 대조군(negcontrol-i18n.js)이 단위로 검사한다 — '사용자 데이터는 미번역이 아니다'가
   // 이 함수 한 곳에 걸려 있어서, 여기가 조용히 느슨해지면 영어 검사 전체가 같이 무의미해진다.
-  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, runActionSteps, runCopyBans, runUpTo, runVersion, all, koLeak,
+  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, runActionSteps, runCopyBans, runUpTo, runVersion, runSellers, all, koLeak,
            last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null, lastScan: null };
 })();
 'fuzz harness loaded';

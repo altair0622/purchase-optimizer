@@ -1408,6 +1408,10 @@ Object.assign(STRINGS.en, {
   // ── v0.32 인식 → 판매처 비교 ────────────────────────────────────
   'reco.upTo': 'up to ',
   'reco.seePrice': '🔎 See the price at {store}',
+  'reco.openItem': '🔎 Open this item at {store}',
+  'reco.seeking': '🔎 Looking up where this is sold…',
+  'reco.searchPool': 'These are the places a search turned up a page for this item — we could not check whether it is in stock.',
+  'reco.searchCut': 'A search found {m} more, left out because their cashback was lower.',
   'reco.thenType': 'then type what you saw into the box above',
   'reco.made': 'made {n} sellers',
   // ⭐ 조건절이 핵심이다 — "가격이 같다면"을 떼면 그 순간 거짓말이 된다.
@@ -2668,6 +2672,80 @@ function recoRateText(t0){
   return null;
 }
 
+// ===== "이 물건을 어디서 파나" — 검색으로 실제 판매처를 찾는다 =====
+//
+// 왜 필요한가: 아래 applyRecognizedProduct 는 **고정된 4곳**(RECO_STORES)에서 캐시백 1등을
+// 고른다. 그 물건을 거기서 파는지는 확인하지 않는다 — 그릴을 찍으면 Best Buy 가 나온다.
+// 사용자 지적: *"이게 무슨 물건인지 알았지만 어디서 파는지가 너무 약해"*
+//
+// ⭐ 설계: **먼저 지금 동작을 그대로 그리고, 답이 오면 갈아끼운다.**
+//    비전 승격(✨ 배너)과 같은 패턴이다. 조회가 실패하거나 느려도 화면은 이미 답을 보여준다.
+//    → 이 기능은 **없어도 되는 보너스**이고, 있으면 답이 정확해진다.
+const SELLERS_TIMEOUT_MS = 9000;
+const SELLERS_MIN_HITS = 2;   // 1곳이면 비교가 성립하지 않는다 — 그럴 바엔 지금 화면이 낫다
+let recoToken = 0;            // 사용자가 다른 걸 찍으면 늦게 온 답을 버리는 표
+
+async function fetchSellers(q){
+  if(!PRICE_API || location.protocol === 'file:') return null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), SELLERS_TIMEOUT_MS);
+  try{
+    const res = await fetch(PRICE_API.replace(/\/$/,'')+'/sellers?q='+encodeURIComponent(q), {signal:ctrl.signal});
+    if(!res.ok) return null;
+    const j = await res.json();
+    return (j && Array.isArray(j.sellers)) ? j : null;
+  }catch(e){ return null; }
+  finally{ clearTimeout(timer); }
+}
+
+// 검색이 준 호스트를 **우리가 요율을 아는 114곳**과 교집합한다.
+// 모르는 가게는 버린다 — 캐시백을 모르면 이 도구가 해줄 말이 없다.
+function sellersToStores(list){
+  const out = [], seen = new Set();
+  for(const s of (list||[])){
+    const hit = s && s.host ? matchStore(s.host) : null;
+    if(!hit || seen.has(hit.key)) continue;
+    seen.add(hit.key);
+    out.push({key:hit.key, store:hit.name, url:String(s.url||''), rate:bestRateFor(hit.key)});
+  }
+  return out;
+}
+
+async function upgradeSellersFromSearch(q, token){
+  const j = await fetchSellers(q);
+  // 늦게 온 답으로 **지금 보고 있는 다른 상품의 화면을 덮지 않는다.**
+  if(!j || token !== recoToken || !lastRecognition) return;
+  const hits = sellersToStores(j.sellers);
+  // 못 찾았으면 **아무것도 하지 않는다.** 지금 화면(고정 4곳)이 그대로 남는 게 맞다 —
+  // 빈 목록을 주느니 범위를 밝힌 추측이 낫다(RECO_STORES 주석과 같은 판단).
+  if(hits.length < SELLERS_MIN_HITS) return;
+
+  hits.sort((a,b)=>(b.rate.pct-a.rate.pct)||(b.rate.flat-a.rate.flat));
+  const ranked = hits.slice(0, RECO_TOP_N);
+  const cut = hits.length - ranked.length;   // 잘린 건 **말한다**(조용한 누락 금지)
+
+  scenarios = ranked.map(x=>{
+    let domain=''; try{ domain=new URL(x.url).hostname.replace(/^www\./,''); }catch(e){}
+    return blankScenario({store:x.store, domain:domain});
+  });
+  buildAll();
+  scenarios.forEach((sc,i)=>{
+    recognizeStore(sc,false);
+    updatePortalLinks(sc);
+    const a=document.getElementById('slink-'+sc.id);
+    if(a && ranked[i].url) a.innerHTML='<a href="'+recoEsc(ranked[i].url)+'" target="_blank" rel="noopener noreferrer">'+
+      t('reco.openItem','🔎 {store}에서 이 상품 보기',{store:recoEsc(ranked[i].store)})+'</a> '+
+      '<span class="tag">'+t('reco.thenType','보고 온 가격을 위 칸에 넣어 주세요')+'</span>';
+    // 검색이 준 건 **그 상품의 실제 페이지**다 → 붙여넣기 경로와 똑같이 가격을 시도한다.
+    // 대부분 막히지만(실측 1/10) 실패는 조용히 지나가고 직접 입력으로 넘어간다.
+    if(ranked[i].url) tryFetchPrice(ranked[i].url, sc, document.getElementById('shint-'+sc.id)).catch(()=>{});
+  });
+
+  lastRecognition = {query:q, top:ranked[0].rate, topStore:ranked[0].store, n:scenarios.length,
+                     dropped:[], fromSearch:true, searchCut:cut};
+  recompute();
+}
+
 // 사진·바코드가 상품을 알아냈을 때 부르는 진입점.
 // 반환: {ok, n, top} — 부른 쪽이 자기 화면에 요약을 그릴 수 있게.
 function applyRecognizedProduct(query, opts){
@@ -2703,11 +2781,18 @@ function applyRecognizedProduct(query, opts){
   });
 
   lastRecognition={query:q, top:ranked[0]?ranked[0].rate:null, topStore:ranked[0]?ranked[0].store:'', n:scenarios.length,
-    dropped: droppedOut.map(d=>({store:d.store, why:d.miss}))};
+    dropped: droppedOut.map(d=>({store:d.store, why:d.miss})), fromSearch:false, searchCut:0, seeking:true};
   recompute();
+  // ⭐ 여기서부터는 비동기다 — 위 화면은 이미 그려졌고, 답이 오면 갈아끼운다.
+  const myToken = ++recoToken;
+  const pending = upgradeSellersFromSearch(q, myToken).catch(()=>{}).then(()=>{
+    if(myToken===recoToken && lastRecognition){ lastRecognition.seeking=false; recompute(); }
+  });
   const box=document.getElementById('answerCard');
   if(box) box.scrollIntoView({behavior:'smooth', block:'start'});
-  return {ok:true, n:scenarios.length, top:lastRecognition.topStore};
+  // pending 은 **검색 판매처 조회가 끝나는 시점**이다. 부른 쪽이 '다 끝났다'를 알 수 있어야
+  // 하니스가 비동기 갈아끼우기를 검사할 수 있다(그게 없으면 이 경로는 검사 불가능하다).
+  return {ok:true, n:scenarios.length, top:lastRecognition.topStore, pending:pending};
 }
 window.applyRecognizedProduct=applyRecognizedProduct;
 
@@ -2754,7 +2839,19 @@ function recoPendingHTML(){
         '<span class="tag">'+t('reco.thenPrice','가격을 넣으면 실제 순비용으로 확인해 드려요.')+'</span>'
       : '<span style="color:var(--warn)">'+t('reco.noRate','이 판매처들의 오늘 캐시백을 아직 몰라요 — 가격과 함께 확인해 주세요.')+'</span>')+
     // 요율을 알든 모르든 항상 붙는다 — 이건 요율에 대한 단서가 아니라 **후보 풀에 대한 사실**이다.
-    '<br><span class="tag">'+t('reco.poolNote','이 {n}곳이 그 물건을 파는지는 저희가 확인하지 않았어요.',{n:r.n})+'</span>';
+    // ⭐ 후보를 어떻게 골랐느냐에 따라 말이 다르다. 검색으로 찾았으면 "확인 안 했다"가 아니라
+    //    **"검색에 잡혔다 · 재고는 모른다"** 가 정확하다. 둘을 같은 문장으로 뭉치지 않는다.
+    // 🔴 찾는 중이라고 해서 **고지를 빼면 안 된다.** 처음엔 seeking 일 때 이 줄을 통째로
+    //    바꿨는데, 그 순간 "취급 여부를 확인하지 않았다"가 화면에서 사라졌다(runRecoPool 이 잡았다).
+    //    찾는 중이라는 건 **추가 정보**이지 고지의 대체품이 아니다 — 둘 다 쓴다.
+    '<br><span class="tag">'+(r.fromSearch
+      ? t('reco.searchPool','<b>검색에서 이 상품 페이지가 잡힌 곳</b>이에요 — 재고까지는 확인하지 못했어요.')
+      : t('reco.poolNote','이 {n}곳이 그 물건을 파는지는 저희가 확인하지 않았어요.',{n:r.n})
+        + (r.seeking ? ' '+t('reco.seeking','🔎 어디서 파는지 찾아보는 중이에요…') : ''))+'</span>'+
+    // 검색에 잡혔는데 캐시백이 낮아 잘린 곳 — **뺐으면 뺐다고 말한다.**
+    (r.fromSearch && r.searchCut>0
+      ? '<br><span class="tag">'+t('reco.searchCut','검색에 잡힌 곳이 {m}곳 더 있었는데 캐시백이 낮아 뺐어요.',{m:r.searchCut})+'</span>'
+      : '');
 }
 
 // ⭐ 정렬 기준을 화면에 적는다.
