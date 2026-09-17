@@ -1414,12 +1414,14 @@ Object.assign(STRINGS.en, {
 
   // ── v0.32 인식 → 판매처 비교 ────────────────────────────────────
   'reco.upTo': 'up to ',
+  'reco.ifSame.dept': '<b>Among the {n} sellers we picked</b> — if the prices match, <b>{store}</b> is best today at <b>{rate}</b> cash back. <span class="tag">That store pays different rates by department, so we read the <b>{dept}</b> row — tell us if your item belongs somewhere else</span>',
   'reco.ifSame.range': '<b>Among the {n} sellers we picked</b> — if the prices match, <b>{store}</b> looks best today at <b>{rate}</b> cash back. <b>The exact rate moves within that range depending on the item.</b>',
   'reco.seePrice': '🔎 See the price at {store}',
   'reco.openItem': '🔎 Open this item at {store}',
   'reco.seeking': '🔎 Looking up where this is sold…',
   'reco.searchPool': 'These are the places a search turned up a page for this item — we could not check whether it is in stock.',
   'reco.searchCut': 'A search found {m} more, left out because their cashback was lower.',
+  'reco.unranked': '<b>{stores}</b> goes up to {pct}%, but <b>we do not know its floor</b>, so we put it last — that is our missing data, not a bad store.',
   'reco.thenType': 'then type what you saw into the box above',
   'reco.made': 'made {n} sellers',
   // ⭐ 조건절이 핵심이다 — "가격이 같다면"을 떼면 그 순간 거짓말이 된다.
@@ -2665,6 +2667,56 @@ let lastRecognition=null;   // {query, top, n} — 결론 카드가 이걸 보�
 
 // 오늘 기준 그 판매처의 최고 캐시백.
 // ⚠️ upTo(= "최대 N%")를 **버리지 않는다.** 최대치를 확정치처럼 쓰면 그게 곧 거짓말이 된다.
+// ===== 부서별 요율 — "그래서 이 물건은 몇 %인가" =====
+//
+// BeFrugal 상점 페이지에는 부서 요율표가 있고, 우리는 2026-09-16 까지 **최소값 하나만**
+// 꺼내 쓰고 이름을 버렸다. 그래서 화면이 할 수 있는 말이 "1.26%~10.1%" 뿐이었다.
+// 실제 표에는 **Patio & Grills 1.26%** 라고 적혀 있다 — 그릴을 사는 사람에겐 그게 답이다.
+//
+// ⚠️ 행이 두 종류다:
+//   ① 상품 카테고리 (Home Depot, Walmart, Best Buy) — 상품으로 맞힐 수 있다
+//   ② **사람의 상태** (Shein "신규/기존 고객", Dell, Temu, Sam's Club) — 상품과 무관하고
+//      우리가 알 수 없다. **맞히려 들지 않는다.** 표만 보여주고 사용자가 고르게 둔다.
+// 그래서 매칭은 "확신이 설 때만" 한다. 확신이 없으면 **아무 행도 고르지 않는다** —
+// 틀린 행을 자신 있게 고르는 것이 이 도구가 할 수 있는 제일 나쁜 실수다.
+
+// 매칭에 쓰면 안 되는 흔한 낱말. 이게 없으면 'Home Decor' 가 아무 'home' 에나 붙는다.
+const DEPT_STOP = new Set(['other','others','all','and','the','for','with','new','existing','customer',
+  'customers','order','orders','item','items','deal','deals','sale','sales','apply','exclusions','see',
+  'terms','restrictions','w','no','coupon','used','plus','more','shop','store','online','off','up','to']);
+const deptTokens = s0 => String(s0||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').split(' ')
+  .filter(w => w.length>=4 && !DEPT_STOP.has(w));
+
+// 상품(이름 + 상품 URL의 낱말)이 어느 부서인지. 확신이 없으면 null.
+// 반환 {n,p,hits} — 이름을 같이 돌려주는 이유: 화면에 **어느 행을 봤는지 적어야**
+// 틀렸을 때 사용자가 알아본다. 조용히 고르면 틀린 걸 아무도 못 본다.
+function deptMatch(depts, haystack){
+  if(!depts || !depts.length) return null;
+  const hay = new Set(deptTokens(haystack));
+  if(!hay.size) return null;
+  let best = null;
+  for(const d of depts){
+    if(/^other/i.test(d.n)) continue;          // 'Other' 는 카테고리가 아니라 나머지다
+    // ⚠️ 이 줄은 **중복 방어**다 — 'other'·'exclusions'·'terms' 가 전부 DEPT_STOP 에 있어서
+    //    이 줄을 지워도 검사가 안 잡힌다(2026-09-16 대조군 D1 이 통과했다). 그래도 남긴다:
+    //    의도를 코드에 적어두는 값이 있고, 불용어 목록이 바뀌면 그때 이 줄이 유일한 방어가 된다.
+    const toks = deptTokens(d.n);
+    if(!toks.length) continue;
+    let hits = 0;
+    for(const t of toks){
+      // 단수/복수만 다른 것까지 — 'grills' 와 'grill'
+      if(hay.has(t) || hay.has(t+'s') || (t.endsWith('s') && hay.has(t.slice(0,-1)))) hits++;
+    }
+    if(!hits) continue;
+    // 같은 수로 걸리면 **낮은 쪽**을 고른다. 낙관적으로 틀리는 것보다 낫다.
+    if(!best || hits>best.hits || (hits===best.hits && d.p<best.p)) best = {n:d.n, p:d.p, hits:hits};
+  }
+  return best;
+}
+// 이 상품 문맥을 전역에 둔다 — bestRateFor 를 부르는 곳이 여럿이라 인자를 다 뚫기보다
+// 한 곳에서 세팅한다. 바뀌는 시점은 '새 상품을 인식했을 때' 하나뿐이다.
+let recoContext = '';
+
 function bestRateFor(key){
   const b=baselineFor(key); let best={pct:0,upTo:false,min:null,flat:0,portal:''};
   if(!b) return best;
@@ -2685,15 +2737,33 @@ function bestRateFor(key){
   [['rk','Rakuten'],['tcb','TopCashback'],['bf','BeFrugal']].forEach(([k,name])=>{
     const e=b[k]; if(!e||e.listed===false) return;
     const pct=+e.pct||0, flat=+e.flat||0;
-    if(pct>best.pct) best={pct:pct,upTo:!!e.upTo,min:(e.min!=null?+e.min:null),flat:0,portal:name};
-    else if(best.pct===0 && flat>best.flat) best={pct:0,upTo:false,min:null,flat:flat,portal:name};
+    if(pct>best.pct) best={pct:pct,upTo:!!e.upTo,min:(e.min!=null?+e.min:null),
+                           depts:(e.depts||null),flat:0,portal:name};
+    else if(best.pct===0 && flat>best.flat) best={pct:0,upTo:false,min:null,depts:null,flat:flat,portal:name};
   });
+  // ⭐ 이 상품이 어느 부서인지 알면 **범위가 아니라 숫자**로 답한다.
+  best.dept = best.upTo ? deptMatch(best.depts, recoContext) : null;
+  // '확실한 숫자' — 순위는 이걸로 매긴다. 천장값으로 줄 세우면 바닥 0% 짜리가 1등이 된다
+  //  (Walmart 0%~18% 가 5개 상품 중 4개에서 1등이었다. 사실상 아무 말도 아니다.)
+  best.sure = best.dept ? best.dept.p
+            : (best.upTo ? (best.min!=null ? best.min : null) : (best.pct>0 ? best.pct : null));
   return best;
 }
 // 바닥을 아는 upTo 인가 — 범위로 말할 수 있으면 "숫자를 안 쓰겠다"고 할 이유가 없다.
 function rateHasRange(t0){ return !!(t0 && t0.upTo && t0.min!=null && t0.min!==t0.pct); }
+// ⭐ **순위를 매길 수 없어서 뒤로 간 곳을 말한다.**
+// 순위 기준이 '확실한 숫자(sure)' 로 바뀌면서, "최대 N%" 만 있고 바닥을 모르는 가게가
+// 자동으로 꼴찌가 된다. 그 자체는 맞는 처리지만 **조용히 하면 안 된다** —
+// 사용자 입장에선 그 가게가 진짜로 제일 나쁜 건지, 우리가 몰라서 뒤로 민 건지 구분이 안 된다.
+// (이 저장소의 규칙: 뺐으면 뺐다고 말한다. 조용한 누락 금지.)
+function unrankedOf(list){
+  return (list||[]).filter(x=>x && x.rate && x.rate.sure==null && x.rate.pct>0)
+    .map(x=>({store:x.store, pct:x.rate.pct}));
+}
 const recoEsc=x=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function recoRateText(t0){
+  // 부서를 맞혔으면 **범위가 아니라 그 숫자**다. 이게 사용자가 실제로 받는 값이다.
+  if(t0 && t0.dept) return t0.dept.p+'%';
   // 범위를 알면 범위로 — fmtBase 가 사이트 모드에서 이미 이렇게 말한다. 두 화면이 달랐다.
   if(rateHasRange(t0)) return t0.min+'%~'+t0.pct+'%';
   if(t0.pct>0) return (t0.upTo?t('reco.upTo','최대 '):'')+t0.pct+'%';
@@ -2744,12 +2814,18 @@ async function upgradeSellersFromSearch(q, token){
   const j = await fetchSellers(q);
   // 늦게 온 답으로 **지금 보고 있는 다른 상품의 화면을 덮지 않는다.**
   if(!j || token !== recoToken || !lastRecognition) return;
+  // ⭐ 상품 URL 의 낱말을 문맥에 넣는다. 'Weber Spirit E-310' 에는 'grill' 이 없지만
+  //    URL 은 .../Weber-Spirit-E-310-3-Burner-...-Gas-Grill/... 이다. 부서 매칭이 이걸로 산다.
+  //    ⚠️ **부서 매칭 전에** 세팅해야 한다 — sellersToStores 가 bestRateFor 를 부른다.
+  recoContext = q + ' ' + (j.sellers||[]).map(x=>String(x&&x.url||'')
+    .replace(/https?:\/\/[^/]+/,'').replace(/[^A-Za-z]+/g,' ')).join(' ');
   const hits = sellersToStores(j.sellers);
   // 못 찾았으면 **아무것도 하지 않는다.** 지금 화면(고정 4곳)이 그대로 남는 게 맞다 —
   // 빈 목록을 주느니 범위를 밝힌 추측이 낫다(RECO_STORES 주석과 같은 판단).
   if(hits.length < SELLERS_MIN_HITS) return;
 
-  hits.sort((a,b)=>(b.rate.pct-a.rate.pct)||(b.rate.flat-a.rate.flat));
+  const sureOf=r=>(r && r.sure!=null) ? r.sure : -1;
+  hits.sort((a,b)=>(sureOf(b.rate)-sureOf(a.rate))||(b.rate.pct-a.rate.pct)||(b.rate.flat-a.rate.flat));
   const ranked = hits.slice(0, RECO_TOP_N);
   const cut = hits.length - ranked.length;   // 잘린 건 **말한다**(조용한 누락 금지)
 
@@ -2771,7 +2847,7 @@ async function upgradeSellersFromSearch(q, token){
   });
 
   lastRecognition = {query:q, top:ranked[0].rate, topStore:ranked[0].store, n:scenarios.length,
-                     dropped:[], fromSearch:true, searchCut:cut};
+                     dropped:[], unranked: unrankedOf(ranked), fromSearch:true, searchCut:cut};
   recompute();
 }
 
@@ -2783,11 +2859,15 @@ function applyRecognizedProduct(query, opts){
 
   // ② 예시(데모)와 이전 결과를 **즉시** 치운다. 사용자: "바로 바뀌어야 한다"
   const pn=document.getElementById('pname'); if(pn) pn.value=(opts.name||q).slice(0,80);
+  recoContext = q + ' ' + (opts.name||'');     // 부서 매칭이 볼 문맥. 상품이 바뀌면 여기서 바뀐다
   const db=document.getElementById('demoBar'); if(db) db.style.display='none';
   const pm=document.getElementById('pasteMsg'); if(pm) pm.innerHTML='';
 
   // ③ 오늘 캐시백 높은 순 3곳 — 다만 **안 팔 것 같은 전문점은 뒤로 내린다.**
-  const byRate=(a,b)=>(b.rate.pct-a.rate.pct)||(b.rate.flat-a.rate.flat);
+  // ⚠️ 정렬 기준은 **확실한 숫자(sure)** 다. 천장값이 아니다.
+  //    바닥을 모르는 곳(sure=null)은 -1 로 뒤로 보내되, 아래에서 **뺐다고 말한다.**
+  const sureOf=r=>(r && r.sure!=null) ? r.sure : -1;
+  const byRate=(a,b)=>(sureOf(b.rate)-sureOf(a.rate))||(b.rate.pct-a.rate.pct)||(b.rate.flat-a.rate.flat);
   const scored=RECO_STORES.map(x=>Object.assign({},x,{rate:bestRateFor(x.key),miss:narrowMiss(x,q)}));
   const keep=scored.filter(x=>!x.miss).sort(byRate);
   const down=scored.filter(x=>x.miss).sort(byRate);
@@ -2810,7 +2890,8 @@ function applyRecognizedProduct(query, opts){
   });
 
   lastRecognition={query:q, top:ranked[0]?ranked[0].rate:null, topStore:ranked[0]?ranked[0].store:'', n:scenarios.length,
-    dropped: droppedOut.map(d=>({store:d.store, why:d.miss})), fromSearch:false, searchCut:0, seeking:true};
+    dropped: droppedOut.map(d=>({store:d.store, why:d.miss})), unranked: unrankedOf(ranked),
+    fromSearch:false, searchCut:0, seeking:true};
   recompute();
   // ⭐ 여기서부터는 비동기다 — 위 화면은 이미 그려졌고, 답이 오면 갈아끼운다.
   const myToken = ++recoToken;
@@ -2866,7 +2947,11 @@ function recoPendingHTML(){
           //    사이트 모드에서 먼저 고쳤는데 이 경로가 남아 있었다 — 사용자 실사용 스크린샷에서 발견.
           ? t('reco.ifSame.upTo','<b>저희가 고른 이 {n}곳 중에서는</b> — 오늘 <b>{store}</b>의 캐시백이 제일 높아 보여요. 다만 이 가게는 <b>상품 카테고리마다 캐시백이 달라서</b> 숫자를 대신 적지 않을게요 — 링크로 들어가 확인해 주세요.',
               {n:r.n,store:recoEsc(r.topStore)})
-          : (rateHasRange(r.top)
+          : (r.top&&r.top.dept
+              // ⭐ 어느 행을 봤는지 **이름을 적는다.** 조용히 고르면 틀렸을 때 아무도 못 본다.
+              ? t('reco.ifSame.dept','<b>저희가 고른 이 {n}곳 중에서는</b> — 가격이 같다면 오늘 <b>{store}</b>가 캐시백 <b>{rate}</b>로 제일 유리해요. <span class="tag">이 가게는 품목마다 달라서 <b>{dept}</b> 칸으로 봤어요 — 다른 품목이면 알려 주세요</span>',
+                  {n:r.n,store:recoEsc(r.topStore),rate:rate,dept:recoEsc(r.top.dept.n)})
+              : rateHasRange(r.top)
               // 범위는 **확정값과 다르게 말한다.** 같은 문장에 넣으면 "{rate} 받는다"로 읽힌다.
               ? t('reco.ifSame.range','<b>저희가 고른 이 {n}곳 중에서는</b> — 가격이 같다면 오늘 <b>{store}</b>가 캐시백 <b>{rate}</b>로 제일 유리해 보여요. <b>상품에 따라 이 범위 안에서 달라져요.</b>',
                   {n:r.n,store:recoEsc(r.topStore),rate:rate})
@@ -2887,6 +2972,11 @@ function recoPendingHTML(){
     // 검색에 잡혔는데 캐시백이 낮아 잘린 곳 — **뺐으면 뺐다고 말한다.**
     (r.fromSearch && r.searchCut>0
       ? '<br><span class="tag">'+t('reco.searchCut','검색에 잡힌 곳이 {m}곳 더 있었는데 캐시백이 낮아 뺐어요.',{m:r.searchCut})+'</span>'
+      : '')+
+    // 바닥을 몰라 뒤로 간 곳 — 그 가게가 나쁜 게 아니라 **우리가 모르는 것**이다. 그렇게 적는다.
+    ((r.unranked&&r.unranked.length)
+      ? '<br><span class="tag" style="color:var(--warn)">'+t('reco.unranked','<b>{stores}</b>는 최대 {pct}%까지 있는데 <b>최소가 얼마인지 몰라</b> 순위에서 뒤로 뒀어요 — 나쁜 게 아니라 저희가 모르는 거예요.',
+          {stores:r.unranked.map(u=>recoEsc(u.store)).join(' · '), pct:r.unranked.map(u=>u.pct).join('/')})+'</span>'
       : '');
 }
 

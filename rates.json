@@ -39,7 +39,17 @@
     "pct": 2.4,
     "listed": true,
     "upTo": true,
-    "min": 1.2
+    "min": 1.2,
+    "depts": [
+     {
+      "n": "Furniture",
+      "p": 4.5
+     },
+     {
+      "n": "Other",
+      "p": 9
+     }
+    ]
    }
   },
   "westelm": {
@@ -187,7 +197,97 @@
     "pct": 10.1,
     "listed": true,
     "upTo": true,
-    "min": 1.26
+    "min": 1.26,
+    "depts": [
+     {
+      "n": "Housewares",
+      "p": 10.1
+     },
+     {
+      "n": "Luggage",
+      "p": 10.1
+     },
+     {
+      "n": "Tabletop",
+      "p": 10.1
+     },
+     {
+      "n": "Bedding & Textiles",
+      "p": 10.1
+     },
+     {
+      "n": "Wallpaper",
+      "p": 10.1
+     },
+     {
+      "n": "Interior Furniture",
+      "p": 10.1
+     },
+     {
+      "n": "Mattresses",
+      "p": 10.1
+     },
+     {
+      "n": "Area Rugs",
+      "p": 10.1
+     },
+     {
+      "n": "Home Decor",
+      "p": 10.1
+     },
+     {
+      "n": "Building Materials - Building Materials, Lumber, Plumbing, Elecrical, Window & Doors",
+      "p": 1.26
+     },
+     {
+      "n": "Flooring",
+      "p": 1.26
+     },
+     {
+      "n": "Paint",
+      "p": 1.26
+     },
+     {
+      "n": "Lighting",
+      "p": 1.26
+     },
+     {
+      "n": "Appliances",
+      "p": 1.26
+     },
+     {
+      "n": "Bath",
+      "p": 1.26
+     },
+     {
+      "n": "Kitchen & Blinds",
+      "p": 1.26
+     },
+     {
+      "n": "Hardware",
+      "p": 1.26
+     },
+     {
+      "n": "Power Tools",
+      "p": 1.26
+     },
+     {
+      "n": "Storage & Organization",
+      "p": 1.26
+     },
+     {
+      "n": "Patio & Grills",
+      "p": 1.26
+     },
+     {
+      "n": "Lawn & Garden",
+      "p": 1.26
+     },
+     {
+      "n": "Other",
+      "p": 1.26
+     }
+    ]
    }
   },
   "lowes": {
@@ -227,7 +327,17 @@
     "pct": 2.4,
     "listed": true,
     "upTo": true,
-    "min": 1.2
+    "min": 1.2,
+    "depts": [
+     {
+      "n": "Heaters & Winter Goods",
+      "p": 4.5
+     },
+     {
+      "n": "Other",
+      "p": 9
+     }
+    ]
    }
   },
   "michaels": {
@@ -302,7 +412,65 @@
     "pct": 12,
     "listed": true,
     "upTo": true,
-    "min": 0
+    "min": 0,
+    "depts": [
+     {
+      "n": "Flash Deals",
+      "p": 18
+     },
+     {
+      "n": "Apparel, Accessories, Shoes, & Jewelry",
+      "p": 4.5
+     },
+     {
+      "n": "Sports & Outdoors",
+      "p": 4.5
+     },
+     {
+      "n": "Automotive",
+      "p": 4.5
+     },
+     {
+      "n": "Home Improvement, Hardware & Tools, DIY",
+      "p": 4.5
+     },
+     {
+      "n": "Cook & Dine (Kitchen)",
+      "p": 4.5
+     },
+     {
+      "n": "Bed & Bath",
+      "p": 4.5
+     },
+     {
+      "n": "Smart Home Management",
+      "p": 4.5
+     },
+     {
+      "n": "Furniture",
+      "p": 4.5
+     },
+     {
+      "n": "Patio & Garden",
+      "p": 4.5
+     },
+     {
+      "n": "Toys",
+      "p": 4.5
+     },
+     {
+      "n": "Books & Magazines",
+      "p": 4.5
+     },
+     {
+      "n": "Media, Gaming, & Electronics",
+      "p": 3
+     },
+     {
+      "n": "Other",
+      "p": 0
+     }
+    ]
    }
   },
   "costco": {
@@ -341,7 +509,17 @@
     "pct": 15,
     "listed": true,
     "upTo": true,
-    "min": 2
+    "min": 2,
+    "depts": [
+     {
+      "n": "New Sam's Club Membership",
+      "p": 20
+     },
+     {
+      "n": "Other (Restrictions Apply)",
+      "p": 2.66
+     }
+    ]
    }
   },
   "bjs": {
@@ -761,7 +939,17 @@
     "pct": 11,
     "listed": true,
     "upTo": true,
-    "min": 0.73
+    "min": 0.73,
+    "depts": [
+     {
+      "n": "New SHEIN Customer Order",
+      "p": 20
+     },
+     {
+      "n": "Existing SHEIN Customer Order",
+      "p": 1.33
+     }
+    ]
    }
   },
   "levis": {
@@ -1017,7 +1205,17 @@
     "pct": 15,
     "listed": true,
     "upTo": true,
-    "min": 12
+    "min": 12,
+    "depts": [
+     {
+      "n": "Sale Items",
+      "p": 16
+     },
+     {
+      "n": "Other",
+      "p": 20
+     }
+    ]
    }
   },
   "reebok": {
@@ -1093,7 +1291,17 @@
     "pct": 6,
     "listed": true,
     "upTo": true,
-    "min": 3
+    "min": 3,
+    "depts": [
+     {
+      "n": "Gucci, Bottega Veneta, Ferragamo, Off-White, or Versace",
+      "p": 3
+     },
+     {
+      "n": "Other",
+      "p": 6
+     }
+    ]
    }
   },
   "zappos": {
@@ -1332,7 +1540,21 @@
     "pct": 4,
     "listed": true,
     "upTo": true,
-    "min": 2
+    "min": 2,
+    "depts": [
+     {
+      "n": "Appliances",
+      "p": 4
+     },
+     {
+      "n": "Other (Exclusions Apply. See Terms)",
+      "p": 3
+     },
+     {
+      "n": "Laptops",
+      "p": 2
+     }
+    ]
    }
   },
   "apple": {
@@ -1389,7 +1611,17 @@
     "pct": 2.4,
     "listed": true,
     "upTo": true,
-    "min": 1.2
+    "min": 1.2,
+    "depts": [
+     {
+      "n": "New Dell Customer Order",
+      "p": 2.4
+     },
+     {
+      "n": "Existing Dell Customer Order",
+      "p": 1.2
+     }
+    ]
    }
   },
   "hp": {
@@ -1410,7 +1642,17 @@
     "pct": 1.8,
     "listed": true,
     "upTo": true,
-    "min": 0.6
+    "min": 0.6,
+    "depts": [
+     {
+      "n": "HP Home Laptops & Desktops",
+      "p": 2.66
+     },
+     {
+      "n": "Other",
+      "p": 8
+     }
+    ]
    }
   },
   "lenovo": {
@@ -1961,7 +2203,21 @@
     "pct": 5.2,
     "listed": true,
     "upTo": true,
-    "min": 0.65
+    "min": 0.65,
+    "depts": [
+     {
+      "n": "Mobile Phone Accessories, Interior Accessories, Garden Supplies, Children’s Clothing, Wome",
+      "p": 13
+     },
+     {
+      "n": "Mobile Phones, Computer Peripherals, Tablets, Desktops,&#xA0;Laptops,&#xA0;Home Audio & Vi",
+      "p": 3.25
+     },
+     {
+      "n": "Other",
+      "p": 1.62
+     }
+    ]
    }
   },
   "temu": {
@@ -1982,7 +2238,17 @@
     "pct": 50,
     "listed": true,
     "upTo": true,
-    "min": 6.66
+    "min": 6.66,
+    "depts": [
+     {
+      "n": "New Temu Customer Order",
+      "p": 50
+     },
+     {
+      "n": "Existing Temu Customer Order",
+      "p": 6.66
+     }
+    ]
    }
   },
   "instacart": {
@@ -2023,7 +2289,33 @@
     "pct": 7,
     "listed": true,
     "upTo": true,
-    "min": 2
+    "min": 2,
+    "depts": [
+     {
+      "n": "Hotel Or Vacation Rental w/ No Coupon Used",
+      "p": 12
+     },
+     {
+      "n": "Cruise",
+      "p": 10.28
+     },
+     {
+      "n": "Activities",
+      "p": 8.57
+     },
+     {
+      "n": "Hotel Or Vacation Rental w/ Coupon Used",
+      "p": 6.85
+     },
+     {
+      "n": "Package Booking",
+      "p": 3.42
+     },
+     {
+      "n": "Car Rental",
+      "p": 3.42
+     }
+    ]
    }
   },
   "hotels": {
@@ -2045,7 +2337,17 @@
     "pct": 7,
     "listed": true,
     "upTo": true,
-    "min": 1.5
+    "min": 1.5,
+    "depts": [
+     {
+      "n": "Hotel Booking",
+      "p": 12
+     },
+     {
+      "n": "Rental Car",
+      "p": 2.57
+     }
+    ]
    }
   },
   "booking": {
@@ -2066,7 +2368,29 @@
     "pct": 4,
     "listed": true,
     "upTo": true,
-    "min": 2.53
+    "min": 2.53,
+    "depts": [
+     {
+      "n": "Attractions",
+      "p": 7.33
+     },
+     {
+      "n": "Accommodations",
+      "p": 7.33
+     },
+     {
+      "n": "Airport Taxis",
+      "p": 7.33
+     },
+     {
+      "n": "Cars Pay Local",
+      "p": 6.96
+     },
+     {
+      "n": "Cars Pay Now",
+      "p": 11
+     }
+    ]
    }
   },
   "priceline": {
@@ -2088,7 +2412,25 @@
     "pct": 6,
     "listed": true,
     "upTo": true,
-    "min": 3
+    "min": 3,
+    "depts": [
+     {
+      "n": "Hotel",
+      "p": 11
+     },
+     {
+      "n": "Rental Car",
+      "p": 11
+     },
+     {
+      "n": "Cruise",
+      "p": 5.5
+     },
+     {
+      "n": "Flight Express Deal",
+      "p": 7.33
+     }
+    ]
    }
   },
   "samsonite": {

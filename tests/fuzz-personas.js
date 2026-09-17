@@ -2123,6 +2123,77 @@ window.__fuzz = (function () {
     return { mode: 'sellers', 검사: checks, 실패: bad.length, 상세: bad };
   }
 
+  // ===== 부서 매칭 — "이 물건은 그 가게에서 몇 %인가" =====
+  // 🔴 이 기능이 틀리면 **자신 있게 틀린 숫자**를 준다. 이 도구가 할 수 있는 최악이다.
+  //    그래서 검사가 '맞히는가' 보다 **'모를 때 안 고르는가'** 에 더 무게를 둔다.
+  async function runDept() {
+    const bad = []; let checks = 0;
+    // ⚠️ rates.json 은 비동기로 들어온다. 기다리지 않으면 아직 빈 걸 보고
+    //    **'수집이 깨졌다'는 거짓 실패**를 만든다(2026-09-16 대조군 2건이 이것이었다).
+    const hasDepts = () => !!(PORTAL_RATES && PORTAL_RATES.stores && PORTAL_RATES.stores.homedepot
+        && PORTAL_RATES.stores.homedepot.bf && PORTAL_RATES.stores.homedepot.bf.depts);
+    for (let i = 0; i < 200 && !hasDepts(); i++) await new Promise(r => setTimeout(r, 50));
+    const HD = [
+      { n: 'Housewares', p: 10.1 }, { n: 'Patio & Grills', p: 1.26 },
+      { n: 'Power Tools', p: 1.26 }, { n: 'Lawn & Garden', p: 1.26 }, { n: 'Other', p: 1.26 },
+    ];
+    const SHEIN = [{ n: 'New SHEIN Customer Order', p: 20 }, { n: 'Existing SHEIN Customer Order', p: 1.33 }];
+    const WM = [{ n: 'Toys', p: 4.5 }, { n: 'Media, Gaming, & Electronics', p: 3 }, { n: 'Other', p: 0 }];
+
+    const cases = [
+      // [라벨, 표, 문맥, 기대 부서명 (null = 아무것도 고르면 안 됨)]
+      ['그릴 — URL 낱말로 맞힌다', HD,
+       'Weber Spirit E-310 /p/Weber-Spirit-E-310-3-Burner-Liquid-Propane-Gas-Grill-in-Black/332232130', 'Patio & Grills'],
+      ['드릴', HD, 'DeWalt 20V drill /p/DeWalt-Cordless-Power-Tools-Drill/123', 'Power Tools'],
+      ['단서 없음 → 안 고른다', HD, 'Acme ZX-9 model 2231 /p/ABC-12345/9', null],
+      ['빈 문맥 → 안 고른다', HD, '', null],
+      ['🔴 신규/기존 고객은 상품이 아니다 → 안 고른다', SHEIN, 'summer dress floral /product/dress-123', null],
+      // 🔴 이게 불용어가 막는 사고다 — 'New Balance' 의 'new' 가
+      //    'New SHEIN Customer Order 20%' 에 붙으면 **20% 를 자신 있게 약속한다.**
+      ['🔴 New Balance 의 new 가 신규고객에 붙으면 안 된다', SHEIN,
+       'New Balance 574 sneakers /product/new-balance-574-shoes/9', null],
+      ['🔴 짧은 낱말로 걸리면 안 된다', WM, 'toy story dvd /ip/toy-story/1', null],
+      ['🔴 Other 는 카테고리가 아니다 → 안 고른다', WM, 'other stuff /ip/other-thing/1', null],
+      ['장난감', WM, 'LEGO set /ip/LEGO-Disney-Toys-Building-Set/123', 'Toys'],
+      ['전자', WM, 'Dell XPS 13 /ip/Dell-XPS-13-Laptop-Electronics/55', 'Media, Gaming, & Electronics'],
+    ];
+    for (const [label, depts, hay, want] of cases) {
+      checks++;
+      const got = deptMatch(depts, hay);
+      const gotName = got ? got.n : null;
+      if (gotName !== want) {
+        bad.push('★ 부서 매칭이 다르다 [' + label + '] 기대 ' + JSON.stringify(want) + ' / 실제 ' + JSON.stringify(gotName));
+      }
+    }
+    // 동점이면 **낮은 쪽**. 낙관적으로 틀리는 것보다 낫다.
+    checks++;
+    const tie = deptMatch([{ n: 'Garden Tools', p: 9 }, { n: 'Garden Supplies', p: 2 }], 'garden hose /p/garden-x/1');
+    if (!tie || tie.p !== 2) bad.push('★ 동점에서 높은 쪽을 골랐다 (낙관적으로 틀린다): ' + JSON.stringify(tie));
+    // 표가 없으면 당연히 null
+    checks++;
+    if (deptMatch(null, 'anything') !== null || deptMatch([], 'anything') !== null)
+      bad.push('★ 부서표가 없는데 뭔가를 골랐다');
+
+    // 🔴 실제 rates.json 으로 — 부서를 맞힌 가게는 **범위가 아니라 숫자**로 말해야 한다
+    const S = (PORTAL_RATES && PORTAL_RATES.stores) || {};
+    if (S.homedepot && S.homedepot.bf && S.homedepot.bf.depts) {
+      const keep = recoContext;
+      recoContext = 'Weber Spirit E-310 /p/Weber-Spirit-Gas-Grill/1';
+      const b = bestRateFor('homedepot');
+      checks++;
+      if (!b.dept || !/Patio/i.test(b.dept.n)) bad.push('★ 실제 데이터로 그릴 부서를 못 맞혔다: ' + JSON.stringify(b.dept));
+      checks++;
+      if (b.sure !== 1.26) bad.push('★ 확실한 숫자가 부서 요율이 아니다: sure=' + b.sure + ' (기대 1.26)');
+      checks++;
+      const txt = recoRateText(b) || '';
+      if (txt.indexOf('~') >= 0) bad.push('★ 부서를 맞혔는데 아직 범위로 말한다: "' + txt + '"');
+      recoContext = keep;
+    } else { checks++; bad.push('★ rates.json 에 homedepot 부서표가 없다 — 수집이 깨졌거나 안 받혐다'
+        + ' (asOf=' + (PORTAL_RATES && PORTAL_RATES.asOf) + ' 가게수=' + Object.keys(S).length + ')'); }
+
+    return { mode: 'dept', 검사: checks, 실패: bad.length, 상세: bad };
+  }
+
   function all(opt) {
     opt = opt || {};
     const seed = opt.seed == null ? 42 : opt.seed;
@@ -2140,7 +2211,7 @@ window.__fuzz = (function () {
 
   // koLeak 은 대조군(negcontrol-i18n.js)이 단위로 검사한다 — '사용자 데이터는 미번역이 아니다'가
   // 이 함수 한 곳에 걸려 있어서, 여기가 조용히 느슨해지면 영어 검사 전체가 같이 무의미해진다.
-  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, runActionSteps, runCopyBans, runUpTo, runRateRange, runVersion, runSellers, all, koLeak,
+  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, runActionSteps, runCopyBans, runUpTo, runRateRange, runDept, runVersion, runSellers, all, koLeak,
            last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null, lastScan: null };
 })();
 'fuzz harness loaded';

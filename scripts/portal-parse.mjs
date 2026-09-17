@@ -101,6 +101,37 @@ export async function fetchTcb(slug) {
 //
 // ⚠️ 본문 전체에서 %를 긁으면 안 된다 — 모든 상점 페이지에 **다른 가게 타일**(인기 상점 캐러셀)이
 //    박혀 있어서 Macy's 10% 같은 남의 숫자가 딸려 온다. Amazon 페이지에서 9% 가 잡혔던 게 이것이다.
+
+// 부서별 요율표를 **이름까지** 뽑는다.
+//
+// 🔴 2026-09-16 까지 우리는 이 표에서 **최소값 하나만** 꺼내 쓰고 이름을 버렸다.
+//    그래서 화면이 말할 수 있는 건 "1.26%~10.1%" 뿐이었는데, 실제 표는 이렇게 적혀 있다:
+//      Home Depot: Housewares 10.1% ... **Patio & Grills 1.26%**
+//    그릴을 사는 사람에게 정답은 "1.26%~10.1%" 가 아니라 **1.26%** 다.
+//    (그리고 Lowe's 는 부서 없이 6% 확정이라, 이름을 버리면 **더 싼 곳을 놓친다.**)
+//
+// ⚠️ 행의 성격이 두 가지다. 섞으면 안 된다:
+//    ① 상품 카테고리 — Home Depot·Walmart·Best Buy. 상품으로 맞힐 수 있다
+//    ② **사람의 상태** — Shein "신규 고객 20% / 기존 1.33%", Dell·Temu·Sam's Club.
+//       이건 상품과 무관하고 우리가 알 수 없다. **추측하지 말고 보여주기만 한다.**
+//    파서는 둘을 구분하지 않는다 — 구분은 화면이 한다. 여기서는 **적힌 대로** 옮긴다.
+export function parseBfDepts(html) {
+  const out = [];
+  // 행 안에서 **값 → 이름** 순서로 나온다. 행 밖으로 새지 않도록 창을 좁게 잡는다
+  // (본문 전체를 긁으면 인기 상점 캐러셀의 남의 숫자가 딸려 온다 — 아래 경고 참조).
+  const re = /cash-back-department-row"[\s\S]{0,400}?cash-back-departments-value[^>]*>\s*([\d.]+)\s*%\s*<\/[^>]*>[\s\S]{0,200}?>\s*([^<>]{1,160}?)\s*</gi;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    const p = +m[1];
+    const n = m[2].replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&#x2019;/g, '\u2019')
+                  .replace(/&#x2B;/g, '+').replace(/\s+/g, ' ').trim();
+    if (!n || !isFinite(p)) continue;
+    out.push({ n: n.slice(0, 90), p });
+    if (out.length >= 30) break;           // 표가 비정상적으로 길면 거기서 끊는다
+  }
+  return out;
+}
+
 export function parseBfHtml(html) {
   if (!html) return null;
   const t = html.match(/<title>([^<]*)<\/title>/i);
@@ -116,7 +147,13 @@ export function parseBfHtml(html) {
   let m = title.match(/(\d+(?:\.\d+)?)%\s*Cash Back/i);
   if (m) {
     const r = { pct: +m[1], listed: true };
-    if (depts.length) { r.upTo = true; r.min = Math.min(...depts); }
+    if (depts.length) {
+      r.upTo = true; r.min = Math.min(...depts);
+      // ⭐ 이름까지 싣는다. min 만 남기면 "1.26%~10.1%" 밖에 못 말한다 — 어느 품목이
+      //    1.26% 인지가 실제로 답을 바꾼다(Home Depot 의 Patio & Grills 가 그 1.26% 다).
+      const named = parseBfDepts(html);
+      if (named.length) r.depts = named;
+    }
     return r;
   }
   m = title.match(/\$(\d+(?:\.\d+)?)\s*Cash Back/i);                  // Instacart 류 $ 고정
