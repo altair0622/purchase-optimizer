@@ -1242,9 +1242,16 @@ Object.assign(STRINGS.en, {
 
   // ── 리퍼럴 ───────────────────────────────────────────────────────
   'ref.head': '<b>No portal account yet?</b> — sign up once and you earn cashback on online shopping from then on. It’s free.',
-  'ref.mine': '— these two are my referral links',
+  'ref.mine.all': '— all three are my referral links',
+  'ref.mine.some': '— {mine} are my referral links',
   'ref.disc.title': '⚠️ Disclosure — about the referral links',
-  'ref.disc.body': 'The Rakuten and TopCashback signup links are <b>both my referral links.</b> If you sign up and meet their terms, I get a bonus too. Saying so up front.<br><br><b>Because both are mine, I earn the same whichever one we point you to</b> — there is nothing for the ranking to bend toward.<br><br><b>Which portal wins is computed from the % you enter, and nothing else.</b> Whether I get a bonus never enters the math.<br><br>Sign up directly without a referral and <b>you get exactly the same cashback.</b><br><br>Capital One Shopping is <b>out of the tool</b> — we cannot read its rates automatically, so its referral link is gone too.<br><br>Card-signup affiliate links are <b>deliberately absent</b> — a ranking must not bend to commission.',
+  'ref.disc.mine': 'The {mine} signup links are <b>my referral links.</b> If you sign up and meet their terms, I get a bonus too. Saying so up front.',
+  'ref.disc.sym': '<b>Because all three are mine, I earn the same whichever one we point you to</b> — there is nothing for the ranking to bend toward.',
+  'ref.disc.asym': '<b>{notMine} is not my referral link</b> — I left it in the comparison anyway. If it is the better deal, the tool says so, even though I get nothing when it wins.',
+  'ref.disc.calc': '<b>Which portal wins is computed from the % you enter, and nothing else.</b> Whether I get a bonus never enters the math.',
+  'ref.disc.same': 'Sign up directly without a referral and <b>you get exactly the same cashback.</b>',
+  'ref.disc.capone': 'Capital One Shopping is <b>out of the tool</b> — we cannot read its rates automatically, so its referral link is gone too.',
+  'ref.disc.noaff': 'Card-signup affiliate links are <b>deliberately absent</b> — a ranking must not bend to commission.',
 
   // ── 오퍼 붙여넣기 (v0.28) ────────────────────────────────────────
   'ofp.title': '🎁 Paste your card offers',
@@ -1407,6 +1414,7 @@ Object.assign(STRINGS.en, {
 
   // ── v0.32 인식 → 판매처 비교 ────────────────────────────────────
   'reco.upTo': 'up to ',
+  'reco.ifSame.range': '<b>Among the {n} sellers we picked</b> — if the prices match, <b>{store}</b> looks best today at <b>{rate}</b> cash back. <b>The exact rate moves within that range depending on the item.</b>',
   'reco.seePrice': '🔎 See the price at {store}',
   'reco.openItem': '🔎 Open this item at {store}',
   'reco.seeking': '🔎 Looking up where this is sold…',
@@ -1687,12 +1695,18 @@ const EXAMPLE_WALLET = ['freedomu','csp','amexgold','doublecash']; // 첫 방문
 // 비워두면 일반 가입 링크로 표시되고, 채우면 추천 링크(가입자·추천인 둘 다 보너스)로 바뀜.
 // ⚠️ Capital One Shopping 을 뺐다 (2026-09-14). 요율을 자동으로 못 가져와서(CAPTCHA)
 //    도구가 비교에 못 쓰는데 가입만 권하는 건 앞뒤가 안 맞는다.
-// ⚠️ 이제 **비교하는 두 포털 모두 내 초대 링크**다. 예전에는 TopCashback 에 링크가 없어서
-//    "수익이 없는데도 1위로 부른다"가 중립성의 증거였는데, 그 증거는 사라졌다.
-//    대신 **대칭성**이 그 자리를 대신한다 — 어느 쪽을 추천하든 내가 버는 건 같으므로
-//    순위를 한쪽으로 기울일 이유가 없다. 고지에 그 사실을 그대로 적었다.
-//    ⚠️ 셋째 포털을 붙일 때 한쪽만 링크가 있으면 이 대칭이 깨진다. 그때 고지를 다시 볼 것.
-const REFERRALS = { rakuten:"https://www.rakuten.com/r/ALTAIR42", topcashback:"https://www.topcashback.com/ref/altair0622" };
+// ⚠️ 고지 문구는 **이 객체에서 파생시킨다. 손으로 적지 않는다.**
+//    예전엔 "둘 다 제 초대 링크"가 문장에 박혀 있었다. 셋째 포털(BeFrugal)을 붙이는 순간
+//    그 문장은 곧바로 거짓이 되는데, 코드는 아무것도 모르고 계속 그렇게 말한다.
+//    링크를 넣고 빼는 일은 앞으로도 생기므로, **상태가 바뀌면 문구가 따라오게** 만들었다.
+//    (renderRefBox 의 REF_PORTALS 참고)
+//
+//    지금의 중립성 논거: 어느 포털이 1위인지는 **입력한 % 숫자만으로** 계산되고
+//    내가 보너스를 받는지는 계산에 아예 안 들어간다. 링크가 몇 개든 그건 변하지 않는다.
+//
+// BeFrugal: 로그인 → Refer a Friend → 내 링크 복사 (예: https://www.befrugal.com/rs.php?...)
+//    ⚠️ 비워두면 일반 가입 링크로 뜨고, 고지도 자동으로 "BeFrugal 은 제 링크가 아니에요"가 된다.
+const REFERRALS = { rakuten:"https://www.rakuten.com/r/ALTAIR42", topcashback:"https://www.topcashback.com/ref/altair0622", befrugal:"" };
 
 // ===== 포털 기본율 스냅샷 =====
 // ⚠️ 로그아웃 "기본율"만 — 로그인 계정 화면 값이 최종 진실이다(더 높을 수도, 낮을 수도 있다).
@@ -2652,21 +2666,36 @@ let lastRecognition=null;   // {query, top, n} — 결론 카드가 이걸 보�
 // 오늘 기준 그 판매처의 최고 캐시백.
 // ⚠️ upTo(= "최대 N%")를 **버리지 않는다.** 최대치를 확정치처럼 쓰면 그게 곧 거짓말이 된다.
 function bestRateFor(key){
-  const b=baselineFor(key); let best={pct:0,upTo:false,flat:0,portal:''};
+  const b=baselineFor(key); let best={pct:0,upTo:false,min:null,flat:0,portal:''};
   if(!b) return best;
   // ⚠️ CapOne 을 뺐다(2026-09-14). rates.json 의 cap 값은 **수동 스냅샷**이라 45일 묵어 있었고,
   //    그걸로 추천 순위를 매기면 "오늘 여기가 제일 높아요"가 낡은 값에 기대게 된다.
-  //    자동 갱신되는 둘만 본다 — 사이트 모드·포털 링크에서 먼저 뺐는데 여기가 남아 있었다.
-  [['rk','Rakuten'],['tcb','TopCashback']].forEach(([k,name])=>{
+  //    자동 갱신되는 것만 본다.
+  //
+  // 🔴 **BeFrugal 이 여기에만 빠져 있었다**(2026-09-16 발견). 사이트 모드·포털 링크·자동입력엔
+  //    다 붙었는데 **상품 모드의 추천 순위만** 두 포털로 돌고 있었다. 결과가 두 가지로 나빴다:
+  //      ① 96곳 중 69곳에서 1등 포털이 틀렸다 — BeFrugal 이 제일 높은 경우가 그만큼 많다
+  //      ② **숫자를 못 말하는 곳이 25곳**이었다. 그중 18곳은 BeFrugal 에 확정값이나
+  //         바닥값이 있었는데 안 보고 있었을 뿐이다 (Lowe's: tcb "최대 4%" 인데 bf 는 6% 확정).
+  //    updatePortalLinks 는 이미 셋을 같이 보고 있었다 — 같은 사실이 두 곳에 살면서
+  //    한쪽만 고쳐졌던, 이 저장소에서 반복되는 그 실패다.
+  //
+  // ⭐ min 을 같이 실어 나른다. "최대 4%" 는 "그래서 얼마냐"에 답을 못 하지만
+  //    "2%~4%" 는 최소한 바닥을 알려준다. 값·upTo·min·이름은 **같은 한 곳**에서 나와야 한다.
+  [['rk','Rakuten'],['tcb','TopCashback'],['bf','BeFrugal']].forEach(([k,name])=>{
     const e=b[k]; if(!e||e.listed===false) return;
     const pct=+e.pct||0, flat=+e.flat||0;
-    if(pct>best.pct) best={pct:pct,upTo:!!e.upTo,flat:0,portal:name};
-    else if(best.pct===0 && flat>best.flat) best={pct:0,upTo:false,flat:flat,portal:name};
+    if(pct>best.pct) best={pct:pct,upTo:!!e.upTo,min:(e.min!=null?+e.min:null),flat:0,portal:name};
+    else if(best.pct===0 && flat>best.flat) best={pct:0,upTo:false,min:null,flat:flat,portal:name};
   });
   return best;
 }
+// 바닥을 아는 upTo 인가 — 범위로 말할 수 있으면 "숫자를 안 쓰겠다"고 할 이유가 없다.
+function rateHasRange(t0){ return !!(t0 && t0.upTo && t0.min!=null && t0.min!==t0.pct); }
 const recoEsc=x=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function recoRateText(t0){
+  // 범위를 알면 범위로 — fmtBase 가 사이트 모드에서 이미 이렇게 말한다. 두 화면이 달랐다.
+  if(rateHasRange(t0)) return t0.min+'%~'+t0.pct+'%';
   if(t0.pct>0) return (t0.upTo?t('reco.upTo','최대 '):'')+t0.pct+'%';
   if(t0.flat>0) return '$'+t0.flat;
   return null;
@@ -2828,14 +2857,21 @@ function recoPendingHTML(){
   const r=lastRecognition, rate=r.top?recoRateText(r.top):null;
   return '<b>'+recoEsc(r.query)+'</b> <span class="tag">'+t('reco.made','판매처 {n}곳 만들었어요',{n:r.n})+'</span><br>'+
     (rate
-      ? (r.top&&r.top.upTo
+      // ⭐ upTo 라도 **바닥을 알면 숫자를 말한다.** 예전엔 upTo 이기만 하면 전부
+      //    "숫자를 대신 적지 않을게요" 로 갔는데, 실측 5건이 전부 그리로 빠졌다 —
+      //    사용자가 숫자를 거의 못 봤다. 바닥을 아는 경우는 범위로 답하는 게 맞다.
+      ? (r.top&&r.top.upTo&&!rateHasRange(r.top)
           // ⚠️ "최대 N%" 를 결과로 약속하지 않는다. 그 가게는 카테고리마다 요율이 달라
           //    하나의 숫자가 없다(2026-09-14 실측: TopCashback Best Buy 는 10·8·최대15·10 이 공존).
           //    사이트 모드에서 먼저 고쳤는데 이 경로가 남아 있었다 — 사용자 실사용 스크린샷에서 발견.
           ? t('reco.ifSame.upTo','<b>저희가 고른 이 {n}곳 중에서는</b> — 오늘 <b>{store}</b>의 캐시백이 제일 높아 보여요. 다만 이 가게는 <b>상품 카테고리마다 캐시백이 달라서</b> 숫자를 대신 적지 않을게요 — 링크로 들어가 확인해 주세요.',
               {n:r.n,store:recoEsc(r.topStore)})
-          : t('reco.ifSame','<b>저희가 고른 이 {n}곳 중에서는</b> — 가격이 같다면 오늘 <b>{store}</b>가 캐시백 <b>{rate}</b>로 제일 유리해요.',
-              {n:r.n,store:recoEsc(r.topStore),rate:rate}))+'<br>'+
+          : (rateHasRange(r.top)
+              // 범위는 **확정값과 다르게 말한다.** 같은 문장에 넣으면 "{rate} 받는다"로 읽힌다.
+              ? t('reco.ifSame.range','<b>저희가 고른 이 {n}곳 중에서는</b> — 가격이 같다면 오늘 <b>{store}</b>가 캐시백 <b>{rate}</b>로 제일 유리해 보여요. <b>상품에 따라 이 범위 안에서 달라져요.</b>',
+                  {n:r.n,store:recoEsc(r.topStore),rate:rate})
+              : t('reco.ifSame','<b>저희가 고른 이 {n}곳 중에서는</b> — 가격이 같다면 오늘 <b>{store}</b>가 캐시백 <b>{rate}</b>로 제일 유리해요.',
+                  {n:r.n,store:recoEsc(r.topStore),rate:rate})))+'<br>'+
         '<span class="tag">'+t('reco.thenPrice','가격을 넣으면 실제 순비용으로 확인해 드려요.')+'</span>'
       : '<span style="color:var(--warn)">'+t('reco.noRate','이 판매처들의 오늘 캐시백을 아직 몰라요 — 가격과 함께 확인해 주세요.')+'</span>')+
     // 요율을 알든 모르든 항상 붙는다 — 이건 요율에 대한 단서가 아니라 **후보 풀에 대한 사실**이다.
@@ -3326,15 +3362,33 @@ function computeSite(){
 // ===== 추천(리퍼럴) 박스 =====
 function renderRefBox(){
   const slots=document.querySelectorAll('.refslot'); if(!slots.length) return;
-  const hasRef = !!(REFERRALS.rakuten||REFERRALS.topcashback);
-  const rkUrl  = REFERRALS.rakuten     || "https://www.rakuten.com/";
-  const tcbUrl = REFERRALS.topcashback || "https://www.topcashback.com/";
+  // 포털 목록과 "내 링크인가"를 **한 곳에서** 만든다 — 문구가 상태를 따라오게 하는 핵심.
+  const REF_PORTALS = [
+    ['Rakuten',     REFERRALS.rakuten,     'https://www.rakuten.com/'],
+    ['TopCashback', REFERRALS.topcashback, 'https://www.topcashback.com/'],
+    ['BeFrugal',    REFERRALS.befrugal,    'https://www.befrugal.com/'],
+  ];
+  const mine    = REF_PORTALS.filter(x=>x[1]).map(x=>x[0]);
+  const notMine = REF_PORTALS.filter(x=>!x[1]).map(x=>x[0]);
+  const hasRef  = mine.length>0;
   const html = `<div class="storebox" style="margin-top:10px">`+
     `${t('ref.head','<b>아직 포털 계정이 없나요?</b> — 한 번 가입해두면 앞으로 모든 온라인 쇼핑에서 캐시백을 받을 수 있어요. 무료예요.')}<br>`+
-    `<a href="${rkUrl}" target="_blank">Rakuten</a> · <a href="${tcbUrl}" target="_blank">TopCashback</a>`+
-    (hasRef?` <span class="tag">${t('ref.mine','— 둘 다 제 초대 링크')}</span>`:``)+
+    REF_PORTALS.map(([nm,ref,plain])=>`<a href="${ref||plain}" target="_blank">${nm}</a>`).join(' · ')+
+    (hasRef?` <span class="tag">${notMine.length===0
+      ? t('ref.mine.all','— 셋 다 제 초대 링크')
+      : t('ref.mine.some','— {mine}은 제 초대 링크',{mine:mine.join('·')})}</span>`:``)+
     (hasRef?`<details><summary>${t('ref.disc.title','⚠️ 이해관계 고지 — 초대 링크에 대해')}</summary>`+
-      `<p class="cashnote">${t('ref.disc.body','Rakuten과 TopCashback 가입 링크는 <b>둘 다 제 초대 링크예요.</b> 가입해서 조건을 채우면 저도 보너스를 받아요. 미리 <b>밝혀둘게요.</b><br><br><b>둘 다 제 링크라서 어느 쪽을 추천하든 제게 돌아오는 건 같아요</b> — 순위를 한쪽으로 기울일 이유가 없어요.<br><br><b>어느 포털이 이기는지는 입력한 % 숫자만으로 계산돼요.</b> 제가 보너스를 받는지는 계산에 전혀 반영되지 않아요.<br><br>초대 링크 없이 직접 가입해도 <b>받는 캐시백은 완전히 똑같아요.</b><br><br>Capital One Shopping은 요율을 자동으로 못 가져와서 <b>도구에서 뺐어요</b> — 초대 링크도 같이 뺐어요.<br><br>카드 발급 어필리에이트는 <b>일부러 붙이지 않았어요</b> — 추천 순위가 수수료에 휘둘리면 안 되니까요.')}</p></details>`:``)+
+      `<p class="cashnote">`+
+      t('ref.disc.mine','{mine} 가입 링크는 <b>제 초대 링크예요.</b> 가입해서 조건을 채우면 저도 보너스를 받아요. 미리 <b>밝혀둘게요.</b>',{mine:mine.join('·')})+`<br><br>`+
+      // 중립성 근거는 링크가 몇 개냐에 따라 달라진다. 문장을 상태에서 고른다.
+      (notMine.length===0
+        ? t('ref.disc.sym','<b>셋 다 제 링크라서 어느 쪽을 추천하든 제게 돌아오는 건 같아요</b> — 순위를 한쪽으로 기울일 이유가 없어요.')
+        : t('ref.disc.asym','<b>{notMine}은 제 초대 링크가 아니에요</b> — 그래도 계산에서 빼지 않았어요. 1위로 부를 때 제가 얻는 게 없어도 그게 이득이면 그렇게 말해요.',{notMine:notMine.join('·')}))+`<br><br>`+
+      t('ref.disc.calc','<b>어느 포털이 이기는지는 입력한 % 숫자만으로 계산돼요.</b> 제가 보너스를 받는지는 계산에 전혀 반영되지 않아요.')+`<br><br>`+
+      t('ref.disc.same','초대 링크 없이 직접 가입해도 <b>받는 캐시백은 완전히 똑같아요.</b>')+`<br><br>`+
+      t('ref.disc.capone','Capital One Shopping은 요율을 자동으로 못 가져와서 <b>도구에서 뺐어요</b> — 초대 링크도 같이 뺐어요.')+`<br><br>`+
+      t('ref.disc.noaff','카드 발급 어필리에이트는 <b>일부러 붙이지 않았어요</b> — 추천 순위가 수수료에 휘둘리면 안 되니까요.')+
+      `</p></details>`:``)+
     `</div>`;
   slots.forEach(s=>{ s.innerHTML=html; });
 }

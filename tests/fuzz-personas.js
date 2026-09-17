@@ -639,14 +639,34 @@ window.__fuzz = (function () {
       //   0% 는 "CapOne 은 안 준다"는 거짓말이 된다
       if (b.cap && b.cap.pct === 0) bad.push('★ CapOne 을 0% 로 뭉갰다 (= "안 준다"는 거짓말): ' + k);
       checks++;
-      // ★ 최고요율 계산에 CapOne 이 안 들어간다
+      // ★ 최고요율 계산에 무엇이 들어가고 무엇이 안 들어가는가
+      //
+      // 🔴 예전 검사는 "best.pct 가 max(rk,tcb) 보다 크면 CapOne 이다" 였다. 이게 **우연히만
+      //    작동하고 있었다**(2026-09-16 대조군으로 확인). CapOne 요율은 0.5~1% 라 세 포털의
+      //    최대값을 넘는 일이 거의 없어서, CapOne 을 실제로 다시 넣어도 **안 잡힌다.**
+      //    크기로 출처를 추측하는 검사였던 셈이다.
+      //
+      // → **행동으로 본다.** 그 포털 값을 말도 안 되는 값으로 바꿔치고 결과가 움직이는지 본다.
+      //    움직이면 읽고 있는 것이고, 안 움직이면 안 읽는 것이다. 추측이 아니라 관찰이다.
       const src = PORTAL_RATES.stores[k];
-      const rk = (src.rk && src.rk.listed !== false && src.rk.pct) || 0;
-      const tcb = (src.tcb && src.tcb.listed !== false && src.tcb.pct) || 0;
-      const best = bestRateFor(k);
-      if (best.pct > Math.max(rk, tcb)) {
-        bad.push('★ 최고요율이 rk/tcb 보다 높다 — CapOne 이 아직 계산에 들어간다: ' + k + ' → ' + best.pct + ' > max(' + rk + ',' + tcb + ')');
+      const probe = (portalKey) => {
+        const before = bestRateFor(k).pct;
+        const keep = src[portalKey];
+        src[portalKey] = { pct: 999, listed: true };
+        const after = bestRateFor(k).pct;
+        if (keep === undefined) delete src[portalKey]; else src[portalKey] = keep;
+        return after !== before;
+      };
+      // CapOne 은 **읽히면 안 된다**
+      if (probe('cap')) bad.push('★ CapOne 이 최고요율 계산에 들어간다 (999% 를 심었더니 결과가 움직였다): ' + k);
+      checks++;
+      // 자동 수집되는 세 포털은 **전부 읽혀야 한다** — 하나가 빠져도 조용히 낮은 답을 준다.
+      //    (BeFrugal 이 bestRateFor 에서만 빠져 있던 것을 아무 검사도 못 잡았다. 이게 그 구멍이다.)
+      for (const pk of ['rk', 'tcb', 'bf']) {
+        if (!probe(pk)) bad.push('★ ' + pk + ' 가 최고요율 계산에서 빠져 있다 — 순위가 틀린다: ' + k);
       }
+      checks += 3;
+      const best = bestRateFor(k);
       checks++;
       if (best.portal === 'Capital One Shopping') bad.push('★ 최고요율 포털로 CapOne 이 뽑혔다: ' + k);
     }
@@ -1828,6 +1848,37 @@ window.__fuzz = (function () {
   // ⚠️ 게다가 우리 요율은 로그아웃 스크레이프라 **과대평가일 수 있다**
   //    (TopCashback 헬프: 로그아웃 화면에 더 높은 Plus 요율이 보인다).
   //    문구가 확정적일수록 그 위험이 커진다.
+  // 바닥을 아는 upTo 를 "최대 N%" 로만 말하면 정보를 버리는 것이다.
+  // rates.json 에 min 이 실린 가게(BeFrugal 부서표)가 실제로 범위로 렌더되는지 본다.
+  function runRateRange() {
+    const bad = []; let checks = 0;
+    const S = (PORTAL_RATES && PORTAL_RATES.stores) || {};
+    const PS = ['rk', 'tcb', 'bf'];
+    // 🔴 기대값은 **rates.json 에서 직접** 세운다. bestRateFor 의 출력으로 기대값을 세우면,
+    //    min 을 버리는 버그가 났을 때 "해당 없음"으로 스스로 건너뛰어 **검사가 꺼진다**
+    //    (2026-09-16 대조군에서 실제로 그렇게 새어나갔다).
+    const rows = [];
+    for (const k of Object.keys(S)) {
+      const cs = PS.map(x => ({ x, e: S[k][x] })).filter(o => o.e && o.e.listed !== false && (+o.e.pct || 0) > 0);
+      if (!cs.length) continue;
+      const win = cs.reduce((a, c) => (+c.e.pct > +a.e.pct ? c : a));
+      if (win.e.upTo && win.e.min != null && +win.e.min !== +win.e.pct) rows.push({ k, min: +win.e.min, max: +win.e.pct });
+    }
+    checks++;
+    if (!rows.length) bad.push('★ 바닥값(min)이 실린 가게가 하나도 없다 — 수집이 깨졌거나 이 검사가 무의미하다');
+    for (const r of rows.slice(0, 12)) {
+      const txt = recoRateText(bestRateFor(r.k)) || '';
+      checks++;
+      if (txt.indexOf('~') < 0)
+        bad.push('★ 바닥을 아는데 범위로 안 말한다 (min 을 버렸다): ' + r.k + ' → "' + txt + '" (기대 ' + r.min + '%~' + r.max + '%)');
+      checks++;
+      if (/최대|Up to/i.test(txt))
+        bad.push('★ 범위를 아는데 "최대" 로 말한다 — 바닥을 숨긴다: ' + r.k + ' → "' + txt + '"');
+    }
+    return { mode: 'rateRange', 검사: checks, 실패: bad.length, 상세: bad };
+  }
+
+
   function runUpTo() {
     const bad = []; let checks = 0;
     const keep = { wallet: myWallet.slice(), scen: scenarios.slice(), tax: taxPct, auto: autoApplied };
@@ -2089,7 +2140,7 @@ window.__fuzz = (function () {
 
   // koLeak 은 대조군(negcontrol-i18n.js)이 단위로 검사한다 — '사용자 데이터는 미번역이 아니다'가
   // 이 함수 한 곳에 걸려 있어서, 여기가 조용히 느슨해지면 영어 검사 전체가 같이 무의미해진다.
-  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, runActionSteps, runCopyBans, runUpTo, runVersion, runSellers, all, koLeak,
+  return { run, runDom, runDomEn, runCompare, runGolden, runRecheck, runRecheckBoth, runParse, runScan, runVision, runPortalDefault, runRecoPool, runRecoNarrow, runActionSteps, runCopyBans, runUpTo, runRateRange, runVersion, runSellers, all, koLeak,
            last: null, lastDom: null, lastCompare: null, lastGolden: null, lastRecheck: null, lastParse: null, lastScan: null };
 })();
 'fuzz harness loaded';
