@@ -589,6 +589,16 @@ const RATE_CASES = [
         '<span class="txt-bold txt-under-store">10%</span>' +
         '<span class="txt-small txt-under-store"> Cash Back</span></a></li>'),
       wantBf: { pct: 0, listed: true, status: 'listed-zero' } }],
+  // 🔴 **부서표는 페이지 끝쪽에 있다.** BeFrugal 실측(2026-09-17): 333KB~464KB 지점 —
+  //    /rate 의 기본 캡(300KB) 밖이다. 잘리면 upTo·min 이 조용히 빠지고 천장값이 확정값이 된다.
+  //    배포된 워커가 실제로 그렇게 답하고 있었다(Best Buy 를 그냥 4% 라고).
+  //    ⚠️ 이 검사만 본문을 **캡보다 크게** 만든다. 나머지 케이스처럼 짧은 HTML 로 두면
+  //       캡에 닿지를 않아서 이 버그를 영원히 못 잡는다 — 실제로 그래서 놓쳤다.
+  ['BF 부서표가 캡(300KB) 밖에 있어도 upTo·min 을 읽는다', '', '', null, null,
+    { bfBody: BF_PAGE('Best Buy 4.0% Cash Back &#x2B; 25  Coupons, Promo Codes &amp; Deals',
+        '<!--' + 'x'.repeat(320_000) + '-->' +
+        BF_DEPTS([['4%', 'Appliances'], ['3%', 'Other'], ['2%', 'Laptops']])),
+      wantBf: { pct: 4, listed: true, status: 'found', upTo: true, min: 2 } }],
   ['BF 404 껍데기(제목이 BeFrugal 뿐) = 페이지 없음', '', '', null, null,
     { bfBody: '<html><head><title>BeFrugal</title></head><body></body></html>',
       wantBf: { pct: null, listed: false, status: 'no-page' } }],

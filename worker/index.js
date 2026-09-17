@@ -104,6 +104,14 @@ const FETCH_TIMEOUT = 12_000;
 // 슬러그 하나뿐이고, 그 슬러그는 [a-z0-9-] 로만 이루어져야 통과한다(RATE_SLUG).
 // 그래서 `/?url=` 쪽처럼 "임의의 호스트를 검사해서 거른다"가 아니라
 // **애초에 다른 곳으로 갈 수 있는 문자열을 만들 수 없다.** 공격면이 한 단계 좁다.
+// 🔴 BeFrugal 만 예외다. 요율 자체는 <title> 에 있지만, **그게 천장값인지 아닌지**를 알려주는
+//    부서 요율표가 페이지 **끝쪽**에 있다 — 실측(2026-09-17) 위치가 333KB~464KB 로 전부 300KB 밖이다.
+//    캡에 잘리면 부서표가 안 보여서 upTo·min 이 조용히 빠지고, /rate 가 "Best Buy 는 4%" 라고
+//    **확정처럼** 답한다(실제는 노트북 2%). 값이 틀린 게 아니라 **불확실성이 사라지는** 실패라
+//    눈에 안 띈다 — 실제로 배포된 워커에서 그렇게 나가고 있었다.
+//    ⚠️ 합성 HTML 로만 검사하면 이 버그는 영원히 안 잡힌다(캡에 닿지 않으므로).
+//       tests/fuzz-worker.mjs 의 'BF 부서표가 캡 밖에 있어도' 케이스가 이걸 지킨다.
+const RATE_MAX_HTML_BF = 700_000;
 const RATE_PORTALS = [
   { key: 'rk',  hosts: ['www.rakuten.com', 'rakuten.com'],
     url: s => `https://www.rakuten.com/shop/${s}`, parse: parseRakuten },
@@ -111,7 +119,7 @@ const RATE_PORTALS = [
     url: s => `https://www.topcashback.com/${s}/`, parse: parseTopcashback },
   // ⚠️ BeFrugal 은 `/store/` 다 — 복수형 `/stores/` 로 찌르면 전부 404 다.
   { key: 'bf',  hosts: ['www.befrugal.com', 'befrugal.com'],
-    url: s => `https://www.befrugal.com/store/${s}/`, parse: parseBefrugal },
+    url: s => `https://www.befrugal.com/store/${s}/`, parse: parseBefrugal, maxHtml: RATE_MAX_HTML_BF },
 ];
 // 앞뒤가 영숫자이고 가운데만 하이픈. 점·슬래시·콜론·@·% 가 없으니 경로를 벗어날 수 없다.
 const RATE_SLUG = /^[a-z0-9](?:[a-z0-9-]{0,58}[a-z0-9])?$/;
@@ -273,7 +281,7 @@ async function lookupRate(portal, store) {
     if (res.status === 404) return { pct: null, listed: false, status: 'no-page' };
     if (res.status >= 400) return rateFailed(`포털이 HTTP ${res.status} 를 줬어`);
     if (ct && !/text\/html|xhtml/.test(ct)) return rateFailed('HTML 응답이 아니야 (' + ct + ')');
-    const html = (await readCapped(res)).slice(0, RATE_MAX_HTML);
+    const html = (await readCapped(res)).slice(0, portal.maxHtml || RATE_MAX_HTML);
     if (isChallengePage(html)) return rateFailed('봇 차단 페이지를 받았어');
     return portal.parse(html);
   } catch (e) {
