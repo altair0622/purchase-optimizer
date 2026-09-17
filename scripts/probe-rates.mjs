@@ -23,7 +23,7 @@
 import { readFileSync, appendFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 // ⚠️ 파싱 규칙은 update-rates.mjs 와 **같은 모듈**을 쓴다. 복사하면 두 벌이 갈라진다.
-import { parseTitle, fetchTitle, fetchTcb, loadStores } from './portal-parse.mjs';
+import { parseTitle, fetchTitle, fetchTcb, fetchBf, loadStores } from './portal-parse.mjs';
 
 // 워크플로가 probe-data 브랜치를 따로 체크아웃해서 그 안의 파일을 가리킨다.
 // ⚠️ 로컬에서 그냥 돌리면 예전처럼 repo 루트에 쌓인다 — 그건 커밋하지 말 것.
@@ -98,7 +98,7 @@ const t = new Date().toISOString();
 const rows = [];
 let fails = 0, consecutiveFails = 0, skipped = 0;
 
-for (const [key, rkSlug, tcbSlug] of STORES) {
+for (const [key, rkSlug, tcbSlug, bfSlug] of STORES) {
   // 연속 실패가 3번 나면 그 회차는 접는다 — 차단 중일 가능성이 높고,
   // 그 상태로 계속 찌르면 차단이 길어진다.
   if (consecutiveFails >= 3) { skipped++; console.log(`  ${key}: 건너뜀(연속 실패 ${consecutiveFails})`); continue; }
@@ -107,8 +107,10 @@ for (const [key, rkSlug, tcbSlug] of STORES) {
   await sleep(GAP_MS);
   const tcb = tcbSlug ? await fetchTcb(tcbSlug) : null;
   await sleep(GAP_MS);
+  const bf = bfSlug ? await fetchBf(bfSlug) : null;
+  await sleep(GAP_MS);
 
-  if (rk == null && tcb == null) { fails++; consecutiveFails++; }
+  if (rk == null && tcb == null && bf == null) { fails++; consecutiveFails++; }
   else consecutiveFails = 0;
 
   // ⚠️ 실패를 0% 로 뭉개지 않는다 — null 로 남긴다. "못 읽음"과 "0%"는 다른 값이고,
@@ -118,15 +120,23 @@ for (const [key, rkSlug, tcbSlug] of STORES) {
     t, store: key,
     rk: rk ? (rk.flat != null ? null : rk.pct) : null,
     tcb: tcb ? tcb.pct : null,
+    bf: bf ? (bf.flat != null ? null : bf.pct) : null,
   };
   if (rk && rk.upTo) row.rkUpTo = true;
   if (tcb && tcb.upTo) row.tcbUpTo = true;
+  if (bf && bf.upTo) row.bfUpTo = true;
+  // 바닥값도 남긴다 — BeFrugal 은 부서별 요율을 공개하므로 나중에 "천장만 움직였나
+  // 범위가 통째로 움직였나"를 가를 수 있다. 천장만 적으면 그 둘이 구분되지 않는다.
+  if (bf && bf.min != null) row.bfMin = bf.min;
   if (rk && rk.flat != null) row.rkFlat = rk.flat;
+  if (bf && bf.flat != null) row.bfFlat = bf.flat;
   if (rk == null) row.rkFail = true;
   if (tcb == null) row.tcbFail = true;
+  if (bf == null) row.bfFail = true;
 
   rows.push(row);
-  console.log(`  ${key}: RK ${rk ? (rk.flat != null ? '$' + rk.flat : rk.pct + '%') : 'FAIL'} · TCB ${tcb ? tcb.pct + '%' : 'FAIL'}`);
+  const fmtBf = bf ? (bf.flat != null ? '$' + bf.flat : (bf.min != null ? bf.min + '~' + bf.pct + '%' : bf.pct + '%')) : 'FAIL';
+  console.log(`  ${key}: RK ${rk ? (rk.flat != null ? '$' + rk.flat : rk.pct + '%') : 'FAIL'} · TCB ${tcb ? tcb.pct + '%' : 'FAIL'} · BF ${fmtBf}`);
 }
 
 if (!rows.length) {

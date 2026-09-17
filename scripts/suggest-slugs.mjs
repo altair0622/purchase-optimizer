@@ -6,6 +6,9 @@
  * 를 구분하려면 그 포털의 전체 상점 목록이 필요하다. 둘 다 사이트맵으로 공개하고 있다.
  *   Rakuten     robots.txt → sitemap-index.xml → merchant_sitemap.xml  (약 4,700개)
  *   TopCashback robots.txt → sitemap.xml                                (약 9,800개)
+ *   BeFrugal    A–Z 디렉터리 /coupons/stores/<글자>/                     (약 4,400개)
+ *     ⚠️ BeFrugal 은 robots.txt 가 사이트맵을 가리키지만 **그 주소가 404 다**(2026-09-17 실측).
+ *        대신 A–Z 목록 페이지가 이름과 슬러그를 표로 내놓는다 — 26번 받아서 합친다.
  * CapOne Shopping·CashbackMonitor 는 상점 사이트맵을 안 열어서 여기선 못 다룬다.
  *
  * 사용법:
@@ -37,7 +40,8 @@ function loadStores() {
     const k = o.key || normStore(name);
     if (out[k]) continue;
     const s = slug(name);
-    out[k] = { key: k, name, rk: o.rk || s, tcb: o.tcb || s };
+    // BeFrugal 기본 슬러그는 **대시가 없다**(homedepot) — rk/tcb 와 규칙이 다르다.
+    out[k] = { key: k, name, rk: o.rk || s, tcb: o.tcb || s, bf: o.bf || normStore(name) };
   }
   return Object.values(out);
 }
@@ -52,6 +56,16 @@ async function get(url) {
 async function rakutenSlugs() {
   const xml = await get('https://www.rakuten.com/merchant_sitemap.xml');
   return new Set([...xml.matchAll(/rakuten\.com\/shop\/([a-z0-9._-]+)/gi)].map(m => m[1].toLowerCase()));
+}
+// BeFrugal — robots.txt 가 가리키는 사이트맵이 404 라 A–Z 디렉터리에서 긁는다.
+async function bfSlugs() {
+  const out = new Set();
+  for (const L of [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ']) {
+    const html = await get(`https://www.befrugal.com/coupons/stores/${L}/`);
+    for (const m of html.matchAll(/[/]store[/]([a-z0-9._-]+)[/]/gi)) out.add(m[1].toLowerCase());
+    await new Promise(r => setTimeout(r, 400));
+  }
+  return out;
 }
 async function tcbSlugs() {
   const xml = await get('https://www.topcashback.com/sitemap.xml');
@@ -107,13 +121,13 @@ function titleIsBrand(name, title) {
 
 const stores = loadStores();
 console.log('사이트맵 받는 중…');
-const [RK, TCB] = await Promise.all([rakutenSlugs(), tcbSlugs()]);
-console.log(`Rakuten ${RK.size}개 · TopCashback ${TCB.size}개 슬러그 확보\n`);
+const [RK, TCB, BF] = await Promise.all([rakutenSlugs(), tcbSlugs(), bfSlugs()]);
+console.log(`Rakuten ${RK.size}개 · TopCashback ${TCB.size}개 · BeFrugal ${BF.size}개 슬러그 확보\n`);
 
 let onlyFails = null;
 if (argv.fails && existsSync(String(argv.fails))) {
   const j = JSON.parse(readFileSync(String(argv.fails), 'utf8'));
-  onlyFails = new Set(j.results.filter(r => (r.rk && r.rk.ok === false) || (r.tcb && r.tcb.ok === false)).map(r => r.key));
+  onlyFails = new Set(j.results.filter(r => (r.rk && r.rk.ok === false) || (r.tcb && r.tcb.ok === false) || (r.bf && r.bf.ok === false)).map(r => r.key));
   console.log(`실패 목록 ${onlyFails.size}곳만 본다\n`);
 }
 
@@ -123,13 +137,17 @@ if (argv.fails && existsSync(String(argv.fails))) {
 //    최종 판단 근거는 항상 라이브 응답이고, 사이트맵은 후보를 좁히는 용도다.
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function liveOk(portal, s) {
-  const url = portal === 'rk' ? `https://www.rakuten.com/shop/${s}` : `https://www.topcashback.com/${s}/`;
+  const url = portal === 'rk' ? `https://www.rakuten.com/shop/${s}`
+            : portal === 'bf' ? `https://www.befrugal.com/store/${s}/`     // ⚠️ /store/ 다. /stores/ 는 404.
+            : `https://www.topcashback.com/${s}/`;
   try {
     const res = await fetch(url, { headers: { 'user-agent': UA }, redirect: 'follow' });
     if (!res.ok) return { ok: false, title: '' };
     const body = (await res.text()).slice(0, 120_000);
     const title = (body.match(/<title[^>]*>([^<]*)</i) || [, ''])[1].replace(/&amp;/g, '&').trim();
     if (portal === 'rk') return { ok: !!title && !/^Rakuten:/i.test(title), title };
+    // BeFrugal 에 없는 슬러그 = 404(위 !res.ok) 또는 제목이 "BeFrugal" 뿐인 껍데기.
+    if (portal === 'bf') return { ok: !!title && !/^BeFrugal$/i.test(title), title };
     return { ok: !/Page not found/i.test(body), title };
   } catch { return { ok: false, title: '' }; }
 }
@@ -137,7 +155,7 @@ async function liveOk(portal, s) {
 const report = { fix: [], absent: [], match: 0, confirmed: [] };
 for (const t of stores) {
   if (onlyFails && !onlyFails.has(t.key)) continue;
-  for (const [portal, set, cur] of [['rk', RK, t.rk], ['tcb', TCB, t.tcb]]) {
+  for (const [portal, set, cur] of [['rk', RK, t.rk], ['tcb', TCB, t.tcb], ['bf', BF, t.bf]]) {
     if (set.has(cur)) { report.match++; continue; }
     const c = candidates(t.name, set);
     const rec = { key: t.key, name: t.name, portal, current: cur, suggest: c.hit, candidates: c.all };

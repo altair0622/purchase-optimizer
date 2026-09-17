@@ -10,7 +10,7 @@
  *
  * 사용법:
  *   node scripts/check-links.mjs              # 전 판매처 × 4포털 검증
- *   node scripts/check-links.mjs --only=rk    # 특정 포털만 (rk|tcb|cap|cbm, 쉼표로 여러 개)
+ *   node scripts/check-links.mjs --only=rk    # 특정 포털만 (rk|tcb|bf|cap|cbm, 쉼표로 여러 개)
  *   node scripts/check-links.mjs --store=nike # 특정 판매처만 (키 부분일치)
  *   node scripts/check-links.mjs --json=out.json
  *
@@ -31,7 +31,7 @@ const GAP_MS = 320;         // 같은 호스트에 몰리지 않게 — 판매�
 const argv = Object.fromEntries(process.argv.slice(2).map(a => {
   const m = a.match(/^--([^=]+)(?:=(.*))?$/); return m ? [m[1], m[2] ?? true] : [a, true];
 }));
-const ONLY = argv.only ? String(argv.only).split(',') : ['rk', 'tcb', 'cap', 'cbm'];
+const ONLY = argv.only ? String(argv.only).split(',') : ['rk', 'tcb', 'bf', 'cap', 'cbm'];
 
 // ===== 계산기와 동일한 슬러그 규칙 (index.html 에서 STORE_LIST 를 그대로 읽어온다) =====
 const slug = s => (s || '').toLowerCase().replace(/&/g, 'and').replace(/'/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -53,7 +53,10 @@ function loadStores() {
     //      않는 곳을 계속 '실패'로 셌다.
     //   ② cap 에 `.com` 을 덧붙여 bedbathandbeyond.com.com 을 만들어 8건을 허위 실패로 냈다.
     const pick = (f) => (f in o) ? o[f] : s;
-    out[k] = { key: k, name, cat, cbm: pick('cbm'), rk: pick('rk'), tcb: pick('tcb'), cap: o.cap || (k + '.com') };
+    // ⚠️ BeFrugal 만 기본 슬러그가 다르다 — **대시를 안 쓴다**(home-depot ✗ / homedepot ✓).
+    //    계산기(index.html STORES)·portal-parse.mjs 의 bfSlug 와 같은 규칙이어야 한다.
+    const bf = ('bf' in o) ? o.bf : normStore(name);
+    out[k] = { key: k, name, cat, cbm: pick('cbm'), rk: pick('rk'), tcb: pick('tcb'), bf, cap: o.cap || (k + '.com') };
   }
   return Object.values(out);
 }
@@ -122,6 +125,26 @@ const PORTALS = {
       if (r.status === 0) return { ok: null, why: '요청 실패: ' + r.err, title };
       if (r.status >= 400) return { ok: false, why: `HTTP ${r.status}`, title };
       if (/Page not found/i.test(r.body)) return { ok: false, why: '페이지 없음', title };
+      return { ok: true, why: nameMatches(t.name, title) ? '' : '⚠ 제목에 상점명이 없음', title };
+    },
+  },
+  bf: {
+    label: 'BeFrugal',
+    // ⚠️ `/store/` 다. 복수형 `/stores/` 로 찌르면 **전 상점이 404** 로 떨어져서
+    //    "BeFrugal 이 우리를 막았다"로 오독하기 딱 좋다(2026-09-14 실제로 그럴 뻔했다).
+    url: t => `https://www.befrugal.com/store/${t.bf}/`,
+    judge: (r, t) => {
+      const title = titleOf(r.body);
+      if (r.status === 0) return { ok: null, why: '요청 실패: ' + r.err, title };
+      // 없는 슬러그는 404 + 제목이 "BeFrugal" 뿐인 껍데기를 준다.
+      if (r.status === 404 || /^BeFrugal$/i.test(title)) return { ok: false, why: '상점 없음(404)', title };
+      if (r.status >= 400) return { ok: false, why: `HTTP ${r.status}`, title };
+      if (!title) return { ok: false, why: '제목 없음', title };
+      // ⚠️ 파서(portal-parse.mjs·worker)는 <h1> 로 '상점 페이지인지'를 한 번 더 확인하는데
+      //    **여기선 그걸 쓸 수 없다.** 이 스크립트는 앞부분 120KB 만 읽는데(MAX_BODY)
+      //    BeFrugal 의 h1 은 282KB 지점에 있다 — 넣었더니 멀쩡한 Best Buy 가 실패로 찍혔다.
+      //    이 스크립트가 묻는 건 "링크가 그 상점으로 착지하나"뿐이고, 그건 제목으로 갈린다:
+      //    없는 슬러그는 위에서 404/"BeFrugal" 껍데기로 걸러지고, 나머지는 제목에 상점명이 있다.
       return { ok: true, why: nameMatches(t.name, title) ? '' : '⚠ 제목에 상점명이 없음', title };
     },
   },
