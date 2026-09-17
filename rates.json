@@ -1,5 +1,5 @@
 {
- "asOf": "2026-09-16",
+ "asOf": "2026-09-17",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -36,10 +36,10 @@
     "listed": false
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 9,
     "listed": true,
     "upTo": true,
-    "min": 1.2,
+    "min": 4.5,
     "depts": [
      {
       "n": "Furniture",
@@ -139,7 +139,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.8,
+    "pct": 8,
     "listed": true
    }
   },
@@ -157,7 +157,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   },
@@ -175,7 +175,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   },
@@ -305,7 +305,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   },
@@ -324,10 +324,10 @@
     "upTo": true
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 9,
     "listed": true,
     "upTo": true,
-    "min": 1.2,
+    "min": 4.5,
     "depts": [
      {
       "n": "Heaters & Winter Goods",
@@ -409,7 +409,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 12,
+    "pct": 18,
     "listed": true,
     "upTo": true,
     "min": 0,
@@ -506,10 +506,10 @@
     "listed": true
    },
    "bf": {
-    "pct": 15,
+    "pct": 20,
     "listed": true,
     "upTo": true,
-    "min": 2,
+    "min": 2.66,
     "depts": [
      {
       "n": "New Sam's Club Membership",
@@ -542,7 +542,7 @@
   },
   "macys": {
    "rk": {
-    "pct": 13,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -551,7 +551,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 7,
+    "pct": 8,
     "listed": true,
     "upTo": true
    },
@@ -574,7 +574,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2,
+    "pct": 7,
     "listed": true
    }
   },
@@ -646,13 +646,13 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 7,
     "listed": true
    }
   },
   "saks": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -664,7 +664,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.2,
+    "pct": 7,
     "listed": true
    }
   },
@@ -682,7 +682,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.2,
+    "pct": 7,
     "listed": true
    }
   },
@@ -700,7 +700,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -718,7 +718,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -790,7 +790,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -808,7 +808,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1,
+    "pct": 6.5,
     "listed": true
    }
   },
@@ -826,7 +826,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -899,7 +899,7 @@
     "listed": false
    },
    "bf": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   },
@@ -917,7 +917,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   },
@@ -936,10 +936,10 @@
     "upTo": true
    },
    "bf": {
-    "pct": 11,
+    "pct": 20,
     "listed": true,
     "upTo": true,
-    "min": 0.73,
+    "min": 1.33,
     "depts": [
      {
       "n": "New SHEIN Customer Order",
@@ -1002,7 +1002,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.2,
+    "pct": 7,
     "listed": true
    }
   },
@@ -1020,7 +1020,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.8,
+    "pct": 8,
     "listed": true
    }
   },
@@ -1056,7 +1056,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 7.2,
+    "pct": 15,
     "listed": true
    }
   },
@@ -1074,7 +1074,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1092,7 +1092,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   },
@@ -1166,7 +1166,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2,
+    "pct": 7,
     "listed": true
    }
   },
@@ -1184,7 +1184,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 5,
+    "pct": 10,
     "listed": true
    }
   },
@@ -1202,10 +1202,10 @@
     "listed": true
    },
    "bf": {
-    "pct": 15,
+    "pct": 20,
     "listed": true,
     "upTo": true,
-    "min": 12,
+    "min": 16,
     "depts": [
      {
       "n": "Sale Items",
@@ -1232,7 +1232,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 5.2,
+    "pct": 13,
     "listed": true
    }
   },
@@ -1251,7 +1251,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1269,7 +1269,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 3,
+    "pct": 10,
     "listed": true
    }
   },
@@ -1318,7 +1318,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1336,7 +1336,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1354,7 +1354,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.2,
+    "pct": 7,
     "listed": true
    }
   },
@@ -1408,7 +1408,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1462,7 +1462,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.2,
+    "pct": 7,
     "listed": true
    }
   },
@@ -1498,7 +1498,7 @@
     "listed": false
    },
    "bf": {
-    "pct": 1.8,
+    "pct": 8,
     "listed": true
    }
   },
@@ -1590,7 +1590,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.2,
+    "pct": 2,
     "listed": true
    }
   },
@@ -1639,10 +1639,10 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.8,
+    "pct": 8,
     "listed": true,
     "upTo": true,
-    "min": 0.6,
+    "min": 2.66,
     "depts": [
      {
       "n": "HP Home Laptops & Desktops",
@@ -1670,7 +1670,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1706,7 +1706,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   },
@@ -1724,7 +1724,7 @@
     "listed": false
    },
    "bf": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   },
@@ -1742,7 +1742,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   },
@@ -1792,11 +1792,11 @@
     "listed": true
    },
    "tcb": {
-    "pct": 6,
+    "pct": 10,
     "listed": true
    },
    "bf": {
-    "pct": 9,
+    "pct": 14,
     "listed": true
    }
   },
@@ -1832,13 +1832,13 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.2,
+    "pct": 7,
     "listed": true
    }
   },
   "sephora": {
    "rk": {
-    "pct": 8,
+    "pct": 12,
     "listed": true,
     "upTo": true
    },
@@ -1869,7 +1869,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.2,
+    "pct": 7,
     "listed": true
    }
   },
@@ -1905,7 +1905,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   },
@@ -1942,7 +1942,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1960,7 +1960,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -2015,7 +2015,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2,
+    "pct": 7,
     "listed": true
    }
   },
@@ -2034,7 +2034,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.8,
+    "pct": 8,
     "listed": true
    }
   },
@@ -2052,7 +2052,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   },
@@ -2070,7 +2070,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2,
+    "pct": 7,
     "listed": true
    }
   },
@@ -2088,7 +2088,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2,
+    "pct": 7,
     "listed": true
    }
   },
@@ -2106,7 +2106,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -2125,7 +2125,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 0.5,
+    "pct": 5.5,
     "listed": true
    }
   },
@@ -2200,10 +2200,10 @@
     "upTo": true
    },
    "bf": {
-    "pct": 5.2,
+    "pct": 13,
     "listed": true,
     "upTo": true,
-    "min": 0.65,
+    "min": 1.62,
     "depts": [
      {
       "n": "Mobile Phone Accessories, Interior Accessories, Garden Supplies, Children’s Clothing, Wome",
@@ -2281,15 +2281,15 @@
     "listed": true
    },
    "tcb": {
-    "pct": 10,
+    "pct": 12,
     "listed": true,
     "upTo": true
    },
    "bf": {
-    "pct": 7,
+    "pct": 12,
     "listed": true,
     "upTo": true,
-    "min": 2,
+    "min": 3.42,
     "depts": [
      {
       "n": "Hotel Or Vacation Rental w/ No Coupon Used",
@@ -2329,15 +2329,15 @@
     "listed": true
    },
    "tcb": {
-    "pct": 10,
+    "pct": 15,
     "listed": true,
     "upTo": true
    },
    "bf": {
-    "pct": 7,
+    "pct": 12,
     "listed": true,
     "upTo": true,
-    "min": 1.5,
+    "min": 2.57,
     "depts": [
      {
       "n": "Hotel Booking",
@@ -2352,7 +2352,7 @@
   },
   "booking": {
    "rk": {
-    "pct": 6,
+    "pct": 5,
     "listed": true,
     "upTo": true
    },
@@ -2365,10 +2365,10 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 11,
     "listed": true,
     "upTo": true,
-    "min": 2.53,
+    "min": 6.96,
     "depts": [
      {
       "n": "Attractions",
@@ -2409,10 +2409,10 @@
     "upTo": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 11,
     "listed": true,
     "upTo": true,
-    "min": 3,
+    "min": 5.5,
     "depts": [
      {
       "n": "Hotel",
@@ -2447,7 +2447,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 3,
+    "pct": 10,
     "listed": true
    }
   },
@@ -2465,7 +2465,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1,
+    "pct": 6,
     "listed": true
    }
   }
