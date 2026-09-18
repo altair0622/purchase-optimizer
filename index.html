@@ -1531,11 +1531,15 @@ CARD_CATALOG.forEach(c=>{ c.note=c.note||''; c.hint=c.hint||''; c.short=c.short|
 // ===== 분기 5% 로테이션 =====
 // 발표는 보통 분기 시작 2~3주 전 → 예약 작업이 미리 아래 배열에 다음 분기 세트를 추가해두면
 // 분기 첫날 계산기가 자동으로 전환한다(첫날 배포 불필요). 수동 갱신: "분기 5% 갱신해줘".
-// cats = 계산기 카테고리 키. 출처: Chase·Discover 공식 발표. (2026 Q3 확인: 2026-08-02)
+// cats = 계산기 카테고리 키. 출처: Chase·Discover 공식 발표. (2026 Q3 확인: 2026-08-02, Q4 확인: 2026-09-18)
 const QUARTERLY_SETS = [
   { q:'2026Q3', label:'2026 Q3(7~9월)', cards:{
     freedom:    { cats:['gas'],             note:'주유·EV충전·대중교통·라이브공연' },
     discoverit: { cats:['gas','drugstore'], note:'주유·EV충전·교통·약국' },
+  }},
+  { q:'2026Q4', label:'2026 Q4(10~12월)', cards:{
+    freedom:    { cats:['grocery','dining'], note:'식료품점(월마트·타겟 제외)·외식·미국적십자 기부' },
+    discoverit: { cats:['dining'],           note:'외식·엔터테인먼트(영화·공연·스포츠)·공과금(전기·수도·인터넷·통신)' },
   }},
 ];
 // 현재 분기와 일치하는 세트만 적용 — 없으면 로테이션 미적용(지난 분기 5% 오적용 방지)
