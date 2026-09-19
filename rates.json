@@ -1,5 +1,5 @@
 {
- "asOf": "2026-09-18",
+ "asOf": "2026-09-19",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -409,14 +409,14 @@
     "upTo": true
    },
    "bf": {
-    "pct": 18,
+    "pct": 15,
     "listed": true,
     "upTo": true,
     "min": 0,
     "depts": [
      {
       "n": "Flash Deals",
-      "p": 18
+      "p": 15
      },
      {
       "n": "Apparel, Accessories, Shoes, & Jewelry",
@@ -542,7 +542,7 @@
   },
   "macys": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -556,7 +556,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 13,
     "listed": true
    }
   },
@@ -592,7 +592,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 1.8,
     "listed": true
    }
   },
@@ -646,7 +646,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 7,
     "listed": true
    }
   },
@@ -670,9 +670,8 @@
   },
   "neimanmarcus": {
    "rk": {
-    "pct": 15,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": null,
@@ -737,7 +736,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 9,
     "listed": true
    }
   },
@@ -955,7 +954,7 @@
   },
   "levis": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -967,7 +966,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 7,
     "listed": true
    }
   },
@@ -1117,7 +1116,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 6,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -1125,31 +1124,30 @@
     "listed": true
    },
    "tcb": {
-    "pct": 8,
+    "pct": 10,
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 6,
     "listed": true
    }
   },
   "adidas": {
    "rk": {
-    "pct": 6,
-    "listed": true,
-    "upTo": true
+    "pct": 4,
+    "listed": true
    },
    "cap": {
     "pct": null,
     "listed": true
    },
    "tcb": {
-    "pct": 7,
+    "pct": 11,
     "listed": true,
     "upTo": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1203,18 +1201,18 @@
     "listed": true
    },
    "bf": {
-    "pct": 20,
+    "pct": 18,
     "listed": true,
     "upTo": true,
-    "min": 16,
+    "min": 13.84,
     "depts": [
      {
       "n": "Sale Items",
-      "p": 16
+      "p": 13.84
      },
      {
       "n": "Other",
-      "p": 20
+      "p": 18
      }
     ]
    }
@@ -1239,7 +1237,7 @@
   },
   "footlocker": {
    "rk": {
-    "pct": 6,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1289,25 +1287,25 @@
     "upTo": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 7,
     "listed": true,
     "upTo": true,
-    "min": 3,
+    "min": 3.5,
     "depts": [
      {
       "n": "Gucci, Bottega Veneta, Ferragamo, Off-White, or Versace",
-      "p": 3
+      "p": 3.5
      },
      {
       "n": "Other",
-      "p": 6
+      "p": 7
      }
     ]
    }
   },
   "zappos": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1361,7 +1359,7 @@
   },
   "athleta": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -1373,7 +1371,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1452,7 +1450,8 @@
   "dickssportinggoods": {
    "rk": {
     "pct": 2,
-    "listed": true
+    "listed": true,
+    "upTo": true
    },
    "cap": {
     "pct": null,
@@ -1463,7 +1462,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2,
+    "pct": 7,
     "listed": true
    }
   },
@@ -1671,7 +1670,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1797,7 +1796,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 14,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1821,7 +1820,7 @@
   },
   "dyson": {
    "rk": {
-    "pct": 1,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1839,7 +1838,7 @@
   },
   "sephora": {
    "rk": {
-    "pct": 12,
+    "pct": 8,
     "listed": true,
     "upTo": true
    },
@@ -1858,7 +1857,7 @@
   },
   "ulta": {
    "rk": {
-    "pct": 8,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -2004,7 +2003,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 10,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -2126,42 +2125,42 @@
     "upTo": true
    },
    "bf": {
-    "pct": 5,
+    "pct": 10,
     "listed": true,
     "upTo": true,
-    "min": 0.5,
+    "min": 1,
     "depts": [
      {
       "n": "Supplies",
-      "p": 5
+      "p": 10
      },
      {
       "n": "Cleaning, Breakroom & Storage",
-      "p": 4
+      "p": 8
      },
      {
       "n": "Copy & Print Services",
-      "p": 4
+      "p": 8
      },
      {
       "n": "Printers & Paper",
-      "p": 2
+      "p": 4
      },
      {
       "n": "Chairs & Seating",
-      "p": 2
+      "p": 4
      },
      {
       "n": "Furniture",
-      "p": 2
+      "p": 4
      },
      {
       "n": "Computers & Electronics Accessories",
-      "p": 1
+      "p": 2
      },
      {
       "n": "Other",
-      "p": 0.5
+      "p": 1
      }
     ]
    }
@@ -2206,7 +2205,7 @@
   },
   "etsy": {
    "rk": {
-    "pct": 1,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -2272,18 +2271,18 @@
     "upTo": true
    },
    "bf": {
-    "pct": 50,
+    "pct": 45,
     "listed": true,
     "upTo": true,
-    "min": 6.66,
+    "min": 6,
     "depts": [
      {
       "n": "New Temu Customer Order",
-      "p": 50
+      "p": 45
      },
      {
       "n": "Existing Temu Customer Order",
-      "p": 6.66
+      "p": 6
      }
     ]
    }
@@ -2432,7 +2431,7 @@
   },
   "priceline": {
    "rk": {
-    "pct": 8,
+    "pct": 4,
     "listed": true,
     "upTo": true
    },
