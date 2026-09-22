@@ -1,5 +1,5 @@
 {
- "asOf": "2026-09-21",
+ "asOf": "2026-09-22",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -311,7 +311,7 @@
   },
   "acehardware": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -405,8 +405,7 @@
    },
    "tcb": {
     "pct": 8,
-    "listed": true,
-    "upTo": true
+    "listed": true
    },
    "bf": {
     "pct": 15,
@@ -542,7 +541,7 @@
   },
   "macys": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -592,7 +591,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 3,
+    "pct": 1.8,
     "listed": true
    }
   },
@@ -634,7 +633,7 @@
   },
   "bloomingdales": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -688,7 +687,7 @@
   },
   "gap": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -750,7 +749,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 3,
+    "pct": 0,
     "listed": true
    },
    "bf": {
@@ -786,7 +785,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
@@ -954,7 +953,7 @@
   },
   "levis": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1080,7 +1079,7 @@
   },
   "toryburch": {
    "rk": {
-    "pct": 2,
+    "pct": 8,
     "listed": true
    },
    "cap": {
@@ -1190,7 +1189,7 @@
   },
   "puma": {
    "rk": {
-    "pct": 10,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1307,7 +1306,7 @@
   },
   "zappos": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1361,7 +1360,7 @@
   },
   "athleta": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -2005,7 +2004,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -2096,8 +2095,9 @@
   },
   "staples": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 4,
+    "listed": true,
+    "upTo": true
    },
    "cap": {
     "pct": null,
@@ -2206,7 +2206,7 @@
   },
   "etsy": {
    "rk": {
-    "pct": 2,
+    "pct": 1,
     "listed": true
    },
    "cap": {
@@ -2432,7 +2432,7 @@
   },
   "priceline": {
    "rk": {
-    "pct": 10,
+    "pct": 8,
     "listed": true,
     "upTo": true
    },
