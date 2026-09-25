@@ -1,5 +1,5 @@
 {
- "asOf": "2026-09-24",
+ "asOf": "2026-09-25",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -555,7 +555,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 12,
+    "pct": 13,
     "listed": true
    }
   },
@@ -591,7 +591,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.8,
+    "pct": 3,
     "listed": true
    }
   },
@@ -997,7 +997,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
@@ -1051,7 +1051,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
+    "pct": 20,
     "listed": true,
     "upTo": true
    },
@@ -1080,7 +1080,7 @@
   },
   "toryburch": {
    "rk": {
-    "pct": 6,
+    "pct": 8,
     "listed": true
    },
    "cap": {
@@ -1088,7 +1088,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 6,
+    "pct": 8,
     "listed": true
    },
    "bf": {
@@ -1124,7 +1124,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 10,
+    "pct": 11,
     "listed": true
    },
    "bf": {
@@ -1405,7 +1405,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 4,
+    "pct": 15,
     "listed": true
    },
    "bf": {
@@ -1539,34 +1539,34 @@
     "upTo": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 15,
     "listed": true,
     "upTo": true,
-    "min": 2,
+    "min": 3,
     "depts": [
      {
       "n": "Google Chromebooks (Acer, Lenovo, ASUS, HP, & Samsung)",
-      "p": 10
+      "p": 15
      },
      {
       "n": "Ring Home Security & Monitoring",
-      "p": 10
+      "p": 15
      },
      {
       "n": "Sony Headphones",
-      "p": 10
+      "p": 15
      },
      {
       "n": "Appliances",
-      "p": 4
+      "p": 6
      },
      {
       "n": "Other (Exclusions Apply. See Terms)",
-      "p": 3
+      "p": 4.5
      },
      {
       "n": "Laptops",
-      "p": 2
+      "p": 3
      }
     ]
    }
@@ -1684,7 +1684,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 9,
+    "pct": 4,
     "listed": true
    }
   },
@@ -1799,7 +1799,7 @@
   },
   "logitech": {
    "rk": {
-    "pct": 5,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1807,7 +1807,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 6,
+    "pct": 8,
     "listed": true
    },
    "bf": {
@@ -2018,7 +2018,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -2211,7 +2211,8 @@
    },
    "tcb": {
     "pct": 3,
-    "listed": true
+    "listed": true,
+    "upTo": true
    },
    "bf": {
     "pct": 0,
@@ -2371,7 +2372,7 @@
   },
   "hotels": {
    "rk": {
-    "pct": 7,
+    "pct": 3,
     "listed": true,
     "upTo": true
    },
@@ -2403,7 +2404,7 @@
   },
   "booking": {
    "rk": {
-    "pct": 5,
+    "pct": 7,
     "listed": true,
     "upTo": true
    },
