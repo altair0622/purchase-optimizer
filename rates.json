@@ -1,5 +1,5 @@
 {
- "asOf": "2026-09-26",
+ "asOf": "2026-09-27",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -591,7 +591,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 3,
+    "pct": 1.8,
     "listed": true
    }
   },
@@ -633,7 +633,7 @@
   },
   "bloomingdales": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -651,7 +651,7 @@
   },
   "saks": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -663,14 +663,15 @@
     "listed": true
    },
    "bf": {
-    "pct": 12,
+    "pct": 10,
     "listed": true
    }
   },
   "neimanmarcus": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 15,
+    "listed": true,
+    "upTo": true
    },
    "cap": {
     "pct": null,
@@ -1116,7 +1117,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 8,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1198,9 +1199,8 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
-    "listed": true,
-    "upTo": true
+    "pct": 0,
+    "listed": true
    },
    "bf": {
     "pct": 20,
@@ -1464,7 +1464,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 7,
     "listed": true
    }
   },
@@ -2403,7 +2403,7 @@
   },
   "booking": {
    "rk": {
-    "pct": 7,
+    "pct": 6,
     "listed": true,
     "upTo": true
    },
@@ -2446,7 +2446,7 @@
   },
   "priceline": {
    "rk": {
-    "pct": 8,
+    "pct": 4,
     "listed": true,
     "upTo": true
    },
