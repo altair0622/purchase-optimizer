@@ -1,5 +1,5 @@
 {
- "asOf": "2026-10-06",
+ "asOf": "2026-10-07",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -36,18 +36,18 @@
     "listed": false
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 4,
     "listed": true,
     "upTo": true,
-    "min": 1.2,
+    "min": 2,
     "depts": [
      {
       "n": "Furniture",
-      "p": 1.2
+      "p": 2
      },
      {
       "n": "Other",
-      "p": 2.4
+      "p": 4
      }
     ]
    }
@@ -389,7 +389,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    }
   },
@@ -631,8 +631,9 @@
   },
   "bloomingdales": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 10,
+    "listed": true,
+    "upTo": true
    },
    "cap": {
     "pct": null,
@@ -657,7 +658,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "bf": {
@@ -667,9 +668,8 @@
   },
   "neimanmarcus": {
    "rk": {
-    "pct": 15,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": null,
@@ -680,7 +680,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2,
+    "pct": 1.2,
     "listed": true
    }
   },
@@ -698,7 +698,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 4,
     "listed": true
    }
   },
@@ -752,7 +752,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.8,
+    "pct": 3,
     "listed": true
    }
   },
@@ -825,7 +825,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 2.4,
     "listed": true
    }
   },
@@ -965,7 +965,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.2,
+    "pct": 2,
     "listed": true
    }
   },
@@ -1019,7 +1019,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.8,
+    "pct": 3,
     "listed": true
    }
   },
@@ -1043,7 +1043,7 @@
   },
   "katespade": {
    "rk": {
-    "pct": 10,
+    "pct": 15,
     "listed": true
    },
    "cap": {
@@ -1166,7 +1166,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.2,
+    "pct": 2,
     "listed": true
    }
   },
@@ -1251,7 +1251,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 2.4,
     "listed": true
    }
   },
@@ -1288,18 +1288,18 @@
     "upTo": true
    },
    "bf": {
-    "pct": 2,
+    "pct": 1.2,
     "listed": true,
     "upTo": true,
-    "min": 1,
+    "min": 0.6,
     "depts": [
      {
       "n": "Gucci, Bottega Veneta, Ferragamo, Off-White, or Versace",
-      "p": 1
+      "p": 0.6
      },
      {
       "n": "Other",
-      "p": 2
+      "p": 1.2
      }
     ]
    }
@@ -1336,7 +1336,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 2.4,
     "listed": true
    }
   },
@@ -1396,7 +1396,7 @@
   },
   "columbia": {
    "rk": {
-    "pct": 10,
+    "pct": 15,
     "listed": true
    },
    "cap": {
@@ -1610,7 +1610,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.2,
+    "pct": 2,
     "listed": true
    }
   },
@@ -1659,18 +1659,18 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.8,
+    "pct": 3,
     "listed": true,
     "upTo": true,
-    "min": 0.6,
+    "min": 1,
     "depts": [
      {
       "n": "HP Home Laptops & Desktops",
-      "p": 0.6
+      "p": 1
      },
      {
       "n": "Other",
-      "p": 1.8
+      "p": 3
      }
     ]
    }
@@ -1853,7 +1853,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2,
+    "pct": 1.2,
     "listed": true
    }
   },
@@ -1872,7 +1872,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 6,
     "listed": true
    }
   },
@@ -1890,7 +1890,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.2,
+    "pct": 2,
     "listed": true
    }
   },
@@ -1963,7 +1963,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 2.4,
     "listed": true
    }
   },
@@ -2128,7 +2128,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 2.4,
     "listed": true
    }
   },
@@ -2386,25 +2386,25 @@
     "upTo": true
    },
    "bf": {
-    "pct": 2.4,
+    "pct": 4,
     "listed": true,
     "upTo": true,
-    "min": 0.9,
+    "min": 1.5,
     "depts": [
      {
       "n": "Hotel Booking",
-      "p": 2.4
+      "p": 4
      },
      {
       "n": "Rental Car",
-      "p": 0.9
+      "p": 1.5
      }
     ]
    }
   },
   "booking": {
    "rk": {
-    "pct": 5,
+    "pct": 6,
     "listed": true,
     "upTo": true
    },
@@ -2461,26 +2461,26 @@
     "upTo": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 6,
     "listed": true,
     "upTo": true,
-    "min": 2,
+    "min": 3,
     "depts": [
      {
       "n": "Hotel",
-      "p": 4
+      "p": 6
      },
      {
       "n": "Rental Car",
-      "p": 4
+      "p": 6
      },
      {
       "n": "Cruise",
-      "p": 2
+      "p": 3
      },
      {
       "n": "Flight Express Deal",
-      "p": 2.67
+      "p": 4
      }
     ]
    }
