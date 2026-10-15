@@ -1,5 +1,5 @@
 {
- "asOf": "2026-10-14",
+ "asOf": "2026-10-15",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -504,18 +504,18 @@
     "listed": true
    },
    "bf": {
-    "pct": 30,
+    "pct": 20,
     "listed": true,
     "upTo": true,
-    "min": 4,
+    "min": 2.66,
     "depts": [
      {
       "n": "New Sam's Club Membership",
-      "p": 30
+      "p": 20
      },
      {
       "n": "Other (Restrictions Apply)",
-      "p": 4
+      "p": 2.66
      }
     ]
    }
@@ -540,7 +540,7 @@
   },
   "macys": {
    "rk": {
-    "pct": 2,
+    "pct": 8,
     "listed": true
    },
    "cap": {
@@ -590,7 +590,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 3,
+    "pct": 1.8,
     "listed": true
    }
   },
@@ -650,7 +650,7 @@
   },
   "saks": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -668,9 +668,8 @@
   },
   "neimanmarcus": {
    "rk": {
-    "pct": 15,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": null,
@@ -687,7 +686,7 @@
   },
   "gap": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -705,7 +704,7 @@
   },
   "oldnavy": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -717,7 +716,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 9,
     "listed": true
    }
   },
@@ -785,7 +784,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
@@ -1057,7 +1056,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 20,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1117,7 +1116,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 10,
+    "pct": 8,
     "listed": true
    },
    "cap": {
@@ -1181,7 +1180,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 5,
     "listed": true
    },
    "bf": {
@@ -1199,22 +1198,23 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 15,
+    "listed": true,
+    "upTo": true
    },
    "bf": {
-    "pct": 20,
+    "pct": 18,
     "listed": true,
     "upTo": true,
-    "min": 16,
+    "min": 13.84,
     "depts": [
      {
       "n": "Sale Items",
-      "p": 16
+      "p": 13.84
      },
      {
       "n": "Other",
-      "p": 20
+      "p": 18
      }
     ]
    }
@@ -1233,13 +1233,13 @@
     "listed": true
    },
    "bf": {
-    "pct": 16,
+    "pct": 13,
     "listed": true
    }
   },
   "footlocker": {
    "rk": {
-    "pct": 3,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1307,7 +1307,7 @@
   },
   "zappos": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1315,7 +1315,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 4,
+    "pct": 0,
     "listed": true
    },
    "bf": {
@@ -1361,7 +1361,7 @@
   },
   "athleta": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -1556,31 +1556,43 @@
       "p": 10
      },
      {
-      "n": "Sony Headphones Headphones",
+      "n": "HP Printers",
       "p": 10
      },
      {
-      "n": "Nintendo Switch Consoles",
+      "n": "Sony Headphones",
+      "p": 10
+     },
+     {
+      "n": "Shark | Ninja Health, Wellness & Fitness, & Small Appliances",
+      "p": 8
+     },
+     {
+      "n": "Nintendo Switch & Switch 2 Consoles",
+      "p": 8
+     },
+     {
+      "n": "Acer, Lenovo, ASUS, HP, & Samsung Chromebooks",
+      "p": 6
+     },
+     {
+      "n": "Acer Mini PCs",
+      "p": 6
+     },
+     {
+      "n": "Sony Digital Cameras & Digital Camera Accessories",
+      "p": 6
+     },
+     {
+      "n": "Skullcandy Headphones",
+      "p": 6
+     },
+     {
+      "n": "Select Brands*",
       "p": 4
      },
      {
-      "n": "Nintendo Switch 2 Consoles",
-      "p": 4
-     },
-     {
-      "n": "Small Appliances",
-      "p": 4
-     },
-     {
-      "n": "Other (Exclusions Apply. See Terms)",
-      "p": 3
-     },
-     {
-      "n": "Select Brands (See Terms)**",
-      "p": 2
-     },
-     {
-      "n": "Major Appliances",
+      "n": "Other (Exclusion Apply. See Terms)",
       "p": 2
      }
     ]
@@ -1700,7 +1712,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1815,7 +1827,7 @@
   },
   "logitech": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1991,7 +2003,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 11,
+    "pct": 9,
     "listed": true
    }
   },
@@ -2010,7 +2022,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 12,
+    "pct": 10,
     "listed": true
    }
   },
@@ -2034,7 +2046,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 2,
+    "pct": 8,
     "listed": true
    },
    "cap": {
@@ -2089,7 +2101,7 @@
   },
   "petco": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -2107,7 +2119,7 @@
   },
   "petsmart": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -2125,9 +2137,8 @@
   },
   "staples": {
    "rk": {
-    "pct": 4,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": null,
@@ -2138,7 +2149,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -2262,8 +2273,9 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 15,
+    "listed": true,
+    "upTo": true
    },
    "bf": {
     "pct": 13,
@@ -2338,7 +2350,7 @@
   },
   "expedia": {
    "rk": {
-    "pct": 10,
+    "pct": 6,
     "listed": true,
     "upTo": true
    },
