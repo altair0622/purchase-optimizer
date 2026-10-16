@@ -1,5 +1,5 @@
 {
- "asOf": "2026-10-15",
+ "asOf": "2026-10-16",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -549,12 +549,12 @@
     "listed": true
    },
    "tcb": {
-    "pct": 6,
+    "pct": 10,
     "listed": true,
     "upTo": true
    },
    "bf": {
-    "pct": 11,
+    "pct": 10,
     "listed": true
    }
   },
@@ -590,7 +590,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.8,
+    "pct": 3,
     "listed": true
    }
   },
@@ -806,7 +806,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 0,
+    "pct": 6.5,
     "listed": true
    }
   },
@@ -1052,8 +1052,7 @@
    },
    "tcb": {
     "pct": 20,
-    "listed": true,
-    "upTo": true
+    "listed": true
    },
    "bf": {
     "pct": 9,
@@ -1124,7 +1123,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 11,
+    "pct": 10,
     "listed": true
    },
    "bf": {
@@ -1233,7 +1232,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 13,
+    "pct": 12,
     "listed": true
    }
   },
@@ -1464,14 +1463,14 @@
     "listed": true
    },
    "bf": {
-    "pct": 7,
+    "pct": 2,
     "listed": true,
     "upTo": true,
-    "min": 7,
+    "min": 2,
     "depts": [
      {
       "n": "Other",
-      "p": 7
+      "p": 2
      }
     ]
    }
@@ -1546,54 +1545,54 @@
     "listed": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 15,
     "listed": true,
     "upTo": true,
-    "min": 2,
+    "min": 3,
     "depts": [
      {
       "n": "Ring Home Security & Monitoring",
-      "p": 10
+      "p": 15
      },
      {
       "n": "HP Printers",
-      "p": 10
+      "p": 15
      },
      {
       "n": "Sony Headphones",
-      "p": 10
+      "p": 15
      },
      {
       "n": "Shark | Ninja Health, Wellness & Fitness, & Small Appliances",
-      "p": 8
+      "p": 12
      },
      {
       "n": "Nintendo Switch & Switch 2 Consoles",
-      "p": 8
+      "p": 12
      },
      {
       "n": "Acer, Lenovo, ASUS, HP, & Samsung Chromebooks",
-      "p": 6
+      "p": 9
      },
      {
       "n": "Acer Mini PCs",
-      "p": 6
+      "p": 9
      },
      {
       "n": "Sony Digital Cameras & Digital Camera Accessories",
-      "p": 6
+      "p": 9
      },
      {
       "n": "Skullcandy Headphones",
-      "p": 6
+      "p": 9
      },
      {
       "n": "Select Brands*",
-      "p": 4
+      "p": 6
      },
      {
       "n": "Other (Exclusion Apply. See Terms)",
-      "p": 2
+      "p": 3
      }
     ]
    }
@@ -1881,9 +1880,8 @@
   },
   "sephora": {
    "rk": {
-    "pct": 8,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": 2,
@@ -2149,7 +2147,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 9,
+    "pct": 4,
     "listed": true
    }
   },
