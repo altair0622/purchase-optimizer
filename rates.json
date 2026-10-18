@@ -1,5 +1,5 @@
 {
- "asOf": "2026-10-17",
+ "asOf": "2026-10-18",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -632,7 +632,7 @@
   },
   "bloomingdales": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -806,7 +806,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 1.5,
+    "pct": 6.5,
     "listed": true
    }
   },
@@ -1115,7 +1115,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1123,11 +1123,11 @@
     "listed": true
    },
    "tcb": {
-    "pct": 4,
+    "pct": 8,
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 8,
     "listed": true
    }
   },
@@ -1275,7 +1275,7 @@
   },
   "dsw": {
    "rk": {
-    "pct": 2,
+    "pct": 20,
     "listed": true
    },
    "cap": {
@@ -1306,7 +1306,7 @@
   },
   "zappos": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
