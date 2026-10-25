@@ -1,5 +1,5 @@
 {
- "asOf": "2026-10-24",
+ "asOf": "2026-10-25",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -409,14 +409,14 @@
     "listed": true
    },
    "bf": {
-    "pct": 18,
+    "pct": 15,
     "listed": true,
     "upTo": true,
     "min": 0,
     "depts": [
      {
       "n": "Flash Deals",
-      "p": 18
+      "p": 15
      },
      {
       "n": "Apparel, Accessories, Shoes, & Jewelry",
@@ -574,7 +574,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 5,
+    "pct": 7,
     "listed": true
    }
   },
@@ -592,7 +592,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 9,
+    "pct": 3,
     "listed": true
    }
   },
@@ -634,7 +634,7 @@
   },
   "bloomingdales": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -646,7 +646,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 7,
     "listed": true
    }
   },
@@ -1172,7 +1172,7 @@
   },
   "underarmour": {
    "rk": {
-    "pct": 8,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1202,18 +1202,18 @@
     "listed": true
    },
    "bf": {
-    "pct": 20,
+    "pct": 18,
     "listed": true,
     "upTo": true,
-    "min": 16,
+    "min": 13.84,
     "depts": [
      {
       "n": "Sale Items",
-      "p": 16
+      "p": 13.84
      },
      {
       "n": "Other",
-      "p": 20
+      "p": 18
      }
     ]
    }
@@ -1318,7 +1318,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1354,7 +1354,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 7,
     "listed": true
    }
   },
@@ -1463,14 +1463,14 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 7,
     "listed": true,
     "upTo": true,
-    "min": 6,
+    "min": 7,
     "depts": [
      {
       "n": "Other",
-      "p": 6
+      "p": 7
      }
     ]
    }
@@ -1546,54 +1546,54 @@
     "upTo": true
    },
    "bf": {
-    "pct": 15,
+    "pct": 10,
     "listed": true,
     "upTo": true,
-    "min": 3,
+    "min": 2,
     "depts": [
      {
       "n": "Ring Home Security & Monitoring",
-      "p": 15
+      "p": 10
      },
      {
       "n": "HP Printers",
-      "p": 15
+      "p": 10
      },
      {
       "n": "Sony Headphones",
-      "p": 15
+      "p": 10
      },
      {
       "n": "Shark | Ninja Health, Wellness & Fitness, & Small Appliances",
-      "p": 12
+      "p": 8
      },
      {
       "n": "Nintendo Switch & Switch 2 Consoles",
-      "p": 12
+      "p": 8
      },
      {
       "n": "Acer, Lenovo, ASUS, HP, & Samsung Chromebooks",
-      "p": 9
-     },
-     {
-      "n": "Acer Mini PCs",
-      "p": 9
-     },
-     {
-      "n": "Sony Digital Cameras & Digital Camera Accessories",
-      "p": 9
-     },
-     {
-      "n": "Skullcandy Headphones",
-      "p": 9
-     },
-     {
-      "n": "Select Brands*",
       "p": 6
      },
      {
+      "n": "Acer Mini PCs",
+      "p": 6
+     },
+     {
+      "n": "Sony Digital Cameras & Digital Camera Accessories",
+      "p": 6
+     },
+     {
+      "n": "Skullcandy Headphones",
+      "p": 6
+     },
+     {
+      "n": "Select Brands*",
+      "p": 4
+     },
+     {
       "n": "Other (Exclusion Apply. See Terms)",
-      "p": 3
+      "p": 2
      }
     ]
    }
@@ -1983,20 +1983,8 @@
     "upTo": true
    },
    "bf": {
-    "pct": 15,
-    "listed": true,
-    "upTo": true,
-    "min": 6,
-    "depts": [
-     {
-      "n": "US Customer Orders",
-      "p": 15
-     },
-     {
-      "n": "Other (Exclusions Apply)",
-      "p": 6
-     }
-    ]
+    "pct": 9,
+    "listed": true
    }
   },
   "walgreens": {
@@ -2032,7 +2020,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 12,
+    "pct": 10,
     "listed": true
    }
   },
@@ -2083,7 +2071,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
+    "pct": 3,
     "listed": true
    },
    "bf": {
@@ -2323,18 +2311,18 @@
     "upTo": true
    },
    "bf": {
-    "pct": 50,
+    "pct": 45,
     "listed": true,
     "upTo": true,
-    "min": 6.66,
+    "min": 6,
     "depts": [
      {
       "n": "New Temu Customer Order",
-      "p": 50
+      "p": 45
      },
      {
       "n": "Existing Temu Customer Order",
-      "p": 6.66
+      "p": 6
      }
     ]
    }
@@ -2436,7 +2424,7 @@
   },
   "booking": {
    "rk": {
-    "pct": 5,
+    "pct": 6,
     "listed": true,
     "upTo": true
    },
