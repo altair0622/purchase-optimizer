@@ -1,5 +1,5 @@
 {
- "asOf": "2026-10-25",
+ "asOf": "2026-10-26",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -190,7 +190,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
+    "pct": 10,
     "listed": true,
     "upTo": true
    },
@@ -551,12 +551,12 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
+    "pct": 8,
     "listed": true,
     "upTo": true
    },
    "bf": {
-    "pct": 9,
+    "pct": 11,
     "listed": true
    }
   },
@@ -592,7 +592,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 3,
+    "pct": 1.8,
     "listed": true
    }
   },
@@ -634,7 +634,7 @@
   },
   "bloomingdales": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -822,8 +822,9 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
-    "listed": true
+    "pct": 4,
+    "listed": true,
+    "upTo": true
    },
    "bf": {
     "pct": 9,
@@ -1070,7 +1071,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 10,
+    "pct": 8,
     "listed": true
    },
    "bf": {
@@ -1124,7 +1125,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 10,
+    "pct": 11,
     "listed": true
    },
    "bf": {
@@ -1608,7 +1609,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 6,
+    "pct": 4,
     "listed": true,
     "upTo": true
    },
@@ -1834,7 +1835,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
+    "pct": 6,
     "listed": true
    },
    "bf": {
@@ -2235,8 +2236,9 @@
     "listed": true
    },
    "tcb": {
-    "pct": 3,
-    "listed": true
+    "pct": 10,
+    "listed": true,
+    "upTo": true
    },
    "bf": {
     "pct": 0,
@@ -2271,7 +2273,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
+    "pct": 30,
     "listed": true,
     "upTo": true
    },
@@ -2357,7 +2359,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 7,
+    "pct": 13,
     "listed": true,
     "upTo": true
    },
@@ -2424,7 +2426,7 @@
   },
   "booking": {
    "rk": {
-    "pct": 6,
+    "pct": 5,
     "listed": true,
     "upTo": true
    },
@@ -2433,7 +2435,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 6,
+    "pct": 7,
     "listed": true,
     "upTo": true
    },
