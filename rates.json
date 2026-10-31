@@ -1,5 +1,5 @@
 {
- "asOf": "2026-10-30",
+ "asOf": "2026-10-31",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -304,8 +304,32 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
-    "listed": true
+    "pct": 2,
+    "listed": true,
+    "upTo": true,
+    "min": 1,
+    "depts": [
+     {
+      "n": "Decor",
+      "p": 2
+     },
+     {
+      "n": "Lawn & Garden",
+      "p": 2
+     },
+     {
+      "n": "Tools & Hardware",
+      "p": 2
+     },
+     {
+      "n": "Seasonal & Cleaning",
+      "p": 2
+     },
+     {
+      "n": "Other",
+      "p": 1
+     }
+    ]
    }
   },
   "acehardware": {
@@ -540,7 +564,7 @@
   },
   "macys": {
    "rk": {
-    "pct": 4,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -554,7 +578,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 12,
+    "pct": 13,
     "listed": true
    }
   },
@@ -632,8 +656,9 @@
   },
   "bloomingdales": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 10,
+    "listed": true,
+    "upTo": true
    },
    "cap": {
     "pct": null,
@@ -1055,7 +1080,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 15,
     "listed": true
    }
   },
@@ -1115,7 +1140,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 8,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -1123,11 +1148,11 @@
     "listed": true
    },
    "tcb": {
-    "pct": 10,
+    "pct": 6,
     "listed": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 6,
     "listed": true
    }
   },
@@ -1342,7 +1367,7 @@
   },
   "crocs": {
    "rk": {
-    "pct": 3,
+    "pct": 20,
     "listed": true
    },
    "cap": {
@@ -1463,14 +1488,14 @@
     "listed": true
    },
    "bf": {
-    "pct": 2,
+    "pct": 7,
     "listed": true,
     "upTo": true,
-    "min": 2,
+    "min": 7,
     "depts": [
      {
       "n": "Other",
-      "p": 2
+      "p": 7
      }
     ]
    }
@@ -1541,9 +1566,8 @@
     "listed": true
    },
    "tcb": {
-    "pct": 14,
-    "listed": true,
-    "upTo": true
+    "pct": 15,
+    "listed": true
    },
    "bf": {
     "pct": 15,
@@ -1892,7 +1916,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 9,
+    "pct": 8,
     "listed": true
    }
   },
@@ -2159,7 +2183,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 9,
     "listed": true
    }
   },
@@ -2276,7 +2300,7 @@
   },
   "aliexpress": {
    "rk": {
-    "pct": 8,
+    "pct": 18,
     "listed": true
    },
    "cap": {
@@ -2437,7 +2461,7 @@
   },
   "booking": {
    "rk": {
-    "pct": 6,
+    "pct": 5,
     "listed": true,
     "upTo": true
    },
