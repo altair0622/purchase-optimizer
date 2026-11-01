@@ -1,5 +1,5 @@
 {
- "asOf": "2026-10-31",
+ "asOf": "2026-11-01",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -163,7 +163,7 @@
   },
   "ashleyfurniture": {
    "rk": {
-    "pct": 1,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -304,30 +304,30 @@
     "listed": true
    },
    "bf": {
-    "pct": 2,
+    "pct": 7,
     "listed": true,
     "upTo": true,
-    "min": 1,
+    "min": 3.5,
     "depts": [
      {
       "n": "Decor",
-      "p": 2
+      "p": 7
      },
      {
       "n": "Lawn & Garden",
-      "p": 2
+      "p": 7
      },
      {
       "n": "Tools & Hardware",
-      "p": 2
+      "p": 7
      },
      {
       "n": "Seasonal & Cleaning",
-      "p": 2
+      "p": 7
      },
      {
       "n": "Other",
-      "p": 1
+      "p": 3.5
      }
     ]
    }
@@ -432,14 +432,14 @@
     "listed": true
    },
    "bf": {
-    "pct": 19.5,
+    "pct": 15,
     "listed": true,
     "upTo": true,
     "min": 0,
     "depts": [
      {
       "n": "Flash Deals",
-      "p": 19.5
+      "p": 15
      },
      {
       "n": "Apparel, Accessories, Shoes, & Jewelry",
@@ -524,7 +524,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
@@ -564,7 +564,7 @@
   },
   "macys": {
    "rk": {
-    "pct": 6,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -578,7 +578,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 13,
+    "pct": 12,
     "listed": true
    }
   },
@@ -614,7 +614,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 1.8,
     "listed": true
    }
   },
@@ -687,7 +687,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 11,
     "listed": true
    }
   },
@@ -741,7 +741,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1044,7 +1044,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 8,
     "listed": true
    }
   },
@@ -1068,7 +1068,7 @@
   },
   "katespade": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1076,11 +1076,12 @@
     "listed": true
    },
    "tcb": {
-    "pct": 20,
-    "listed": true
+    "pct": 15,
+    "listed": true,
+    "upTo": true
    },
    "bf": {
-    "pct": 15,
+    "pct": 20,
     "listed": true
    }
   },
@@ -1140,7 +1141,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 4,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1152,7 +1153,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 8,
     "listed": true
    }
   },
@@ -1204,11 +1205,11 @@
     "listed": true
    },
    "tcb": {
-    "pct": 10,
+    "pct": 5,
     "listed": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 12,
     "listed": true
    }
   },
@@ -1227,18 +1228,18 @@
     "upTo": true
    },
    "bf": {
-    "pct": 20,
+    "pct": 18,
     "listed": true,
     "upTo": true,
-    "min": 16,
+    "min": 13.84,
     "depts": [
      {
       "n": "Sale Items",
-      "p": 16
+      "p": 13.84
      },
      {
       "n": "Other",
-      "p": 20
+      "p": 18
      }
     ]
    }
@@ -1257,7 +1258,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 12,
+    "pct": 13,
     "listed": true
    }
   },
@@ -1282,7 +1283,7 @@
   },
   "finishline": {
    "rk": {
-    "pct": 3,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1367,7 +1368,7 @@
   },
   "crocs": {
    "rk": {
-    "pct": 20,
+    "pct": 3,
     "listed": true
    },
    "cap": {
@@ -1475,9 +1476,8 @@
   },
   "dickssportinggoods": {
    "rk": {
-    "pct": 2,
-    "listed": true,
-    "upTo": true
+    "pct": 15,
+    "listed": true
    },
    "cap": {
     "pct": null,
@@ -1573,51 +1573,59 @@
     "pct": 15,
     "listed": true,
     "upTo": true,
-    "min": 3,
+    "min": 2,
     "depts": [
      {
-      "n": "Ring Home Security & Monitoring",
+      "n": "Acer, Lenovo, ASUS, HP, Samsung, or Googlebooks Chromebooks",
       "p": 15
      },
      {
-      "n": "HP Printers",
-      "p": 15
+      "n": "Ring Home Security & Monitoring",
+      "p": 10
      },
      {
       "n": "Sony Headphones",
-      "p": 15
+      "p": 10
      },
      {
-      "n": "Shark | Ninja Health, Wellness & Fitness, & Small Appliances",
-      "p": 12
+      "n": "HP Printers",
+      "p": 10
      },
      {
-      "n": "Nintendo Switch & Switch 2 Consoles",
-      "p": 12
+      "n": "Shark | Ninja Health, Wellness, Fitness & Small Appliances",
+      "p": 10
      },
      {
-      "n": "Acer, Lenovo, ASUS, HP, & Samsung Chromebooks",
-      "p": 9
+      "n": "Roku Flat-Screen TVs",
+      "p": 8
      },
      {
-      "n": "Acer Mini PCs",
-      "p": 9
+      "n": "Sonos Home Audio & Speakers",
+      "p": 8
      },
      {
-      "n": "Sony Digital Cameras & Digital Camera Accessories",
-      "p": 9
-     },
-     {
-      "n": "Skullcandy Headphones",
-      "p": 9
-     },
-     {
-      "n": "Select Brands*",
+      "n": "Select Categories 6%*",
       "p": 6
      },
      {
-      "n": "Other (Exclusion Apply. See Terms)",
+      "n": "Select Categories 4%**",
+      "p": 4
+     },
+     {
+      "n": "Appliances",
+      "p": 4
+     },
+     {
+      "n": "Select Categories 3%***",
       "p": 3
+     },
+     {
+      "n": "Other (Exclusions Apply. See Terms)",
+      "p": 2
+     },
+     {
+      "n": "Laptops",
+      "p": 2
      }
     ]
    }
@@ -1705,18 +1713,18 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 8,
     "listed": true,
     "upTo": true,
-    "min": 2,
+    "min": 2.66,
     "depts": [
      {
       "n": "HP Home Laptops & Desktops",
-      "p": 2
+      "p": 2.66
      },
      {
       "n": "Other",
-      "p": 6
+      "p": 8
      }
     ]
    }
@@ -1862,7 +1870,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 13,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1886,7 +1894,7 @@
   },
   "dyson": {
    "rk": {
-    "pct": 12,
+    "pct": 1,
     "listed": true
    },
    "cap": {
@@ -1916,7 +1924,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 5,
     "listed": true
    }
   },
@@ -2007,20 +2015,8 @@
     "upTo": true
    },
    "bf": {
-    "pct": 15,
-    "listed": true,
-    "upTo": true,
-    "min": 6,
-    "depts": [
-     {
-      "n": "US Customer Orders",
-      "p": 15
-     },
-     {
-      "n": "Other (Exclusions Apply)",
-      "p": 6
-     }
-    ]
+    "pct": 9,
+    "listed": true
    }
   },
   "walgreens": {
@@ -2056,7 +2052,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 12,
+    "pct": 10,
     "listed": true
    }
   },
@@ -2165,7 +2161,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 5,
+    "pct": 7,
     "listed": true
    }
   },
@@ -2300,7 +2296,7 @@
   },
   "aliexpress": {
    "rk": {
-    "pct": 18,
+    "pct": 29,
     "listed": true
    },
    "cap": {
@@ -2308,27 +2304,27 @@
     "listed": true
    },
    "tcb": {
-    "pct": 30,
+    "pct": 5,
     "listed": true,
     "upTo": true
    },
    "bf": {
-    "pct": 12,
+    "pct": 11,
     "listed": true,
     "upTo": true,
-    "min": 6,
+    "min": 5.5,
     "depts": [
      {
       "n": "Womens/Mens Clothing, Garden Supplies",
-      "p": 12
+      "p": 11
      },
      {
       "n": "Other",
-      "p": 10
+      "p": 9.16
      },
      {
       "n": "Home/Garden, Hair/Wigs, Appliances",
-      "p": 6
+      "p": 5.5
      }
     ]
    }
@@ -2461,7 +2457,7 @@
   },
   "booking": {
    "rk": {
-    "pct": 5,
+    "pct": 6,
     "listed": true,
     "upTo": true
    },
