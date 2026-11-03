@@ -1,5 +1,5 @@
 {
- "asOf": "2026-11-02",
+ "asOf": "2026-11-03",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -526,20 +526,8 @@
     "listed": true
    },
    "bf": {
-    "pct": 20,
-    "listed": true,
-    "upTo": true,
-    "min": 2.66,
-    "depts": [
-     {
-      "n": "New Sam's Club Membership",
-      "p": 20
-     },
-     {
-      "n": "Other (Restrictions Apply)",
-      "p": 2.66
-     }
-    ]
+    "pct": 2,
+    "listed": true
    }
   },
   "bjs": {
@@ -683,7 +671,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 11,
     "listed": true
    }
   },
@@ -1097,7 +1085,7 @@
   },
   "toryburch": {
    "rk": {
-    "pct": 2,
+    "pct": 8,
     "listed": true
    },
    "cap": {
@@ -1255,7 +1243,7 @@
   },
   "footlocker": {
    "rk": {
-    "pct": 25,
+    "pct": 3,
     "listed": true
    },
    "cap": {
@@ -2166,7 +2154,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 9,
     "listed": true
    }
   },
@@ -2366,7 +2354,7 @@
   },
   "expedia": {
    "rk": {
-    "pct": 6,
+    "pct": 12,
     "listed": true,
     "upTo": true
    },
