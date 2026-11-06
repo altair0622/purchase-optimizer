@@ -1,5 +1,5 @@
 {
- "asOf": "2026-11-05",
+ "asOf": "2026-11-06",
  "capAsOf": "2026-07-31",
  "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
  "stores": {
@@ -303,30 +303,30 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 7,
     "listed": true,
     "upTo": true,
-    "min": 3,
+    "min": 3.5,
     "depts": [
      {
       "n": "Decor",
-      "p": 6
+      "p": 7
      },
      {
       "n": "Lawn & Garden",
-      "p": 6
+      "p": 7
      },
      {
       "n": "Tools & Hardware",
-      "p": 6
+      "p": 7
      },
      {
       "n": "Seasonal & Cleaning",
-      "p": 6
+      "p": 7
      },
      {
       "n": "Other",
-      "p": 3
+      "p": 3.5
      }
     ]
    }
@@ -429,14 +429,14 @@
     "listed": true
    },
    "bf": {
-    "pct": 19.5,
+    "pct": 15,
     "listed": true,
     "upTo": true,
     "min": 0,
     "depts": [
      {
       "n": "Flash Deals",
-      "p": 19.5
+      "p": 15
      },
      {
       "n": "Apparel, Accessories, Shoes, & Jewelry",
@@ -525,7 +525,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 7,
     "listed": true
    }
   },
@@ -549,7 +549,7 @@
   },
   "macys": {
    "rk": {
-    "pct": 8,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -562,8 +562,24 @@
     "listed": true
    },
    "bf": {
-    "pct": 12,
-    "listed": true
+    "pct": 15,
+    "listed": true,
+    "upTo": true,
+    "min": 4.5,
+    "depts": [
+     {
+      "n": "Lancome",
+      "p": 15
+     },
+     {
+      "n": "Other",
+      "p": 10.5
+     },
+     {
+      "n": "Furniture, Mattresses, & Beds",
+      "p": 4.5
+     }
+    ]
    }
   },
   "kohls": {
@@ -580,7 +596,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 5,
+    "pct": 7,
     "listed": true
    }
   },
@@ -658,7 +674,7 @@
   },
   "saks": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -676,9 +692,8 @@
   },
   "neimanmarcus": {
    "rk": {
-    "pct": 15,
-    "listed": true,
-    "upTo": true
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": null,
@@ -707,7 +722,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 9,
     "listed": true
    }
   },
@@ -1049,7 +1064,7 @@
   },
   "katespade": {
    "rk": {
-    "pct": 10,
+    "pct": 15,
     "listed": true
    },
    "cap": {
@@ -1153,7 +1168,7 @@
     "upTo": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 4,
     "listed": true
    }
   },
@@ -1189,7 +1204,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 11,
+    "pct": 13,
     "listed": true
    }
   },
@@ -1207,18 +1222,18 @@
     "listed": true
    },
    "bf": {
-    "pct": 15,
+    "pct": 18,
     "listed": true,
     "upTo": true,
-    "min": 11.53,
+    "min": 13.84,
     "depts": [
      {
       "n": "Sale Items",
-      "p": 11.53
+      "p": 13.84
      },
      {
       "n": "Other",
-      "p": 15
+      "p": 18
      }
     ]
    }
@@ -1466,14 +1481,14 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 7,
     "listed": true,
     "upTo": true,
-    "min": 6,
+    "min": 7,
     "depts": [
      {
       "n": "Other",
-      "p": 6
+      "p": 7
      }
     ]
    }
@@ -1544,66 +1559,67 @@
     "listed": true
    },
    "tcb": {
-    "pct": 15,
-    "listed": true
+    "pct": 14,
+    "listed": true,
+    "upTo": true
    },
    "bf": {
-    "pct": 20,
+    "pct": 12,
     "listed": true,
     "upTo": true,
-    "min": 2.66,
+    "min": 2,
     "depts": [
      {
       "n": "Acer, Lenovo, ASUS, HP, Samsung, or Googlebooks Chromebooks",
-      "p": 20
+      "p": 12
      },
      {
       "n": "Ring Home Security & Monitoring",
-      "p": 13.33
+      "p": 10
      },
      {
       "n": "Sony Headphones",
-      "p": 13.33
+      "p": 10
      },
      {
       "n": "HP Printers",
-      "p": 13.33
+      "p": 10
      },
      {
       "n": "Shark | Ninja Health, Wellness, Fitness & Small Appliances",
-      "p": 13.33
+      "p": 10
      },
      {
       "n": "Roku Flat-Screen TVs",
-      "p": 10.66
-     },
-     {
-      "n": "Sonos Home Audio & Speakers",
-      "p": 10.66
-     },
-     {
-      "n": "Select Categories 6%*",
       "p": 8
      },
      {
+      "n": "Sonos Home Audio & Speakers",
+      "p": 8
+     },
+     {
+      "n": "Select Categories 6%*",
+      "p": 6
+     },
+     {
       "n": "Select Categories 4%**",
-      "p": 5.33
-     },
-     {
-      "n": "Appliances",
-      "p": 5.33
-     },
-     {
-      "n": "Select Categories 3%***",
       "p": 4
      },
      {
+      "n": "Appliances",
+      "p": 4
+     },
+     {
+      "n": "Select Categories 3%***",
+      "p": 3
+     },
+     {
       "n": "Other (Exclusions Apply. See Terms)",
-      "p": 2.66
+      "p": 2
      },
      {
       "n": "Laptops",
-      "p": 2.66
+      "p": 2
      }
     ]
    }
@@ -1990,20 +2006,8 @@
     "listed": true
    },
    "bf": {
-    "pct": 15,
-    "listed": true,
-    "upTo": true,
-    "min": 6,
-    "depts": [
-     {
-      "n": "US Customer Orders",
-      "p": 15
-     },
-     {
-      "n": "Other (Exclusions Apply)",
-      "p": 6
-     }
-    ]
+    "pct": 9,
+    "listed": true
    }
   },
   "walgreens": {
@@ -2020,7 +2024,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 9,
     "listed": true
    }
   },
@@ -2038,7 +2042,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 15,
+    "pct": 10,
     "listed": true
    }
   },
@@ -2326,18 +2330,18 @@
     "listed": true
    },
    "bf": {
-    "pct": 50,
+    "pct": 45,
     "listed": true,
     "upTo": true,
-    "min": 6.66,
+    "min": 6,
     "depts": [
      {
       "n": "New Temu Customer Order",
-      "p": 50
+      "p": 45
      },
      {
       "n": "Existing Temu Customer Order",
-      "p": 6.66
+      "p": 6
      }
     ]
    }
@@ -2376,30 +2380,30 @@
     "listed": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 11,
     "listed": true,
     "upTo": true,
-    "min": 3.33,
+    "min": 3.66,
     "depts": [
      {
       "n": "Cruise",
-      "p": 10
+      "p": 11
      },
      {
       "n": "Activities",
-      "p": 8.33
+      "p": 9.16
      },
      {
       "n": "Hotel Or Vacation Rental",
-      "p": 6.66
+      "p": 7.33
      },
      {
       "n": "Package Booking",
-      "p": 3.33
+      "p": 3.66
      },
      {
       "n": "Car Rental",
-      "p": 3.33
+      "p": 3.66
      }
     ]
    }
