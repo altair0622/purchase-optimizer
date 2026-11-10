@@ -939,7 +939,7 @@
     "listed": false
    },
    "cap": {
-    "pct": 1,
+    "pct": 2.5,
     "listed": true,
     "upTo": true
    },
