@@ -442,7 +442,26 @@ function parseRakuten(html) {
 // TopCashback — class="merch-offer__rate" 요소에 "10% Cash Back" / "Up to 8% …".
 // 요소가 없는데 상점 h1("… Cash Back Offers")이 있으면 쿠폰만 있는 0% 상점.
 // 페이지 자체가 없으면 no-page.
+// 🔴 2026-11-10 TopCashback 페이지 변경 — 요율은 요율 카드(merch-cat__sub-cat + merch-cat__rate 짝)에 있다.
+//    scripts/portal-parse.mjs 의 parseTcbCard 와 같은 규칙(그쪽 주석이 근거). 옛 merch-offer__rate 는 쿠폰 칸이다.
 function parseTopcashback(html) {
+  const i = html.indexOf('merch-rate-card-wrapper');
+  if (i >= 0) {
+    const j = html.indexOf('merch-secondary-slice', i);
+    const sec = html.slice(i, j > i ? j : i + 30000);
+    const rows = [...sec.matchAll(/merch-cat__sub-cat[^>]*>([^<]*)<[\s\S]*?merch-cat__rate"[^>]*>([^<]*)</g)];
+    const pcts = [], flats = [];
+    for (const r of rows) {
+      const p = r[2].match(/(\d+(?:\.\d+)?)\s*%/); if (p) { pcts.push(+p[1]); continue; }
+      const f = r[2].match(/\$(\d+(?:\.\d+)?)/); if (f) flats.push(+f[1]);
+    }
+    if (pcts.length) {
+      const o = { pct: Math.max(...pcts), listed: true, status: 'found' };
+      if (new Set(pcts).size > 1) { o.upTo = true; o.min = Math.min(...pcts); }
+      return o;
+    }
+    if (flats.length) return { pct: null, flat: Math.max(...flats), listed: true, status: 'found' };
+  }
   const m = html.match(/merch-offer__rate[^>]*>([^<]+)</i);
   if (m) {
     const r = m[1].match(/(Up to )?(\d+(?:\.\d+)?)%/i);

@@ -14,12 +14,12 @@
 //   주소는 /store/<슬러그>/ 다 — 복수형 /stores/ 는 전부 404.
 //   🔴 BeFrugal은 카테고리별로 갈려도 제목에 "Up to"를 **안 붙인다**. 그래서 본문의 부서
 //      요율표를 같이 보고 upTo·min을 채운다(자세한 근거는 portal-parse.mjs 주석).
-// - Capital One Shopping은 CAPTCHA로 자동 수집을 막고 있어 여기선 갱신하지 않는다(수동/스킬 갱신).
+// - Capital One Shopping: 2026-11-10 부터 공개 상점 페이지(rewardTitle)로 자동 수집. 막히면 이전 값 유지.
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 // ⚠️ 파싱 규칙은 **scripts/portal-parse.mjs 한 곳**에만 둔다.
 //    probe-rates.mjs 도 같은 걸 쓴다 — 복사하면 두 벌이 갈라진다.
-import { parseTitle, fetchTitle, fetchTcb, fetchBf, loadStores } from './portal-parse.mjs';
+import { parseTitle, fetchTitle, fetchTcb, fetchBf, fetchCap, loadStores } from './portal-parse.mjs';
 const STORES = loadStores();
 
 const OUT = new URL('../rates.json', import.meta.url);
@@ -28,8 +28,8 @@ const OUT = new URL('../rates.json', import.meta.url);
 const prev = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')) : { stores: {} };
 const out = {
   asOf: new Date().toISOString().slice(0, 10),   // Rakuten·TopCashback 갱신 날짜
-  capAsOf: prev.capAsOf || '2026-07-31',          // CapOne Shopping은 수동 갱신 — 그때 이 날짜도 갱신
-  source: 'rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)',
+  capAsOf: prev.capAsOf || '2026-07-31',          // CapOne 을 하나라도 새로 읽으면 오늘로 바뀐다(아래)
+  source: 'rakuten.com·topcashback.com·befrugal.com·capitaloneshopping.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일)',
   stores: {},
 };
 
@@ -37,25 +37,29 @@ const fmt = r => r.flat != null ? '$' + r.flat
               : r.min != null ? r.min + '~' + r.pct + '%'
               : (r.upTo ? '≤' : '') + r.pct + '%';
 let ok = 0, failed = [];
-for (const [key, rkSlug, tcbSlug, bfSlug] of STORES) {
+let capOk = 0;
+for (const [key, rkSlug, tcbSlug, bfSlug, capDomain] of STORES) {
   // 슬러그가 null = 그 포털에 없다고 실측한 곳 → 요청하지 않고 '미등재'로 기록한다.
   // (요청해봐야 실패하고, 그걸 '실패'로 세면 영원히 줄지 않는다. shop/null 을 찌르지도 않는다.)
   const rk = rkSlug ? parseTitle(await fetchTitle(rkSlug)) : { pct: null, listed: false };
   const tcb = tcbSlug ? await fetchTcb(tcbSlug) : { pct: null, listed: false };
   const bf  = bfSlug  ? await fetchBf(bfSlug)   : { pct: null, listed: false };
+  const cap = capDomain ? await fetchCap(capDomain) : { pct: null, listed: false };
+  if (cap && cap.listed) capOk++;
   const prevStore = (prev.stores && prev.stores[key]) || {};
   out.stores[key] = {
     rk: rk || prevStore.rk || { pct: null, listed: true },          // 실패 시 이전 값 유지
-    cap: prevStore.cap || { pct: null, listed: true },              // CapOne Shopping은 이전 값 그대로
+    cap: cap || prevStore.cap || { pct: null, listed: true },       // 실패 시 이전 값 유지
     tcb: tcb || prevStore.tcb || { pct: null, listed: true },
     bf: bf || prevStore.bf || { pct: null, listed: true },
   };
   const show = r => !r ? 'FAIL' : (r.listed === false ? '미등재' : fmt(r));
-  if (rk || tcb || bf) { ok++; console.log(`  ${key}: RK ${show(rk)} · TCB ${show(tcb)} · BF ${show(bf)}`); }
+  if (rk || tcb || bf) { ok++; console.log(`  ${key}: RK ${show(rk)} · TCB ${show(tcb)} · BF ${show(bf)} · CAP ${show(cap)}`); }
   else { failed.push(key); console.log(`  ${key}: 셋 다 FAILED — 이전 값 유지`); }
   await new Promise(r => setTimeout(r, 500));
 }
 
+if (capOk) out.capAsOf = out.asOf;
 if (ok === 0) { console.error('전부 실패 — rates.json을 건드리지 않고 종료'); process.exit(1); }
 writeFileSync(OUT, JSON.stringify(out, null, 1) + '\n');
 console.log(`\nrates.json 갱신: ${ok}/${STORES.length} 성공${failed.length ? ' · 실패(이전값 유지): ' + failed.join(', ') : ''}`);

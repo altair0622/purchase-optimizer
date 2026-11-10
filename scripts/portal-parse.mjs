@@ -37,8 +37,39 @@ export function parseTitle(title) {
 
 // TopCashback 상점 페이지의 merch-offer__rate 요소 → {pct,upTo}.
 // 요소가 없는데 상점 h1 이 있으면 쿠폰만 있는 0% 상점, 페이지 자체가 없으면 null(실패).
+//
+// 🔴 2026-11-10: TopCashback 이 상점 페이지를 바꿨다. 요율은 이제 **요율 카드**(merch-rate-card)에
+//    "부서 이름(merch-cat__sub-cat) + 요율(merch-cat__rate)" 짝으로 실린다:
+//      Nike: Online Purchase 8%   ·   eBay: eBay Live 10% / Clothing… 3% / Baby… 1%
+//    merch-offer__rate 는 이제 쿠폰 칸("+ Cash Back")이라 숫자가 없다 → 옛 규칙은 **거의 모든 상점을
+//    0% 로 적었다**(114곳 중 4곳만 숫자). 0% 는 '모름'보다 나쁘다 — 틀린 값이다.
+//    부서가 여럿이면 BeFrugal 과 같은 모양 {pct=최대, upTo, min, depts} 로 싣는다.
+//    페이지 다른 곳(상단 메뉴의 다른 가게 "Up to 8% Cash Back")은 남의 숫자라 요율 카드 안만 본다.
+export function parseTcbCard(html) {
+  const i = html.indexOf('merch-rate-card-wrapper');
+  if (i < 0) return null;
+  const j = html.indexOf('merch-secondary-slice', i);
+  const sec = html.slice(i, j > i ? j : i + 30000);
+  const rows = [...sec.matchAll(/merch-cat__sub-cat[^>]*>([^<]*)<[\s\S]*?merch-cat__rate"[^>]*>([^<]*)</g)]
+    .map(m => ({ n: m[1].replace(/&amp;/g, '&').replace(/&#x27;/g, "'").trim(), t: m[2].trim() }));
+  const pcts = [], flats = [];
+  for (const r of rows) {
+    const p = r.t.match(/(\d+(?:\.\d+)?)\s*%/); if (p) { pcts.push({ n: r.n, p: +p[1] }); continue; }
+    const f = r.t.match(/\$(\d+(?:\.\d+)?)/); if (f) flats.push(+f[1]);
+  }
+  if (pcts.length) {
+    const vals = pcts.map(x => x.p), o = { pct: Math.max(...vals), listed: true };
+    if (new Set(vals).size > 1) { o.upTo = true; o.min = Math.min(...vals); o.depts = pcts; }
+    return o;
+  }
+  if (flats.length) return { pct: null, flat: Math.max(...flats), listed: true };
+  return null;
+}
+
 export function parseTcbHtml(html) {
   if (!html) return null;
+  const card = parseTcbCard(html);
+  if (card) return card;
   const m = html.match(/merch-offer__rate[^>]*>([^<]+)</i);
   if (m) {
     const r = m[1].match(/(Up to )?(\d+(?:\.\d+)?)%/i);
@@ -64,6 +95,28 @@ export async function fetchHtml(url, attempt = 1) {
     if (attempt < 2) { await new Promise(r => setTimeout(r, 3000)); return fetchHtml(url, attempt + 1); }
     return null;
   }
+}
+
+// Capital One Shopping 상점 페이지 → {pct,upTo,flat}.
+// 2026-11-10 실측: 공개 페이지(capitaloneshopping.com/s/<도메인>/coupon)가 비로그인으로 열리고
+// 페이지 데이터의 rewardTitle 에 요율이 실린다:
+//   "Get 2% back on purchases when you shop on Nike."     → 2%
+//   "Get $0 back on purchases when you shop on Costco."   → 0% (적립 없음)
+// 7월엔 CAPTCHA 로 막혀 수동이었다. 다시 막히면 fetchHtml 이 null → 이전 값 유지(틀린 0% 를 쓰지 않는다).
+export function parseCapHtml(html) {
+  if (!html) return null;
+  const m = html.match(/rewardTitle\\?",\\?"([^"\\]+)/) || html.match(/coupon-content-title[^>]*>([^<]+)/);
+  if (!m) return null;
+  const t = m[1];
+  let r = t.match(/Get (up to )?(\d+(?:\.\d+)?)% back/i);
+  if (r) { const o = { pct: +r[2], listed: true }; if (r[1]) o.upTo = true; return o; }
+  r = t.match(/Get \$(\d+(?:\.\d+)?) back/i);
+  if (r) return +r[1] === 0 ? { pct: 0, listed: true } : { pct: null, flat: +r[1], listed: true };
+  return null;
+}
+
+export async function fetchCap(domain) {
+  return parseCapHtml(await fetchHtml(`https://capitaloneshopping.com/s/${domain}/coupon`));
 }
 
 export async function fetchTitle(slug) {
@@ -193,7 +246,9 @@ export function loadStores() {
     // BeFrugal 의 슬러그 규칙은 **대시를 쓰지 않는다**(homedepot · crateandbarrel).
     // rk/tcb 의 기본값(대시 형태)과 달라서 기본 생성기를 따로 둔다.
     const bfPick = ('bf' in o) ? o.bf : bfSlug(name);
-    out.push([k, pick('rk'), pick('tcb'), bfPick]);
+    // CapOne Shopping 은 슬러그가 아니라 **도메인**이다. 계산기와 같은 규칙: cap 이 있으면 그것, 없으면 key+'.com'
+    const capPick = ('cap' in o) ? o.cap : k + '.com';
+    out.push([k, pick('rk'), pick('tcb'), bfPick, capPick]);
   }
   return out;
 }
