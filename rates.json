@@ -1,7 +1,7 @@
 {
- "asOf": "2026-11-09",
- "capAsOf": "2026-07-31",
- "source": "rakuten.com·topcashback.com·befrugal.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일) · CapOne Shopping은 수동(CAPTCHA)",
+ "asOf": "2026-11-10",
+ "capAsOf": "2026-11-10",
+ "source": "rakuten.com·topcashback.com·befrugal.com·capitaloneshopping.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일)",
  "stores": {
   "crateandbarrel": {
    "rk": {
@@ -9,7 +9,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 0,
+    "pct": 0.5,
     "listed": true
    },
    "tcb": {
@@ -28,8 +28,9 @@
     "upTo": true
    },
    "cap": {
-    "pct": 0.5,
-    "listed": true
+    "pct": 1,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
     "pct": null,
@@ -113,12 +114,23 @@
    },
    "cap": {
     "pct": 0.5,
-    "upTo": true,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 4,
+    "listed": true,
+    "upTo": true,
+    "min": 2,
+    "depts": [
+     {
+      "n": "Online Purchase",
+      "p": 4
+     },
+     {
+      "n": "PAX & SEKTION SKUs",
+      "p": 2
+     }
+    ]
    },
    "bf": {
     "pct": 0,
@@ -131,11 +143,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 1,
     "listed": true
    },
    "bf": {
@@ -149,11 +161,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 1,
     "listed": true
    },
    "bf": {
@@ -167,11 +179,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0.5,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 1,
     "listed": true
    },
    "bf": {
@@ -189,8 +201,52 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 10,
+    "listed": true,
+    "upTo": true,
+    "min": 1,
+    "depts": [
+     {
+      "n": "Home Decor",
+      "p": 10
+     },
+     {
+      "n": "Furniture",
+      "p": 10
+     },
+     {
+      "n": "Luggage",
+      "p": 10
+     },
+     {
+      "n": "Tabletop & Bar",
+      "p": 10
+     },
+     {
+      "n": "Bedding & Mattresses",
+      "p": 10
+     },
+     {
+      "n": "Appliances",
+      "p": 4
+     },
+     {
+      "n": "Lawn, Garden, Power Tools, Hardware, Kitchen, Blinds, Lighting, Storage, Organization",
+      "p": 1
+     },
+     {
+      "n": "Patio, Grills, Paint, Flooring",
+      "p": 1
+     },
+     {
+      "n": "Bath",
+      "p": 1
+     },
+     {
+      "n": "Building Materials - Lumber, Plumbing, Electrical, Windows & Doors",
+      "p": 1
+     }
+    ]
    },
    "bf": {
     "pct": 10.1,
@@ -295,7 +351,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 0,
+    "pct": 5,
     "listed": true
    },
    "tcb": {
@@ -338,12 +394,24 @@
     "upTo": true
    },
    "cap": {
-    "pct": null,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 4,
+    "listed": true,
+    "upTo": true,
+    "min": 2,
+    "depts": [
+     {
+      "n": "Online Purchase",
+      "p": 4
+     },
+     {
+      "n": "Heaters",
+      "p": 2
+     }
+    ]
    },
    "bf": {
     "pct": 9,
@@ -368,7 +436,7 @@
     "listed": false
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -386,7 +454,7 @@
     "listed": false
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -422,12 +490,28 @@
     "listed": true
    },
    "cap": {
-    "pct": 1,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 3,
-    "listed": true
+    "pct": 8,
+    "listed": true,
+    "upTo": true,
+    "min": 2,
+    "depts": [
+     {
+      "n": "Flash Deals, Extra Savings Deals",
+      "p": 8
+     },
+     {
+      "n": "Stationery, Sporting Goods, Automotive, Hardware & Tools/Do It Yourself, Patio and Garden, Horticulture, Cook and Dine, Home Decor, Bath and Shower, Bedding, Home Management, Furniture, Arts, Crafts, Sewing & Fabric, D82 Collectibles, Mens Apparel, Baby/Toddler/Boys/Girls Apparel, Shoes, Intimate Apparel/Womens Apparel, Accessories, Jewelry, Toys, Seasonal, Books & Magazines, Celebration",
+      "p": 3
+     },
+     {
+      "n": "Media & Gaming, Electronics",
+      "p": 2
+     }
+    ]
    },
    "bf": {
     "pct": 15,
@@ -437,6 +521,10 @@
     "depts": [
      {
       "n": "Flash Deals",
+      "p": 15
+     },
+     {
+      "n": "Extra Savings Deals",
       "p": 15
      },
      {
@@ -519,11 +607,11 @@
     "upTo": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0.5,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 3,
     "listed": true
    },
    "bf": {
@@ -549,7 +637,7 @@
     "listed": false
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -567,13 +655,25 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
-    "upTo": true,
-    "listed": true
+    "pct": 13.5,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 8,
+    "listed": true,
+    "upTo": true,
+    "min": 3,
+    "depts": [
+     {
+      "n": "Online Purchases - See Exclusions",
+      "p": 8
+     },
+     {
+      "n": "Marketplace, Mattresses, Furniture, Fine Jewelry Purchases",
+      "p": 3
+     }
+    ]
    },
    "bf": {
     "pct": 12,
@@ -586,11 +686,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0.5,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
@@ -604,11 +704,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
@@ -622,7 +722,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -644,7 +744,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2.4,
     "listed": true
    },
    "bf": {
@@ -658,11 +758,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -672,19 +772,19 @@
   },
   "saks": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 3.5,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 6,
     "listed": true
    },
    "bf": {
-    "pct": 15,
+    "pct": 11,
     "listed": true
    }
   },
@@ -694,11 +794,12 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 2,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 6,
     "listed": true
    },
    "bf": {
@@ -712,11 +813,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -730,11 +831,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -748,11 +849,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -766,11 +867,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 3,
     "listed": true
    },
    "bf": {
@@ -784,7 +885,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -802,11 +903,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
@@ -820,7 +921,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -838,12 +939,25 @@
     "listed": false
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 1,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 4,
+    "listed": true,
+    "upTo": true,
+    "min": 2,
+    "depts": [
+     {
+      "n": "Full Price Purchase",
+      "p": 4
+     },
+     {
+      "n": "Sale Price Purchase",
+      "p": 2
+     }
+    ]
    },
    "bf": {
     "pct": 9,
@@ -856,8 +970,9 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 1,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
     "pct": 0,
@@ -874,12 +989,24 @@
     "listed": false
    },
    "cap": {
-    "pct": null,
+    "pct": 0.5,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 2,
+    "listed": true,
+    "upTo": true,
+    "min": 1,
+    "depts": [
+     {
+      "n": "Online Purchase - (Excluding Sale Items)",
+      "p": 2
+     },
+     {
+      "n": "Sale Items",
+      "p": 1
+     }
+    ]
    },
    "bf": {
     "pct": 0,
@@ -892,7 +1019,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -910,7 +1037,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
@@ -928,11 +1055,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0.5,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -946,12 +1073,24 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 25,
+    "listed": true,
+    "upTo": true,
+    "min": 3,
+    "depts": [
+     {
+      "n": "New SHEIN Customer Purchase",
+      "p": 25
+     },
+     {
+      "n": "Existing SHEIN Customer Purchase",
+      "p": 3
+     }
+    ]
    },
    "bf": {
     "pct": 20,
@@ -976,11 +1115,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
@@ -994,7 +1133,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -1012,11 +1151,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
@@ -1030,11 +1169,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 3,
     "listed": true
    },
    "bf": {
@@ -1048,7 +1187,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -1066,11 +1205,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 5,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 25,
     "listed": true
    },
    "bf": {
@@ -1084,11 +1223,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 6,
     "listed": true
    },
    "bf": {
@@ -1102,11 +1241,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -1120,7 +1259,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
@@ -1142,7 +1281,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 8,
     "listed": true
    },
    "bf": {
@@ -1157,12 +1296,29 @@
     "upTo": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 2,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 11,
+    "listed": true,
+    "upTo": true,
+    "min": 4,
+    "depts": [
+     {
+      "n": "Training",
+      "p": 11
+     },
+     {
+      "n": "Online Purchase",
+      "p": 10
+     },
+     {
+      "n": "Adidas Samba, Gazelle, Spezial and EVO SL",
+      "p": 4
+     }
+    ]
    },
    "bf": {
     "pct": 10,
@@ -1171,15 +1327,15 @@
   },
   "newbalance": {
    "rk": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 7,
     "listed": true
    },
    "bf": {
@@ -1193,11 +1349,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 7,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 10,
     "listed": true
    },
    "bf": {
@@ -1211,12 +1367,25 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 3,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 15,
+    "listed": true,
+    "upTo": true,
+    "min": 12,
+    "depts": [
+     {
+      "n": "Online Purchase",
+      "p": 15
+     },
+     {
+      "n": "Sale",
+      "p": 12
+     }
+    ]
    },
    "bf": {
     "pct": 18,
@@ -1241,11 +1410,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 6,
     "listed": true
    },
    "bf": {
@@ -1255,16 +1424,28 @@
   },
   "footlocker": {
    "rk": {
-    "pct": 10,
+    "pct": 6,
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 10,
+    "listed": true,
+    "upTo": true,
+    "min": 4,
+    "depts": [
+     {
+      "n": "Online Purchase",
+      "p": 4
+     },
+     {
+      "n": "Select Air Jordan 3 and Air Jordan 4 Retro sneakers for men, women and kids. Eligible styles and colorways only. (See Terms for full list of relevant items)",
+      "p": 10
+     }
+    ]
    },
    "bf": {
     "pct": 9,
@@ -1277,11 +1458,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 5,
     "listed": true
    },
    "bf": {
@@ -1295,12 +1476,24 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 2,
+    "listed": true,
+    "upTo": true,
+    "min": 1,
+    "depts": [
+     {
+      "n": "Online Purchase",
+      "p": 2
+     },
+     {
+      "n": "Online Purchase - Gucci, Bottega Veneta, Ferragamo, Versace & Off-White",
+      "p": 1
+     }
+    ]
    },
    "bf": {
     "pct": 7,
@@ -1325,11 +1518,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2.5,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -1343,11 +1536,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 7,
     "listed": true
    },
    "bf": {
@@ -1361,7 +1554,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "tcb": {
@@ -1383,7 +1576,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -1397,7 +1590,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 1,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -1415,11 +1608,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 4,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -1433,7 +1626,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
@@ -1451,7 +1644,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -1470,11 +1663,12 @@
     "upTo": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 1,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
@@ -1496,7 +1690,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0.5,
     "listed": true
    },
    "tcb": {
@@ -1514,7 +1708,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -1558,7 +1752,118 @@
    "tcb": {
     "pct": 14,
     "listed": true,
-    "upTo": true
+    "upTo": true,
+    "min": 1.5,
+    "depts": [
+     {
+      "n": "Shark",
+      "p": 14
+     },
+     {
+      "n": "Ninja",
+      "p": 14
+     },
+     {
+      "n": "ASUS Laptops",
+      "p": 4
+     },
+     {
+      "n": "Corsair PC Gaming Accessories",
+      "p": 5
+     },
+     {
+      "n": "Lenovo Mini PCs",
+      "p": 10
+     },
+     {
+      "n": "Hisense TV",
+      "p": 6
+     },
+     {
+      "n": "Chromebooks",
+      "p": 12
+     },
+     {
+      "n": "Online Purchase Rocketfish, Insignia and Best Buy Essentials products",
+      "p": 6
+     },
+     {
+      "n": "Sony Cameras",
+      "p": 6
+     },
+     {
+      "n": "TVs (Any Brand)",
+      "p": 2
+     },
+     {
+      "n": "Ring",
+      "p": 10
+     },
+     {
+      "n": "HP Smart Tank Printer",
+      "p": 12
+     },
+     {
+      "n": "Sonos Audio and Speakers",
+      "p": 4
+     },
+     {
+      "n": "HP MIni PCs",
+      "p": 4
+     },
+     {
+      "n": "Jlab Headphones",
+      "p": 2
+     },
+     {
+      "n": "Steel Series",
+      "p": 4
+     },
+     {
+      "n": "Acer Mini PCs",
+      "p": 6
+     },
+     {
+      "n": "Acer Laptops",
+      "p": 12
+     },
+     {
+      "n": "Epson EcoTank Printers",
+      "p": 8
+     },
+     {
+      "n": "Online Purchase (see exclusions)",
+      "p": 1.5
+     },
+     {
+      "n": "Intel Gaming Laptops Arrow Lake",
+      "p": 1.5
+     },
+     {
+      "n": "Maytag Appliances",
+      "p": 1.5
+     },
+     {
+      "n": "Ultimate Upgrade Sale",
+      "p": 6
+     },
+     {
+      "n": "LG Laptops",
+      "p": 4
+     },
+     {
+      "n": "Online Purchase",
+      "p": 4
+     },
+     {
+      "n": "Products from third-party sellers",
+      "p": 4
+     },
+     {
+      "n": "Appliances",
+      "p": 4
+     }
+    ]
    },
    "bf": {
     "pct": 12,
@@ -1631,8 +1936,20 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 4,
+    "listed": true,
+    "upTo": true,
+    "min": 1,
+    "depts": [
+     {
+      "n": "Beats Products",
+      "p": 4
+     },
+     {
+      "n": "Refurbished Products",
+      "p": 1
+     }
+    ]
    },
    "bf": {
     "pct": 0,
@@ -1646,15 +1963,16 @@
     "upTo": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 0.5,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
-    "pct": 7,
+    "pct": 2,
     "listed": true
    }
   },
@@ -1664,7 +1982,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0.5,
     "listed": true
    },
    "tcb": {
@@ -1695,11 +2013,11 @@
     "upTo": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0.5,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
@@ -1725,12 +2043,24 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 1.5,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 4,
+    "listed": true,
+    "upTo": true,
+    "min": 3,
+    "depts": [
+     {
+      "n": "Online Purchase",
+      "p": 4
+     },
+     {
+      "n": "Outlet Purchase",
+      "p": 3
+     }
+    ]
    },
    "bf": {
     "pct": 9,
@@ -1743,7 +2073,7 @@
     "listed": false
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -1761,11 +2091,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 1,
     "listed": true
    },
    "bf": {
@@ -1797,11 +2127,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 3,
     "listed": true
    },
    "bf": {
@@ -1815,7 +2145,7 @@
     "listed": false
    },
    "cap": {
-    "pct": null,
+    "pct": 0.5,
     "listed": true
    },
    "tcb": {
@@ -1833,7 +2163,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -1851,11 +2181,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 6,
     "listed": true
    },
    "bf": {
@@ -1869,7 +2199,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -1887,11 +2217,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
@@ -1905,11 +2235,11 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -1927,7 +2257,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -1941,11 +2271,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4.84,
     "listed": true
    },
    "bf": {
@@ -1959,11 +2289,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 6,
     "listed": true
    },
    "bf": {
@@ -1977,7 +2307,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0.5,
     "listed": true
    },
    "tcb": {
@@ -1995,12 +2325,28 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 3.5,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 11,
+    "listed": true,
+    "upTo": true,
+    "min": 1,
+    "depts": [
+     {
+      "n": "Orders shipped to USA and other countries",
+      "p": 11
+     },
+     {
+      "n": "Orders shipped to Ukraine/Hong Kong/Kazakhstan",
+      "p": 2
+     },
+     {
+      "n": "Orders shipped to South Korea/Japan/Singapore",
+      "p": 1
+     }
+    ]
    },
    "bf": {
     "pct": 9,
@@ -2013,11 +2359,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -2031,12 +2377,24 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 4,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 8,
+    "listed": true,
+    "upTo": true,
+    "min": 7,
+    "depts": [
+     {
+      "n": "Health Online Purchase",
+      "p": 8
+     },
+     {
+      "n": "Photo Purchase",
+      "p": 7
+     }
+    ]
    },
    "bf": {
     "pct": 10,
@@ -2049,7 +2407,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 0,
     "listed": true
    },
    "tcb": {
@@ -2063,15 +2421,15 @@
   },
   "carters": {
    "rk": {
-    "pct": 10,
+    "pct": 6,
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 4,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "bf": {
@@ -2086,11 +2444,12 @@
     "upTo": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 1,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 3,
     "listed": true
    },
    "bf": {
@@ -2104,11 +2463,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 1,
     "listed": true
    },
    "bf": {
@@ -2122,11 +2481,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 6,
     "listed": true
    },
    "bf": {
@@ -2140,11 +2499,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -2158,11 +2517,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -2176,12 +2535,24 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 4,
+    "listed": true,
+    "upTo": true,
+    "min": 2,
+    "depts": [
+     {
+      "n": "All Other Online Purchase",
+      "p": 4
+     },
+     {
+      "n": "Electronics, Furniture, Computers & Accessories",
+      "p": 2
+     }
+    ]
    },
    "bf": {
     "pct": 10,
@@ -2230,7 +2601,7 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
@@ -2249,13 +2620,33 @@
     "upTo": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 1.5,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
     "pct": 10,
     "listed": true,
-    "upTo": true
+    "upTo": true,
+    "min": 0.5,
+    "depts": [
+     {
+      "n": "eBay Live",
+      "p": 10
+     },
+     {
+      "n": "Clothing, Shoes, Accessories, Jewelry & Watches, eBay Motors, Health & Beauty",
+      "p": 3
+     },
+     {
+      "n": "Baby, Toys & Hobbies, Books, Movies & Music, Collectibles & Art, Home & Garden, Pet Supplies, Sports & Leisure",
+      "p": 1
+     },
+     {
+      "n": "Electronics, Travel, Business & Industrial",
+      "p": 0.5
+     }
+    ]
    },
    "bf": {
     "pct": 0,
@@ -2268,8 +2659,9 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 3,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
     "pct": null,
@@ -2286,12 +2678,24 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 5,
+    "listed": true,
+    "upTo": true,
+    "min": 2,
+    "depts": [
+     {
+      "n": "US Customer Purchase",
+      "p": 5
+     },
+     {
+      "n": "Non US Customer Purchase",
+      "p": 2
+     }
+    ]
    },
    "bf": {
     "pct": 11,
@@ -2320,12 +2724,25 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 8,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 39,
+    "listed": true,
+    "upTo": true,
+    "min": 5,
+    "depts": [
+     {
+      "n": "New Temu Customer Purchase",
+      "p": 39
+     },
+     {
+      "n": "Existing Temu Customer Purchase",
+      "p": 5
+     }
+    ]
    },
    "bf": {
     "pct": 45,
@@ -2350,8 +2767,9 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 3.5,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
     "pct": 0,
@@ -2370,12 +2788,49 @@
     "upTo": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 2,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 13,
+    "listed": true,
+    "upTo": true,
+    "min": 2,
+    "depts": [
+     {
+      "n": "Hotels",
+      "p": 13
+     },
+     {
+      "n": "Activities",
+      "p": 10
+     },
+     {
+      "n": "Car Rental",
+      "p": 5
+     },
+     {
+      "n": "Package Bookings",
+      "p": 4
+     },
+     {
+      "n": "Activities",
+      "p": 8
+     },
+     {
+      "n": "Hotels",
+      "p": 7
+     },
+     {
+      "n": "Packages",
+      "p": 3
+     },
+     {
+      "n": "Car Rental",
+      "p": 2
+     }
+    ]
    },
    "bf": {
     "pct": 11,
@@ -2413,12 +2868,25 @@
     "upTo": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 1,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 9,
+    "listed": true,
+    "upTo": true,
+    "min": 5,
+    "depts": [
+     {
+      "n": "New Hotels.com Customer - Completed Stays",
+      "p": 9
+     },
+     {
+      "n": "Existing Hotels.com Customer - Completed Stays",
+      "p": 5
+     }
+    ]
    },
    "bf": {
     "pct": 9,
@@ -2444,12 +2912,33 @@
     "upTo": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 1,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 6,
+    "listed": true,
+    "upTo": true,
+    "min": 3,
+    "depts": [
+     {
+      "n": "Hotels",
+      "p": 6
+     },
+     {
+      "n": "Car Rental - Pay in advance",
+      "p": 6
+     },
+     {
+      "n": "Attractions",
+      "p": 4
+     },
+     {
+      "n": "Car Rental - Pay on collection",
+      "p": 3
+     }
+    ]
    },
    "bf": {
     "pct": 11,
@@ -2487,12 +2976,33 @@
     "upTo": true
    },
    "cap": {
-    "pct": null,
-    "listed": true
+    "pct": 2,
+    "listed": true,
+    "upTo": true
    },
    "tcb": {
-    "pct": 0,
-    "listed": true
+    "pct": 8,
+    "listed": true,
+    "upTo": true,
+    "min": 5,
+    "depts": [
+     {
+      "n": "Hotel & Vacation Rental Bookings (Excludes coupon code bookings)",
+      "p": 8
+     },
+     {
+      "n": "Car Rental",
+      "p": 6
+     },
+     {
+      "n": "Cruise Booking",
+      "p": 6
+     },
+     {
+      "n": "Express Deal Flight",
+      "p": 5
+     }
+    ]
    },
    "bf": {
     "pct": 11,
@@ -2525,11 +3035,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 5,
     "listed": true
    },
    "bf": {
@@ -2543,11 +3053,11 @@
     "listed": true
    },
    "cap": {
-    "pct": null,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 0,
+    "pct": 1,
     "listed": true
    },
    "bf": {
