@@ -183,7 +183,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
@@ -271,98 +271,98 @@
     ]
    },
    "bf": {
-    "pct": 10.1,
+    "pct": 11,
     "listed": true,
     "upTo": true,
-    "min": 1.26,
+    "min": 1.37,
     "depts": [
      {
       "n": "Housewares",
-      "p": 10.1
+      "p": 11
      },
      {
       "n": "Luggage",
-      "p": 10.1
+      "p": 11
      },
      {
       "n": "Tabletop",
-      "p": 10.1
+      "p": 11
      },
      {
       "n": "Bedding & Textiles",
-      "p": 10.1
+      "p": 11
      },
      {
       "n": "Wallpaper",
-      "p": 10.1
+      "p": 11
      },
      {
       "n": "Interior Furniture",
-      "p": 10.1
+      "p": 11
      },
      {
       "n": "Mattresses",
-      "p": 10.1
+      "p": 11
      },
      {
       "n": "Area Rugs",
-      "p": 10.1
+      "p": 11
      },
      {
       "n": "Home Decor",
-      "p": 10.1
+      "p": 11
      },
      {
       "n": "Building Materials - Building Materials, Lumber, Plumbing, Elecrical, Window & Doors",
-      "p": 1.26
+      "p": 1.37
      },
      {
       "n": "Flooring",
-      "p": 1.26
+      "p": 1.37
      },
      {
       "n": "Paint",
-      "p": 1.26
+      "p": 1.37
      },
      {
       "n": "Lighting",
-      "p": 1.26
+      "p": 1.37
      },
      {
       "n": "Appliances",
-      "p": 1.26
+      "p": 1.37
      },
      {
       "n": "Bath",
-      "p": 1.26
+      "p": 1.37
      },
      {
       "n": "Kitchen & Blinds",
-      "p": 1.26
+      "p": 1.37
      },
      {
       "n": "Hardware",
-      "p": 1.26
+      "p": 1.37
      },
      {
       "n": "Power Tools",
-      "p": 1.26
+      "p": 1.37
      },
      {
       "n": "Storage & Organization",
-      "p": 1.26
+      "p": 1.37
      },
      {
       "n": "Patio & Grills",
-      "p": 1.26
+      "p": 1.37
      },
      {
       "n": "Lawn & Garden",
-      "p": 1.26
+      "p": 1.37
      },
      {
       "n": "Other",
-      "p": 1.26
+      "p": 1.37
      }
     ]
    }
@@ -373,7 +373,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 5,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -463,6 +463,42 @@
     ]
    }
   },
+  "designwithinreach": {
+   "rk": {
+    "pct": 2,
+    "listed": true
+   },
+   "cap": {
+    "pct": 0.5,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
+   },
+   "bf": {
+    "pct": null,
+    "listed": false
+   }
+  },
+  "williamssonoma": {
+   "rk": {
+    "pct": 0,
+    "listed": true
+   },
+   "cap": {
+    "pct": 0,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 4,
+    "listed": true
+   },
+   "bf": {
+    "pct": 0,
+    "listed": true
+   }
+  },
   "michaels": {
    "rk": {
     "pct": null,
@@ -513,7 +549,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 0.1,
+    "pct": 1.1,
     "listed": true
    }
   },
@@ -547,18 +583,18 @@
     ]
    },
    "bf": {
-    "pct": 15,
+    "pct": 16.5,
     "listed": true,
     "upTo": true,
     "min": 0,
     "depts": [
      {
       "n": "Flash Deals",
-      "p": 15
+      "p": 16.5
      },
      {
       "n": "Extra Savings Deals",
-      "p": 15
+      "p": 16.5
      },
      {
       "n": "Apparel, Accessories, Shoes, & Jewelry",
@@ -811,7 +847,7 @@
     ]
    },
    "bf": {
-    "pct": 12,
+    "pct": 11,
     "listed": true
    }
   },
@@ -1385,7 +1421,7 @@
   },
   "katespade": {
    "rk": {
-    "pct": 15,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1407,7 +1443,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
@@ -1457,7 +1493,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 6,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1465,11 +1501,11 @@
     "listed": true
    },
    "tcb": {
-    "pct": 8,
+    "pct": 10,
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 10,
     "listed": true
    }
   },
@@ -1511,18 +1547,18 @@
     ]
    },
    "tcb": {
-    "pct": 11,
+    "pct": 12,
     "listed": true,
     "upTo": true,
     "min": 4,
     "depts": [
      {
       "n": "Training",
-      "p": 11
+      "p": 12
      },
      {
       "n": "Online Purchase",
-      "p": 10
+      "p": 11
      },
      {
       "n": "Adidas Samba, Gazelle, Spezial and EVO SL",
@@ -1531,7 +1567,7 @@
     ]
    },
    "bf": {
-    "pct": 10,
+    "pct": 11,
     "listed": true
    }
   },
@@ -1567,7 +1603,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 13,
+    "pct": 11,
     "listed": true
    }
   },
@@ -1639,7 +1675,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 13,
+    "pct": 11,
     "listed": true
    }
   },
@@ -2644,7 +2680,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 2,
+    "pct": 7,
     "listed": true
    }
   },
@@ -2912,6 +2948,42 @@
     "listed": true
    }
   },
+  "sharkninja": {
+   "rk": {
+    "pct": 6,
+    "listed": true
+   },
+   "cap": {
+    "pct": 2,
+    "listed": true
+   },
+   "tcb": {
+    "pct": null,
+    "listed": false
+   },
+   "bf": {
+    "pct": 6,
+    "listed": true
+   }
+  },
+  "ajmadison": {
+   "rk": {
+    "pct": null,
+    "listed": true
+   },
+   "cap": {
+    "pct": 1,
+    "listed": true
+   },
+   "tcb": {
+    "pct": 2,
+    "listed": true
+   },
+   "bf": {
+    "pct": 9,
+    "listed": true
+   }
+  },
   "sephora": {
    "rk": {
     "pct": 2,
@@ -3032,8 +3104,20 @@
     ]
    },
    "bf": {
-    "pct": 9,
-    "listed": true
+    "pct": 11,
+    "listed": true,
+    "upTo": true,
+    "min": 4.4,
+    "depts": [
+     {
+      "n": "US Customer Orders",
+      "p": 11
+     },
+     {
+      "n": "Other (Exclusions Apply)",
+      "p": 4.4
+     }
+    ]
    }
   },
   "walgreens": {
@@ -3080,7 +3164,7 @@
     ]
    },
    "bf": {
-    "pct": 10,
+    "pct": 11,
     "listed": true
    }
   },
@@ -3480,7 +3564,7 @@
   },
   "aliexpress": {
    "rk": {
-    "pct": 20,
+    "pct": 30,
     "listed": true
    },
    "cap": {
@@ -3805,7 +3889,30 @@
    "rk": {
     "pct": 5,
     "listed": true,
-    "upTo": true
+    "upTo": true,
+    "min": 2,
+    "depts": [
+     {
+      "n": "Accommodations",
+      "p": 5
+     },
+     {
+      "n": "Rental Cars Pre-Paid",
+      "p": 3
+     },
+     {
+      "n": "Airport Taxis",
+      "p": 2
+     },
+     {
+      "n": "Attractions",
+      "p": 2
+     },
+     {
+      "n": "Rental Cars Pay at Pickup",
+      "p": 2
+     }
+    ]
    },
    "cap": {
     "pct": 1,
@@ -3882,21 +3989,21 @@
   },
   "priceline": {
    "rk": {
-    "pct": 4,
+    "pct": 8,
     "listed": true,
     "upTo": true,
     "min": 2,
     "depts": [
      {
       "n": "All Other Hotels",
-      "p": 4
-     },
-     {
-      "n": "All Other Rental Cars",
-      "p": 4
+      "p": 8
      },
      {
       "n": "Express Deals Hotels",
+      "p": 8
+     },
+     {
+      "n": "All Other Rental Cars",
       "p": 4
      },
      {
