@@ -15,11 +15,12 @@
 //   🔴 BeFrugal은 카테고리별로 갈려도 제목에 "Up to"를 **안 붙인다**. 그래서 본문의 부서
 //      요율표를 같이 보고 upTo·min을 채운다(자세한 근거는 portal-parse.mjs 주석).
 // - Capital One Shopping: 2026-11-10 부터 공개 상점 페이지(rewardTitle)로 자동 수집. 막히면 이전 값 유지.
+// - 2026-11-11: Rakuten·CapOne 도 "최대 X%" 가게는 부서별 표(depts·min)를 같이 읽는다 (portal-parse.mjs).
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 // ⚠️ 파싱 규칙은 **scripts/portal-parse.mjs 한 곳**에만 둔다.
 //    probe-rates.mjs 도 같은 걸 쓴다 — 복사하면 두 벌이 갈라진다.
-import { parseTitle, fetchTitle, fetchTcb, fetchBf, fetchCap, loadStores } from './portal-parse.mjs';
+import { fetchRk, fetchTcb, fetchBf, fetchCap, loadStores } from './portal-parse.mjs';
 const STORES = loadStores();
 
 const OUT = new URL('../rates.json', import.meta.url);
@@ -41,7 +42,7 @@ let capOk = 0;
 for (const [key, rkSlug, tcbSlug, bfSlug, capDomain] of STORES) {
   // 슬러그가 null = 그 포털에 없다고 실측한 곳 → 요청하지 않고 '미등재'로 기록한다.
   // (요청해봐야 실패하고, 그걸 '실패'로 세면 영원히 줄지 않는다. shop/null 을 찌르지도 않는다.)
-  const rk = rkSlug ? parseTitle(await fetchTitle(rkSlug)) : { pct: null, listed: false };
+  const rk = rkSlug ? await fetchRk(rkSlug) : { pct: null, listed: false };   // 11-11: "최대 X%" 면 부서·브랜드별 표도
   const tcb = tcbSlug ? await fetchTcb(tcbSlug) : { pct: null, listed: false };
   const bf  = bfSlug  ? await fetchBf(bfSlug)   : { pct: null, listed: false };
   const cap = capDomain ? await fetchCap(capDomain) : { pct: null, listed: false };

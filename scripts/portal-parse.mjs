@@ -109,7 +109,14 @@ export function parseCapHtml(html) {
   if (!m) return null;
   const t = m[1];
   let r = t.match(/Get (up to )?(\d+(?:\.\d+)?)% back/i);
-  if (r) { const o = { pct: +r[2], listed: true }; if (r[1]) o.upTo = true; return o; }
+  if (r) {
+    const o = { pct: +r[2], listed: true }; if (r[1]) o.upTo = true;
+    // 부서별 표(2026-11-11 실측): <div data-testid="category-row"><div>Rugs</div><div … data-testid="category-amount">13.5%</div>
+    const depts = [...html.matchAll(/data-testid="category-row"><div>([^<]+)<\/div><div[^>]*data-testid="category-amount">\s*(\d+(?:\.\d+)?)%/g)]
+      .map(m => ({ n: m[1].replace(/&amp;/g, '&').replace(/&#x27;/g, "'").trim(), p: +m[2] }));
+    if (o.upTo && depts.length) { o.min = Math.min(...depts.map(d => d.p)); o.depts = depts; }
+    return o;
+  }
   r = t.match(/Get \$(\d+(?:\.\d+)?) back/i);
   if (r) return +r[1] === 0 ? { pct: 0, listed: true } : { pct: null, flat: +r[1], listed: true };
   return null;
@@ -117,6 +124,38 @@ export function parseCapHtml(html) {
 
 export async function fetchCap(domain) {
   return parseCapHtml(await fetchHtml(`https://capitaloneshopping.com/s/${domain}/coupon`));
+}
+
+// Rakuten 부서·브랜드별 요율표 (2026-11-11 실측) — "최대 X%" 가게는 페이지 데이터의
+// tier_cash_back_dynamic_text 에 [{cashBack:"8% Cash Back", tiers:[{tierName:"Ninja Appliances"},…]},…] 가
+// JSON 문자열로 실린다. Best Buy 는 11단계(0.5%~8%), 95개 이름. → BeFrugal·TopCashback 과 같은 {n,p} 모양으로.
+export function parseRkTiers(html) {
+  if (!html) return null;
+  const k = 'tier_cash_back_dynamic_text":';
+  const i = html.indexOf(k); if (i < 0) return null;
+  let j = i + k.length + 1;
+  while (j < html.length && !(html[j] === '"' && html[j - 1] !== '\\')) j++;
+  try {
+    const arr = JSON.parse(JSON.parse(html.slice(i + k.length, j + 1)));
+    const depts = [];
+    for (const a of arr || []) {
+      const p = String(a.cashBack || '').match(/(\d+(?:\.\d+)?)%/); if (!p) continue;
+      for (const t of a.tiers || []) if (t.tierName) depts.push({ n: String(t.tierName).trim(), p: +p[1] });
+    }
+    return depts.length ? depts : null;
+  } catch { return null; }
+}
+
+export async function fetchRk(slug) {
+  const html = await fetchHtml(`https://www.rakuten.com/shop/${slug}`);
+  if (!html) return null;
+  const t = html.match(/<title>([^<]+)<\/title>/i);
+  const r = parseTitle(t ? t[1].replace(/&amp;/g, '&').replace(/&#x27;/g, "'") : null);
+  if (r && r.upTo) {
+    const depts = parseRkTiers(html);
+    if (depts) { r.min = Math.min(...depts.map(d => d.p)); r.depts = depts; }
+  }
+  return r;
 }
 
 export async function fetchTitle(slug) {
