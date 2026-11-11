@@ -1848,6 +1848,8 @@ const STORE_LIST=[
   ["Wayfair","general"], ["IKEA","general"], ["Overstock","general"],
   ["Bed Bath & Beyond","general",{key:"bedbath",rk:"bedbathandbeyond",cap:"bedbathandbeyond.com"}], ["Ashley Furniture","general",{rk:"ashleyfurniture"}],
   ["Home Depot","general",{rk:"homedepot"}], ["Lowe's","general"], ["Ace Hardware","general",{rk:"acehardware"}],
+  // 2026-11-11 실측 추가 (관심 목록: 책장·토스터) — DWR: RK 2%, CapOne(dwr.com) 0.5%, TCB·BF 미등재. Williams Sonoma: TCB 4%, 나머지 0%.
+  ["Design Within Reach","general",{rk:"designwithinreach",tcb:null,bf:null,cap:"dwr.com"}], ["Williams Sonoma","general",{cap:"williams-sonoma.com"}],
   ["Michaels","general",{rk:null,tcb:"michaels-stores"}], ["Joann","general",{bf:null,rk:null,tcb:null,cbm:null}],
   // 대형마트·클럽·백화점
   ["Target","general"], ["Walmart","general"], ["Costco","general",{bf:"costcowholesale"}],
@@ -1880,6 +1882,8 @@ const STORE_LIST=[
   ["Microsoft","online",{bf:"microsoftstore",rk:null,tcb:null}], ["Newegg","online"], ["GameStop","online",{tcb:null}], ["Adorama","online"],
   ["B&H Photo","online",{bf:"bandh",key:"bandhphoto",rk:null,tcb:null,cbm:"bh-photo-video",cap:"bhphotovideo.com"}], ["Bose","online",{tcb:"bose-us"}], ["Logitech","online"],
   ["Garmin","online",{tcb:null}], ["Dyson","online"],
+  // 2026-11-11 실측 추가 (관심 목록: 무선청소기·냉동고) — SharkNinja: RK·BF 6%, CapOne 2%, TopCashback 은 shark-clean 이 쿠폰만(0%)이라 미등재로.
+  ["SharkNinja","online",{tcb:null}], ["AJ Madison","general",{rk:"ajmadison",tcb:"aj-madison"}],
   // 뷰티·약국·헬스
   ["Sephora","general"], ["Ulta Beauty","general",{bf:"ulta",key:"ulta",cbm:"ulta",tcb:"ulta-beauty",rk:"ultabeauty"}],
   ["Bath & Body Works","general",{key:"bathandbody",rk:"bathandbodyworks",cap:"bathandbodyworks.com"}],
