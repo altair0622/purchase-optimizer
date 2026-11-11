@@ -1645,18 +1645,18 @@
     ]
    },
    "bf": {
-    "pct": 18,
+    "pct": 15,
     "listed": true,
     "upTo": true,
-    "min": 13.84,
+    "min": 11.53,
     "depts": [
      {
       "n": "Sale Items",
-      "p": 13.84
+      "p": 11.53
      },
      {
       "n": "Other",
-      "p": 18
+      "p": 15
      }
     ]
    }
@@ -2523,11 +2523,19 @@
     "pct": 12,
     "listed": true,
     "upTo": true,
-    "min": 2,
+    "min": 1,
     "depts": [
      {
-      "n": "Acer, Lenovo, ASUS, HP, Samsung, or Googlebooks Chromebooks",
+      "n": "Acer, Lenovo, ASUS, HP, Samsung Chromebooks",
       "p": 12
+     },
+     {
+      "n": "Shark | Ninja Health, Wellness & Personal Care, Or Small Appliances",
+      "p": 12
+     },
+     {
+      "n": "HP Printers",
+      "p": 10
      },
      {
       "n": "Ring Home Security & Monitoring",
@@ -2538,44 +2546,76 @@
       "p": 10
      },
      {
-      "n": "HP Printers",
-      "p": 10
+      "n": "Dyson Small Appliances, Health, Wellness & Personal Care",
+      "p": 8
      },
      {
-      "n": "Shark | Ninja Health, Wellness, Fitness & Small Appliances",
-      "p": 10
+      "n": "Logitech PC Gaming Accessories",
+      "p": 8
      },
      {
       "n": "Roku Flat-Screen TVs",
       "p": 8
      },
      {
-      "n": "Sonos Home Audio & Speakers",
-      "p": 8
+      "n": "LG Home Audio & Speakers",
+      "p": 7
      },
      {
-      "n": "Select Categories 6%*",
+      "n": "Acer Mini PCs",
       "p": 6
      },
      {
-      "n": "Select Categories 4%**",
+      "n": "DJI Cameras, Camcorders & Drones",
+      "p": 6
+     },
+     {
+      "n": "Lenovo Tablets",
+      "p": 6
+     },
+     {
+      "n": "LG Major Appliances",
+      "p": 6
+     },
+     {
+      "n": "Logitech Computer Accessories & Peripherals",
+      "p": 6
+     },
+     {
+      "n": "Skullcandy Headphones",
+      "p": 6
+     },
+     {
+      "n": "Sony Digital Cameras & Digital Camera Accessories",
+      "p": 6
+     },
+     {
+      "n": "SteelSeries, Razer, Logitech, Turtle Beach, LG, Or Corsair PC Gaming Accessories",
+      "p": 6
+     },
+     {
+      "n": "SteelSeries, Razer, Logitech, Turtle Beach, LG, Or Corsair Gaming Monitors",
+      "p": 6
+     },
+     {
+      "n": "SteelSeries, Razer, Logitech, Turtle Beach, LG, Or Corsair Handheld Gaming Accessories",
+      "p": 6
+     },
+     {
+      "n": "SteelSeries, Razer, Logitech, Turtle Beach, LG, Or Corsair Video Game Accessories",
+      "p": 6
+     },
+     {
+      "n": "Select Categories 4%*",
       "p": 4
      },
      {
-      "n": "Appliances",
-      "p": 4
-     },
-     {
-      "n": "Select Categories 3%***",
-      "p": 3
+      "n": "Select Categories 2%**",
+      "p": 2
      },
      {
       "n": "Other (Exclusions Apply. See Terms)",
-      "p": 2
-     },
-     {
-      "n": "Laptops",
-      "p": 2
+      "p": 1
      }
     ]
    }
@@ -3030,7 +3070,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 4.84,
+    "pct": 0,
     "listed": true
    },
    "bf": {
@@ -3646,18 +3686,18 @@
     ]
    },
    "bf": {
-    "pct": 45,
+    "pct": 50,
     "listed": true,
     "upTo": true,
-    "min": 6,
+    "min": 6.66,
     "depts": [
      {
       "n": "New Temu Customer Order",
-      "p": 45
+      "p": 50
      },
      {
       "n": "Existing Temu Customer Order",
-      "p": 6
+      "p": 6.66
      }
     ]
    }
