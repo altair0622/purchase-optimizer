@@ -270,6 +270,15 @@ const SRC = new URL('../index.html', import.meta.url);
 const slug = s => (s || '').toLowerCase().replace(/&/g, 'and').replace(/'/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const bfSlug = s => (s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');   // BeFrugal: 대시 없음
 const normStore = s => (s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+// 가게 정식 이름·도메인 (2026-11-11 — 쇼핑 앱이 "katespade" 대신 "Kate Spade"·로고를 보여주려고). 같은 STORE_LIST 에서.
+export function loadStoreInfo() {
+  const info = {};
+  for (const [k, , , , cap] of loadStores()) info[k] = { domain: cap || k + '.com' };
+  const m = readFileSync(SRC, 'utf8').match(/const STORE_LIST\s*=\s*(\[[\s\S]*?\n\];)/);
+  for (const [name, , o = {}] of eval(m[1].replace(/;\s*$/, ''))) { const k = o.key || normStore(name); if (info[k] && !info[k].name) info[k].name = name; }
+  return info;
+}
+
 export function loadStores() {
   const html = readFileSync(SRC, 'utf8');
   const m = html.match(/const STORE_LIST\s*=\s*(\[[\s\S]*?\n\];)/);
