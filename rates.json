@@ -1,6 +1,6 @@
 {
- "asOf": "2026-11-15",
- "capAsOf": "2026-11-14",
+ "asOf": "2026-11-16",
+ "capAsOf": "2026-11-16",
  "source": "rakuten.com·topcashback.com·befrugal.com·capitaloneshopping.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일)",
  "stores": {
   "crateandbarrel": {
@@ -183,7 +183,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 1,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -271,106 +271,118 @@
     ]
    },
    "bf": {
-    "pct": 10.1,
+    "pct": 12,
     "listed": true,
     "upTo": true,
-    "min": 1.26,
+    "min": 1.5,
     "depts": [
      {
       "n": "Housewares",
-      "p": 10.1
+      "p": 12
      },
      {
       "n": "Luggage",
-      "p": 10.1
+      "p": 12
      },
      {
       "n": "Tabletop",
-      "p": 10.1
+      "p": 12
      },
      {
       "n": "Bedding & Textiles",
-      "p": 10.1
+      "p": 12
      },
      {
       "n": "Wallpaper",
-      "p": 10.1
+      "p": 12
      },
      {
       "n": "Interior Furniture",
-      "p": 10.1
+      "p": 12
      },
      {
       "n": "Mattresses",
-      "p": 10.1
+      "p": 12
      },
      {
       "n": "Area Rugs",
-      "p": 10.1
+      "p": 12
      },
      {
       "n": "Home Decor",
-      "p": 10.1
+      "p": 12
      },
      {
       "n": "Building Materials - Building Materials, Lumber, Plumbing, Elecrical, Window & Doors",
-      "p": 1.26
+      "p": 1.5
      },
      {
       "n": "Flooring",
-      "p": 1.26
+      "p": 1.5
      },
      {
       "n": "Paint",
-      "p": 1.26
+      "p": 1.5
      },
      {
       "n": "Lighting",
-      "p": 1.26
+      "p": 1.5
      },
      {
       "n": "Appliances",
-      "p": 1.26
+      "p": 1.5
      },
      {
       "n": "Bath",
-      "p": 1.26
+      "p": 1.5
      },
      {
       "n": "Kitchen & Blinds",
-      "p": 1.26
+      "p": 1.5
      },
      {
       "n": "Hardware",
-      "p": 1.26
+      "p": 1.5
      },
      {
       "n": "Power Tools",
-      "p": 1.26
+      "p": 1.5
      },
      {
       "n": "Storage & Organization",
-      "p": 1.26
+      "p": 1.5
      },
      {
       "n": "Patio & Grills",
-      "p": 1.26
+      "p": 1.5
      },
      {
       "n": "Lawn & Garden",
-      "p": 1.26
+      "p": 1.5
      },
      {
       "n": "Other",
-      "p": 1.26
+      "p": 1.5
      }
     ]
    }
   },
   "lowes": {
    "rk": {
-    "pct": 1,
-    "listed": true
+    "pct": 2,
+    "listed": true,
+    "upTo": true,
+    "min": 1,
+    "depts": [
+     {
+      "n": "Lowe's Purchase",
+      "p": 2
+     },
+     {
+      "n": "Appliances",
+      "p": 1
+     }
+    ]
    },
    "cap": {
     "pct": 2,
@@ -574,7 +586,7 @@
      },
      {
       "n": "Stationery, Sporting Goods, Automotive, Hardware & Tools/Do It Yourself, Patio and Garden, Horticulture, Cook and Dine, Home Decor, Bath and Shower, Bedding, Home Management, Furniture, Arts, Crafts, Sewing & Fabric, D82 Collectibles, Mens Apparel, Baby/Toddler/Boys/Girls Apparel, Shoes, Intimate Apparel/Womens Apparel, Accessories, Jewelry, Toys, Seasonal, Books & Magazines, Celebration",
-      "p": 8
+      "p": 3
      },
      {
       "n": "Media & Gaming, Electronics",
@@ -583,18 +595,18 @@
     ]
    },
    "bf": {
-    "pct": 15,
+    "pct": 18,
     "listed": true,
     "upTo": true,
     "min": 0,
     "depts": [
      {
       "n": "Flash Deals",
-      "p": 15
+      "p": 18
      },
      {
       "n": "Extra Savings Deals",
-      "p": 15
+      "p": 18
      },
      {
       "n": "Apparel, Accessories, Shoes, & Jewelry",
@@ -811,18 +823,18 @@
     "listed": true
    },
    "cap": {
-    "pct": 1,
+    "pct": 2,
     "listed": true,
     "upTo": true,
-    "min": 0.5,
+    "min": 1,
     "depts": [
      {
       "n": "Everything Else",
-      "p": 1
+      "p": 2
      },
      {
       "n": "Macy's Marketplace and Furniture, Mattresses, Rugs",
-      "p": 0.5
+      "p": 1
      }
     ]
    },
@@ -843,7 +855,7 @@
     ]
    },
    "bf": {
-    "pct": 12,
+    "pct": 10,
     "listed": true
    }
   },
@@ -861,7 +873,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 7,
+    "pct": 8,
     "listed": true
    }
   },
@@ -921,7 +933,7 @@
   },
   "bloomingdales": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -933,7 +945,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 7,
+    "pct": 8,
     "listed": true
    }
   },
@@ -964,7 +976,7 @@
     "pct": 2,
     "listed": true,
     "upTo": true,
-    "min": 1,
+    "min": 0.75,
     "depts": [
      {
       "n": "Everything Else",
@@ -972,7 +984,7 @@
      },
      {
       "n": "Sale and Clearance Flag",
-      "p": 1
+      "p": 0.75
      }
     ]
    },
@@ -1120,7 +1132,7 @@
     "pct": 2,
     "listed": true,
     "upTo": true,
-    "min": 0.5,
+    "min": 0.25,
     "depts": [
      {
       "n": "Full Price 2026 (No Furniture or Bridal)",
@@ -1132,7 +1144,7 @@
      },
      {
       "n": "Sale",
-      "p": 0.5
+      "p": 0.25
      },
      {
       "n": "Accessories & Apparel",
@@ -1279,13 +1291,33 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
-    "listed": true
+    "pct": 3,
+    "listed": true,
+    "upTo": true,
+    "min": 1,
+    "depts": [
+     {
+      "n": "ASOS iOS",
+      "p": 1
+     },
+     {
+      "n": "ASOS Android",
+      "p": 1
+     },
+     {
+      "n": "New ASOS Customer Desktop Order",
+      "p": 3
+     },
+     {
+      "n": "Existing ASOS Customer Desktop Order",
+      "p": 2
+     }
+    ]
    }
   },
   "shein": {
    "rk": {
-    "pct": 6,
+    "pct": 16,
     "listed": true
    },
    "cap": {
@@ -1293,18 +1325,18 @@
     "listed": true
    },
    "tcb": {
-    "pct": 25,
+    "pct": 15,
     "listed": true,
     "upTo": true,
-    "min": 3,
+    "min": 1,
     "depts": [
      {
       "n": "New SHEIN Customer Purchase",
-      "p": 25
+      "p": 15
      },
      {
       "n": "Existing SHEIN Customer Purchase",
-      "p": 3
+      "p": 1
      }
     ]
    },
@@ -1339,7 +1371,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 7,
+    "pct": 8,
     "listed": true
    }
   },
@@ -1421,7 +1453,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 3,
+    "pct": 4,
     "listed": true
    },
    "tcb": {
@@ -1497,7 +1529,7 @@
     "listed": true
    },
    "tcb": {
-    "pct": 8,
+    "pct": 4,
     "listed": true
    },
    "bf": {
@@ -1591,7 +1623,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 7,
+    "pct": 4,
     "listed": true
    },
    "tcb": {
@@ -1641,18 +1673,18 @@
     ]
    },
    "bf": {
-    "pct": 18,
+    "pct": 15,
     "listed": true,
     "upTo": true,
-    "min": 13.84,
+    "min": 11.53,
     "depts": [
      {
       "n": "Sale Items",
-      "p": 13.84
+      "p": 11.53
      },
      {
       "n": "Other",
-      "p": 18
+      "p": 15
      }
     ]
    }
@@ -1677,7 +1709,7 @@
   },
   "footlocker": {
    "rk": {
-    "pct": 9,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1789,7 +1821,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
@@ -1807,7 +1839,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -1815,7 +1847,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 7,
+    "pct": 8,
     "listed": true
    }
   },
@@ -1843,7 +1875,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 1,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -1939,14 +1971,14 @@
     "listed": true
    },
    "bf": {
-    "pct": 7,
+    "pct": 8,
     "listed": true,
     "upTo": true,
-    "min": 7,
+    "min": 8,
     "depts": [
      {
       "n": "Other",
-      "p": 7
+      "p": 8
      }
     ]
    }
@@ -2146,10 +2178,6 @@
       "p": 3
      },
      {
-      "n": "Blink Home Security and Video",
-      "p": 3
-     },
-     {
       "n": "Computer Accessories, Tablet Accessories, and Monitors",
       "p": 3
      },
@@ -2199,6 +2227,10 @@
      },
      {
       "n": "Backbone Labs Handheld Gaming",
+      "p": 2
+     },
+     {
+      "n": "Blink Home Security and Video",
       "p": 2
      },
      {
@@ -2403,10 +2435,6 @@
      },
      {
       "n": "All Other Third-Party Seller Items",
-      "p": 0.5
-     },
-     {
-      "n": "Select Third-Party Seller Items",
       "p": 0.5
      }
     ]
@@ -2866,7 +2894,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 4,
     "listed": true
    }
   },
@@ -2894,8 +2922,24 @@
     "listed": true
    },
    "cap": {
-    "pct": 1,
-    "listed": true
+    "pct": 1.5,
+    "listed": true,
+    "upTo": true,
+    "min": 0.75,
+    "depts": [
+     {
+      "n": "Lighting & Video",
+      "p": 1.5
+     },
+     {
+      "n": "Everything Else",
+      "p": 0.75
+     },
+     {
+      "n": "Pre-Owned Equipment",
+      "p": 1.5
+     }
+    ]
    },
    "tcb": {
     "pct": 3,
@@ -2980,7 +3024,7 @@
   },
   "dyson": {
    "rk": {
-    "pct": 6,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -3128,18 +3172,18 @@
     "listed": true
    },
    "cap": {
-    "pct": 3.5,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
-    "pct": 20,
+    "pct": 3,
     "listed": true,
     "upTo": true,
     "min": 1,
     "depts": [
      {
       "n": "Orders shipped to USA and other countries",
-      "p": 20
+      "p": 3
      },
      {
       "n": "Orders shipped to Ukraine/Hong Kong/Kazakhstan",
@@ -3152,8 +3196,20 @@
     ]
    },
    "bf": {
-    "pct": 9,
-    "listed": true
+    "pct": 15,
+    "listed": true,
+    "upTo": true,
+    "min": 6,
+    "depts": [
+     {
+      "n": "US Customer Orders",
+      "p": 15
+     },
+     {
+      "n": "Other (Exclusions Apply)",
+      "p": 6
+     }
+    ]
    }
   },
   "walgreens": {
@@ -3162,7 +3218,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
@@ -3184,23 +3240,23 @@
     "listed": true
    },
    "tcb": {
-    "pct": 8,
+    "pct": 10,
     "listed": true,
     "upTo": true,
     "min": 7,
     "depts": [
      {
-      "n": "Health Online Purchase",
-      "p": 8
-     },
-     {
       "n": "Photo Purchase",
       "p": 7
+     },
+     {
+      "n": "Health Online Purchase",
+      "p": 10
      }
     ]
    },
    "bf": {
-    "pct": 10,
+    "pct": 12,
     "listed": true
    }
   },
@@ -3228,7 +3284,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 3,
+    "pct": 4,
     "listed": true
    },
    "tcb": {
@@ -3278,7 +3334,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 6,
     "listed": true
    }
   },
@@ -3350,7 +3406,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 9,
+    "pct": 8,
     "listed": true
    }
   },
@@ -3551,7 +3607,7 @@
      },
      {
       "n": "Clothing, Shoes, Accessories, Jewelry & Watches, eBay Motors, Health & Beauty",
-      "p": 3
+      "p": 1.5
      },
      {
       "n": "Baby, Toys & Hobbies, Books, Movies & Music, Collectibles & Art, Home & Garden, Pet Supplies, Sports & Leisure",
@@ -3670,18 +3726,18 @@
     ]
    },
    "bf": {
-    "pct": 45,
+    "pct": 50,
     "listed": true,
     "upTo": true,
-    "min": 6,
+    "min": 6.66,
     "depts": [
      {
       "n": "New Temu Customer Order",
-      "p": 45
+      "p": 50
      },
      {
       "n": "Existing Temu Customer Order",
-      "p": 6
+      "p": 6.66
      }
     ]
    }
@@ -3767,18 +3823,18 @@
     ]
    },
    "tcb": {
-    "pct": 13,
+    "pct": 7,
     "listed": true,
     "upTo": true,
     "min": 2,
     "depts": [
      {
       "n": "Hotels",
-      "p": 13
+      "p": 7
      },
      {
       "n": "Activities",
-      "p": 10
+      "p": 6
      },
      {
       "n": "Car Rental",
@@ -3786,15 +3842,15 @@
      },
      {
       "n": "Package Bookings",
-      "p": 4
-     },
-     {
-      "n": "Activities",
-      "p": 8
+      "p": 5
      },
      {
       "n": "Hotels",
-      "p": 7
+      "p": 6
+     },
+     {
+      "n": "Activities",
+      "p": 5
      },
      {
       "n": "Packages",
@@ -3873,14 +3929,14 @@
     ]
    },
    "tcb": {
-    "pct": 9,
+    "pct": 7,
     "listed": true,
     "upTo": true,
     "min": 5,
     "depts": [
      {
       "n": "New Hotels.com Customer - Completed Stays",
-      "p": 9
+      "p": 7
      },
      {
       "n": "Existing Hotels.com Customer - Completed Stays",
@@ -3907,14 +3963,14 @@
   },
   "booking": {
    "rk": {
-    "pct": 5,
+    "pct": 8,
     "listed": true,
     "upTo": true,
     "min": 2,
     "depts": [
      {
       "n": "Accommodations",
-      "p": 5
+      "p": 8
      },
      {
       "n": "Rental Cars Pre-Paid",
@@ -3955,14 +4011,14 @@
     ]
    },
    "tcb": {
-    "pct": 6,
+    "pct": 7,
     "listed": true,
     "upTo": true,
     "min": 3,
     "depts": [
      {
       "n": "Hotels",
-      "p": 6
+      "p": 7
      },
      {
       "n": "Car Rental - Pay in advance",
@@ -4009,21 +4065,21 @@
   },
   "priceline": {
    "rk": {
-    "pct": 4,
+    "pct": 10,
     "listed": true,
     "upTo": true,
     "min": 2,
     "depts": [
      {
       "n": "All Other Hotels",
-      "p": 4
-     },
-     {
-      "n": "All Other Rental Cars",
-      "p": 4
+      "p": 10
      },
      {
       "n": "Express Deals Hotels",
+      "p": 10
+     },
+     {
+      "n": "All Other Rental Cars",
       "p": 4
      },
      {
