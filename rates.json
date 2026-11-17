@@ -1,6 +1,6 @@
 {
- "asOf": "2026-11-16",
- "capAsOf": "2026-11-16",
+ "asOf": "2026-11-17",
+ "capAsOf": "2026-11-17",
  "source": "rakuten.com·topcashback.com·befrugal.com·capitaloneshopping.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일)",
  "stores": {
   "crateandbarrel": {
@@ -271,98 +271,98 @@
     ]
    },
    "bf": {
-    "pct": 12,
+    "pct": 16,
     "listed": true,
     "upTo": true,
-    "min": 1.5,
+    "min": 2,
     "depts": [
      {
       "n": "Housewares",
-      "p": 12
+      "p": 16
      },
      {
       "n": "Luggage",
-      "p": 12
+      "p": 16
      },
      {
       "n": "Tabletop",
-      "p": 12
+      "p": 16
      },
      {
       "n": "Bedding & Textiles",
-      "p": 12
+      "p": 16
      },
      {
       "n": "Wallpaper",
-      "p": 12
+      "p": 16
      },
      {
       "n": "Interior Furniture",
-      "p": 12
+      "p": 16
      },
      {
       "n": "Mattresses",
-      "p": 12
+      "p": 16
      },
      {
       "n": "Area Rugs",
-      "p": 12
+      "p": 16
      },
      {
       "n": "Home Decor",
-      "p": 12
+      "p": 16
      },
      {
       "n": "Building Materials - Building Materials, Lumber, Plumbing, Elecrical, Window & Doors",
-      "p": 1.5
+      "p": 2
      },
      {
       "n": "Flooring",
-      "p": 1.5
+      "p": 2
      },
      {
       "n": "Paint",
-      "p": 1.5
+      "p": 2
      },
      {
       "n": "Lighting",
-      "p": 1.5
+      "p": 2
      },
      {
       "n": "Appliances",
-      "p": 1.5
+      "p": 2
      },
      {
       "n": "Bath",
-      "p": 1.5
+      "p": 2
      },
      {
       "n": "Kitchen & Blinds",
-      "p": 1.5
+      "p": 2
      },
      {
       "n": "Hardware",
-      "p": 1.5
+      "p": 2
      },
      {
       "n": "Power Tools",
-      "p": 1.5
+      "p": 2
      },
      {
       "n": "Storage & Organization",
-      "p": 1.5
+      "p": 2
      },
      {
       "n": "Patio & Grills",
-      "p": 1.5
+      "p": 2
      },
      {
       "n": "Lawn & Garden",
-      "p": 1.5
+      "p": 2
      },
      {
       "n": "Other",
-      "p": 1.5
+      "p": 2
      }
     ]
    }
@@ -423,18 +423,18 @@
   },
   "acehardware": {
    "rk": {
-    "pct": 6,
+    "pct": 2,
     "listed": true,
     "upTo": true,
-    "min": 3,
+    "min": 1,
     "depts": [
      {
       "n": "All Other Items",
-      "p": 6
+      "p": 2
      },
      {
       "n": "Snow Equipment",
-      "p": 3
+      "p": 1
      }
     ]
    },
@@ -567,7 +567,8 @@
   },
   "walmart": {
    "rk": {
-    "pct": 0,
+    "pct": null,
+    "flat": 5,
     "listed": true
    },
    "cap": {
@@ -819,7 +820,7 @@
   },
   "macys": {
    "rk": {
-    "pct": 4,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -873,7 +874,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 4,
     "listed": true
    }
   },
@@ -1291,33 +1292,33 @@
     "listed": true
    },
    "bf": {
-    "pct": 3,
+    "pct": 8,
     "listed": true,
     "upTo": true,
-    "min": 1,
+    "min": 2.66,
     "depts": [
      {
       "n": "ASOS iOS",
-      "p": 1
+      "p": 2.66
      },
      {
       "n": "ASOS Android",
-      "p": 1
+      "p": 2.66
      },
      {
       "n": "New ASOS Customer Desktop Order",
-      "p": 3
+      "p": 8
      },
      {
       "n": "Existing ASOS Customer Desktop Order",
-      "p": 2
+      "p": 5.33
      }
     ]
    }
   },
   "shein": {
    "rk": {
-    "pct": 16,
+    "pct": 3,
     "listed": true
    },
    "cap": {
@@ -1413,7 +1414,7 @@
   },
   "calvinklein": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
@@ -1525,7 +1526,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 5,
     "listed": true
    },
    "tcb": {
@@ -1539,18 +1540,18 @@
   },
   "adidas": {
    "rk": {
-    "pct": 10,
+    "pct": 6,
     "listed": true,
     "upTo": true,
-    "min": 4,
+    "min": 2,
     "depts": [
      {
       "n": "All Other Non-Excluded Items",
-      "p": 10
+      "p": 6
      },
      {
       "n": "Samba, Gazelle, Spezial, EVO SL",
-      "p": 4
+      "p": 2
      }
     ]
    },
@@ -1595,13 +1596,13 @@
     ]
    },
    "bf": {
-    "pct": 10,
+    "pct": 6,
     "listed": true
    }
   },
   "newbalance": {
    "rk": {
-    "pct": 9,
+    "pct": 3,
     "listed": true
    },
    "cap": {
@@ -1637,7 +1638,7 @@
   },
   "puma": {
    "rk": {
-    "pct": 3,
+    "pct": 23,
     "listed": true
    },
    "cap": {
@@ -1709,7 +1710,7 @@
   },
   "footlocker": {
    "rk": {
-    "pct": 10,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -1739,11 +1740,11 @@
   },
   "finishline": {
    "rk": {
-    "pct": 2,
+    "pct": 8,
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
@@ -1803,7 +1804,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 1.5,
+    "pct": 2.5,
     "listed": true
    },
    "tcb": {
@@ -1817,7 +1818,7 @@
   },
   "stevemadden": {
    "rk": {
-    "pct": 3,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -2043,7 +2044,7 @@
     "pct": 8,
     "listed": true,
     "upTo": true,
-    "min": 0.5,
+    "min": 1,
     "depts": [
      {
       "n": "Ninja Appliances",
@@ -2238,6 +2239,10 @@
       "p": 2
      },
      {
+      "n": "Corsair PC Gaming Accessories, Handheld Gaming Accessories, Monitors, and Video Game Accessories",
+      "p": 2
+     },
+     {
       "n": "CyberPowerPC Products",
       "p": 2
      },
@@ -2286,11 +2291,19 @@
       "p": 2
      },
      {
+      "n": "LG PC Gaming Accessories, Handheld Gaming Accessories, Monitors, and Video Game Accessories",
+      "p": 2
+     },
+     {
       "n": "LG TVs",
       "p": 2
      },
      {
       "n": "Lenovo Gaming Laptops",
+      "p": 2
+     },
+     {
+      "n": "Logitech PC Gaming Accessories, Handheld Gaming Accessories, Monitors, and Video Game Accessories",
       "p": 2
      },
      {
@@ -2310,7 +2323,15 @@
       "p": 2
      },
      {
+      "n": "Razer PC Gaming Accessories, Handheld Gaming Accessories, Monitors, and Video Game Accessories",
+      "p": 2
+     },
+     {
       "n": "Roborock Appliances",
+      "p": 2
+     },
+     {
+      "n": "Select Collectibles & Memorabilia",
       "p": 2
      },
      {
@@ -2330,7 +2351,11 @@
       "p": 2
      },
      {
-      "n": "Turtle Beach PC Gaming Accessories, Handheld Gaming Accessories, and Video Game Accessories",
+      "n": "TCL Home Computing Products",
+      "p": 2
+     },
+     {
+      "n": "Turtle Beach PC Gaming Accessories, Handheld Gaming Accessories, Monitors, and Video Game Accessories",
       "p": 2
      },
      {
@@ -2432,10 +2457,6 @@
      {
       "n": "Wearable Technology",
       "p": 1
-     },
-     {
-      "n": "All Other Third-Party Seller Items",
-      "p": 0.5
      }
     ]
    },
@@ -3000,7 +3021,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 9,
+    "pct": 10,
     "listed": true
    }
   },
@@ -3024,7 +3045,7 @@
   },
   "dyson": {
    "rk": {
-    "pct": 10,
+    "pct": 1,
     "listed": true
    },
    "cap": {
@@ -3042,7 +3063,7 @@
   },
   "sharkninja": {
    "rk": {
-    "pct": 2,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -3168,11 +3189,11 @@
   },
   "iherb": {
    "rk": {
-    "pct": 6,
+    "pct": 2,
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "tcb": {
@@ -3280,7 +3301,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 10,
+    "pct": 6,
     "listed": true
    },
    "cap": {
@@ -3344,7 +3365,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "tcb": {
@@ -3380,7 +3401,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 1,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -4065,18 +4086,18 @@
   },
   "priceline": {
    "rk": {
-    "pct": 10,
+    "pct": 8,
     "listed": true,
     "upTo": true,
     "min": 2,
     "depts": [
      {
       "n": "All Other Hotels",
-      "p": 10
+      "p": 8
      },
      {
       "n": "Express Deals Hotels",
-      "p": 10
+      "p": 8
      },
      {
       "n": "All Other Rental Cars",
