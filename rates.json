@@ -1,6 +1,6 @@
 {
- "asOf": "2026-11-17",
- "capAsOf": "2026-11-17",
+ "asOf": "2026-11-18",
+ "capAsOf": "2026-11-18",
  "source": "rakuten.com·topcashback.com·befrugal.com·capitaloneshopping.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일)",
  "stores": {
   "crateandbarrel": {
@@ -271,98 +271,98 @@
     ]
    },
    "bf": {
-    "pct": 16,
+    "pct": 12,
     "listed": true,
     "upTo": true,
-    "min": 2,
+    "min": 1.5,
     "depts": [
      {
       "n": "Housewares",
-      "p": 16
+      "p": 12
      },
      {
       "n": "Luggage",
-      "p": 16
+      "p": 12
      },
      {
       "n": "Tabletop",
-      "p": 16
+      "p": 12
      },
      {
       "n": "Bedding & Textiles",
-      "p": 16
+      "p": 12
      },
      {
       "n": "Wallpaper",
-      "p": 16
+      "p": 12
      },
      {
       "n": "Interior Furniture",
-      "p": 16
+      "p": 12
      },
      {
       "n": "Mattresses",
-      "p": 16
+      "p": 12
      },
      {
       "n": "Area Rugs",
-      "p": 16
+      "p": 12
      },
      {
       "n": "Home Decor",
-      "p": 16
+      "p": 12
      },
      {
       "n": "Building Materials - Building Materials, Lumber, Plumbing, Elecrical, Window & Doors",
-      "p": 2
+      "p": 1.5
      },
      {
       "n": "Flooring",
-      "p": 2
+      "p": 1.5
      },
      {
       "n": "Paint",
-      "p": 2
+      "p": 1.5
      },
      {
       "n": "Lighting",
-      "p": 2
+      "p": 1.5
      },
      {
       "n": "Appliances",
-      "p": 2
+      "p": 1.5
      },
      {
       "n": "Bath",
-      "p": 2
+      "p": 1.5
      },
      {
       "n": "Kitchen & Blinds",
-      "p": 2
+      "p": 1.5
      },
      {
       "n": "Hardware",
-      "p": 2
+      "p": 1.5
      },
      {
       "n": "Power Tools",
-      "p": 2
+      "p": 1.5
      },
      {
       "n": "Storage & Organization",
-      "p": 2
+      "p": 1.5
      },
      {
       "n": "Patio & Grills",
-      "p": 2
+      "p": 1.5
      },
      {
       "n": "Lawn & Garden",
-      "p": 2
+      "p": 1.5
      },
      {
       "n": "Other",
-      "p": 2
+      "p": 1.5
      }
     ]
    }
@@ -820,22 +820,22 @@
   },
   "macys": {
    "rk": {
-    "pct": 6,
+    "pct": 10,
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 1,
     "listed": true,
     "upTo": true,
-    "min": 1,
+    "min": 0.5,
     "depts": [
      {
       "n": "Everything Else",
-      "p": 2
+      "p": 1
      },
      {
       "n": "Macy's Marketplace and Furniture, Mattresses, Rugs",
-      "p": 1
+      "p": 0.5
      }
     ]
    },
@@ -934,7 +934,7 @@
   },
   "bloomingdales": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -946,13 +946,13 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 9,
     "listed": true
    }
   },
   "saks": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -970,8 +970,20 @@
   },
   "neimanmarcus": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 15,
+    "listed": true,
+    "upTo": true,
+    "min": 2,
+    "depts": [
+     {
+      "n": "All Other Non-Excluded Items",
+      "p": 15
+     },
+     {
+      "n": "Beauty",
+      "p": 2
+     }
+    ]
    },
    "cap": {
     "pct": 2,
@@ -1133,7 +1145,7 @@
     "pct": 2,
     "listed": true,
     "upTo": true,
-    "min": 0.25,
+    "min": 0.5,
     "depts": [
      {
       "n": "Full Price 2026 (No Furniture or Bridal)",
@@ -1145,7 +1157,7 @@
      },
      {
       "n": "Sale",
-      "p": 0.25
+      "p": 0.5
      },
      {
       "n": "Accessories & Apparel",
@@ -1468,7 +1480,7 @@
   },
   "michaelkors": {
    "rk": {
-    "pct": 2,
+    "pct": 8,
     "listed": true
    },
    "cap": {
@@ -1526,7 +1538,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 5,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -1638,7 +1650,7 @@
   },
   "puma": {
    "rk": {
-    "pct": 23,
+    "pct": 3,
     "listed": true
    },
    "cap": {
@@ -1945,15 +1957,7 @@
   "dickssportinggoods": {
    "rk": {
     "pct": 2,
-    "listed": true,
-    "upTo": true,
-    "min": 2,
-    "depts": [
-     {
-      "n": "Dick's Sporting Goods Purchase",
-      "p": 2
-     }
-    ]
+    "listed": true
    },
    "cap": {
     "pct": 1,
@@ -2671,6 +2675,10 @@
       "p": 2
      },
      {
+      "n": "Select Lenovo Notebooks***",
+      "p": 4
+     },
+     {
       "n": "Other (Exclusions Apply. See Terms)",
       "p": 1
      }
@@ -2683,7 +2691,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 1,
+    "pct": 0.5,
     "listed": true
    },
    "tcb": {
@@ -3021,7 +3029,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 15,
     "listed": true
    }
   },
@@ -3361,11 +3369,11 @@
   },
   "chewy": {
    "rk": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "cap": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
