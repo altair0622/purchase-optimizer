@@ -1,5 +1,5 @@
 {
- "asOf": "2026-11-18",
+ "asOf": "2026-11-19",
  "capAsOf": "2026-11-18",
  "source": "rakuten.com·topcashback.com·befrugal.com·capitaloneshopping.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일)",
  "stores": {
@@ -271,98 +271,98 @@
     ]
    },
    "bf": {
-    "pct": 12,
+    "pct": 10.1,
     "listed": true,
     "upTo": true,
-    "min": 1.5,
+    "min": 1.26,
     "depts": [
      {
       "n": "Housewares",
-      "p": 12
+      "p": 10.1
      },
      {
       "n": "Luggage",
-      "p": 12
+      "p": 10.1
      },
      {
       "n": "Tabletop",
-      "p": 12
+      "p": 10.1
      },
      {
       "n": "Bedding & Textiles",
-      "p": 12
+      "p": 10.1
      },
      {
       "n": "Wallpaper",
-      "p": 12
+      "p": 10.1
      },
      {
       "n": "Interior Furniture",
-      "p": 12
+      "p": 10.1
      },
      {
       "n": "Mattresses",
-      "p": 12
+      "p": 10.1
      },
      {
       "n": "Area Rugs",
-      "p": 12
+      "p": 10.1
      },
      {
       "n": "Home Decor",
-      "p": 12
+      "p": 10.1
      },
      {
       "n": "Building Materials - Building Materials, Lumber, Plumbing, Elecrical, Window & Doors",
-      "p": 1.5
+      "p": 1.26
      },
      {
       "n": "Flooring",
-      "p": 1.5
+      "p": 1.26
      },
      {
       "n": "Paint",
-      "p": 1.5
+      "p": 1.26
      },
      {
       "n": "Lighting",
-      "p": 1.5
+      "p": 1.26
      },
      {
       "n": "Appliances",
-      "p": 1.5
+      "p": 1.26
      },
      {
       "n": "Bath",
-      "p": 1.5
+      "p": 1.26
      },
      {
       "n": "Kitchen & Blinds",
-      "p": 1.5
+      "p": 1.26
      },
      {
       "n": "Hardware",
-      "p": 1.5
+      "p": 1.26
      },
      {
       "n": "Power Tools",
-      "p": 1.5
+      "p": 1.26
      },
      {
       "n": "Storage & Organization",
-      "p": 1.5
+      "p": 1.26
      },
      {
       "n": "Patio & Grills",
-      "p": 1.5
+      "p": 1.26
      },
      {
       "n": "Lawn & Garden",
-      "p": 1.5
+      "p": 1.26
      },
      {
       "n": "Other",
-      "p": 1.5
+      "p": 1.26
      }
     ]
    }
@@ -596,18 +596,18 @@
     ]
    },
    "bf": {
-    "pct": 18,
+    "pct": 15,
     "listed": true,
     "upTo": true,
     "min": 0,
     "depts": [
      {
       "n": "Flash Deals",
-      "p": 18
+      "p": 15
      },
      {
       "n": "Extra Savings Deals",
-      "p": 18
+      "p": 15
      },
      {
       "n": "Apparel, Accessories, Shoes, & Jewelry",
@@ -840,14 +840,14 @@
     ]
    },
    "tcb": {
-    "pct": 8,
+    "pct": 10,
     "listed": true,
     "upTo": true,
     "min": 3,
     "depts": [
      {
       "n": "Online Purchases - See Exclusions",
-      "p": 8
+      "p": 10
      },
      {
       "n": "Marketplace, Mattresses, Furniture, Fine Jewelry Purchases",
@@ -856,7 +856,7 @@
     ]
    },
    "bf": {
-    "pct": 10,
+    "pct": 12,
     "listed": true
    }
   },
@@ -874,7 +874,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 7,
     "listed": true
    }
   },
@@ -946,13 +946,13 @@
     "listed": true
    },
    "bf": {
-    "pct": 9,
+    "pct": 7,
     "listed": true
    }
   },
   "saks": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -970,20 +970,8 @@
   },
   "neimanmarcus": {
    "rk": {
-    "pct": 15,
-    "listed": true,
-    "upTo": true,
-    "min": 2,
-    "depts": [
-     {
-      "n": "All Other Non-Excluded Items",
-      "p": 15
-     },
-     {
-      "n": "Beauty",
-      "p": 2
-     }
-    ]
+    "pct": 2,
+    "listed": true
    },
    "cap": {
     "pct": 2,
@@ -1274,7 +1262,7 @@
   },
   "uniqlo": {
    "rk": {
-    "pct": 2,
+    "pct": 7,
     "listed": true
    },
    "cap": {
@@ -1384,7 +1372,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 7,
     "listed": true
    }
   },
@@ -1588,22 +1576,22 @@
     ]
    },
    "tcb": {
-    "pct": 11,
+    "pct": 7,
     "listed": true,
     "upTo": true,
-    "min": 4,
+    "min": 2,
     "depts": [
      {
       "n": "Training",
-      "p": 11
+      "p": 7
      },
      {
       "n": "Online Purchase",
-      "p": 10
+      "p": 6
      },
      {
       "n": "Adidas Samba, Gazelle, Spezial and EVO SL",
-      "p": 4
+      "p": 2
      }
     ]
    },
@@ -1686,18 +1674,18 @@
     ]
    },
    "bf": {
-    "pct": 15,
+    "pct": 18,
     "listed": true,
     "upTo": true,
-    "min": 11.53,
+    "min": 13.84,
     "depts": [
      {
       "n": "Sale Items",
-      "p": 11.53
+      "p": 13.84
      },
      {
       "n": "Other",
-      "p": 15
+      "p": 18
      }
     ]
    }
@@ -1860,7 +1848,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 7,
     "listed": true
    }
   },
@@ -1976,14 +1964,14 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 7,
     "listed": true,
     "upTo": true,
-    "min": 8,
+    "min": 7,
     "depts": [
      {
       "n": "Other",
-      "p": 8
+      "p": 7
      }
     ]
    }
@@ -2087,6 +2075,10 @@
       "p": 6
      },
      {
+      "n": "LG Appliances",
+      "p": 6
+     },
+     {
       "n": "Lenovo Chromebooks",
       "p": 6
      },
@@ -2108,10 +2100,6 @@
      },
      {
       "n": "Hisense TVs",
-      "p": 5
-     },
-     {
-      "n": "LG Appliances",
       "p": 5
      },
      {
@@ -2163,7 +2151,19 @@
       "p": 4
      },
      {
+      "n": "GE & GE Profile Appliances",
+      "p": 4
+     },
+     {
       "n": "Lenovo Mini PCs",
+      "p": 4
+     },
+     {
+      "n": "Logitech Video Games",
+      "p": 4
+     },
+     {
+      "n": "Meta Virtual Reality Products",
       "p": 4
      },
      {
@@ -2199,7 +2199,7 @@
       "p": 3
      },
      {
-      "n": "Logitech Video Games",
+      "n": "Lenovo Gaming Laptops",
       "p": 3
      },
      {
@@ -2211,15 +2211,23 @@
       "p": 3
      },
      {
+      "n": "reMarkable Tablets",
+      "p": 3
+     },
+     {
+      "n": "Amazon Video Hardware",
+      "p": 2.5
+     },
+     {
+      "n": "Amazon Voice Assistants",
+      "p": 2.5
+     },
+     {
       "n": "Electrolux Appliances",
       "p": 2.5
      },
      {
       "n": "Frigidaire Appliances",
-      "p": 2.5
-     },
-     {
-      "n": "GE & GE Profile Appliances",
       "p": 2.5
      },
      {
@@ -2259,10 +2267,6 @@
       "p": 2
      },
      {
-      "n": "Energizer Cell Phone Chargers & Cables",
-      "p": 2
-     },
-     {
       "n": "GE Profile Countertop Ice Makers",
       "p": 2
      },
@@ -2287,6 +2291,10 @@
       "p": 2
      },
      {
+      "n": "Intel Laptops",
+      "p": 2
+     },
+     {
       "n": "JLab Headphones",
       "p": 2
      },
@@ -2303,15 +2311,7 @@
       "p": 2
      },
      {
-      "n": "Lenovo Gaming Laptops",
-      "p": 2
-     },
-     {
       "n": "Logitech PC Gaming Accessories, Handheld Gaming Accessories, Monitors, and Video Game Accessories",
-      "p": 2
-     },
-     {
-      "n": "Meta Virtual Reality Products",
       "p": 2
      },
      {
@@ -2391,6 +2391,10 @@
       "p": 1
      },
      {
+      "n": "Black Friday Deals",
+      "p": 1
+     },
+     {
       "n": "Cameras, Camcorders, & Drones",
       "p": 1
      },
@@ -2404,6 +2408,10 @@
      },
      {
       "n": "Electric Transportation",
+      "p": 1
+     },
+     {
+      "n": "Energizer Cell Phone Chargers & Cables",
       "p": 1
      },
      {
@@ -2447,10 +2455,6 @@
       "p": 1
      },
      {
-      "n": "Top Deals",
-      "p": 1
-     },
-     {
       "n": "Toys, Games & Collectibles",
       "p": 1
      },
@@ -2483,27 +2487,51 @@
       "p": 14
      },
      {
-      "n": "Corsair PC Gaming Accessories",
-      "p": 5
+      "n": "Chromebooks",
+      "p": 12
+     },
+     {
+      "n": "HP Smart Tank Printer",
+      "p": 12
+     },
+     {
+      "n": "Acer Laptops",
+      "p": 12
+     },
+     {
+      "n": "Power Week Items",
+      "p": 3
+     },
+     {
+      "n": "Epson EcoTank Printers",
+      "p": 10
      },
      {
       "n": "Lenovo Mini PCs",
       "p": 10
      },
      {
+      "n": "Ring",
+      "p": 10
+     },
+     {
+      "n": "Meta VR",
+      "p": 8
+     },
+     {
       "n": "Hisense TV",
       "p": 6
      },
      {
-      "n": "Chromebooks",
-      "p": 12
-     },
-     {
-      "n": "ASUS Laptops",
-      "p": 2
+      "n": "Amazon Tablets",
+      "p": 6
      },
      {
       "n": "Online Purchase Rocketfish, Insignia and Best Buy Essentials products",
+      "p": 6
+     },
+     {
+      "n": "Acer Mini PCs",
       "p": 6
      },
      {
@@ -2511,60 +2539,28 @@
       "p": 6
      },
      {
-      "n": "TVs (Any Brand)",
-      "p": 2
+      "n": "Ultimate Upgrade Sale",
+      "p": 6
      },
      {
-      "n": "Ring",
-      "p": 10
-     },
-     {
-      "n": "HP Smart Tank Printer",
-      "p": 12
+      "n": "Corsair PC Gaming Accessories",
+      "p": 5
      },
      {
       "n": "Sonos Audio and Speakers",
       "p": 4
      },
      {
+      "n": "ASUS Accessories",
+      "p": 4
+     },
+     {
+      "n": "Philips, Sonicare, Norelco Small & Major Appliances",
+      "p": 4
+     },
+     {
       "n": "HP MIni PCs",
       "p": 4
-     },
-     {
-      "n": "Jlab Headphones",
-      "p": 2
-     },
-     {
-      "n": "Steel Series",
-      "p": 4
-     },
-     {
-      "n": "Acer Mini PCs",
-      "p": 6
-     },
-     {
-      "n": "Acer Laptops",
-      "p": 12
-     },
-     {
-      "n": "Epson EcoTank Printers",
-      "p": 8
-     },
-     {
-      "n": "Online Purchase (see exclusions)",
-      "p": 1.5
-     },
-     {
-      "n": "Intel Gaming Laptops Arrow Lake",
-      "p": 1.5
-     },
-     {
-      "n": "Maytag Appliances",
-      "p": 1.5
-     },
-     {
-      "n": "Ultimate Upgrade Sale",
-      "p": 6
      },
      {
       "n": "LG Laptops",
@@ -2581,6 +2577,34 @@
      {
       "n": "Appliances",
       "p": 4
+     },
+     {
+      "n": "Steel Series",
+      "p": 4
+     },
+     {
+      "n": "ASUS Laptops",
+      "p": 2
+     },
+     {
+      "n": "TVs (Any Brand)",
+      "p": 2
+     },
+     {
+      "n": "Jlab Headphones",
+      "p": 2
+     },
+     {
+      "n": "Online Purchase (see exclusions)",
+      "p": 1.5
+     },
+     {
+      "n": "Intel Gaming Laptops Arrow Lake",
+      "p": 1.5
+     },
+     {
+      "n": "Maytag Appliances",
+      "p": 1.5
      }
     ]
    },
@@ -2676,7 +2700,7 @@
      },
      {
       "n": "Select Lenovo Notebooks***",
-      "p": 4
+      "p": 2
      },
      {
       "n": "Other (Exclusions Apply. See Terms)",
@@ -2718,39 +2742,7 @@
   "samsung": {
    "rk": {
     "pct": 2,
-    "listed": true,
-    "upTo": true,
-    "min": 1,
-    "depts": [
-     {
-      "n": "All Other Non-Excluded Items",
-      "p": 2
-     },
-     {
-      "n": "Home Appliances",
-      "p": 2
-     },
-     {
-      "n": "Mobile Phones",
-      "p": 2
-     },
-     {
-      "n": "Monitors",
-      "p": 2
-     },
-     {
-      "n": "Tablets & Laptops",
-      "p": 2
-     },
-     {
-      "n": "Wearables (Watches & Rings)",
-      "p": 2
-     },
-     {
-      "n": "Home Electronics (TVs)",
-      "p": 1
-     }
-    ]
+    "listed": true
    },
    "cap": {
     "pct": 0.5,
@@ -2923,7 +2915,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 6,
     "listed": true
    }
   },
@@ -3053,7 +3045,7 @@
   },
   "dyson": {
    "rk": {
-    "pct": 1,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -3225,20 +3217,8 @@
     ]
    },
    "bf": {
-    "pct": 15,
-    "listed": true,
-    "upTo": true,
-    "min": 6,
-    "depts": [
-     {
-      "n": "US Customer Orders",
-      "p": 15
-     },
-     {
-      "n": "Other (Exclusions Apply)",
-      "p": 6
-     }
-    ]
+    "pct": 9,
+    "listed": true
    }
   },
   "walgreens": {
@@ -3285,7 +3265,7 @@
     ]
    },
    "bf": {
-    "pct": 12,
+    "pct": 14,
     "listed": true
    }
   },
@@ -3309,7 +3289,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 6,
+    "pct": 25,
     "listed": true
    },
    "cap": {
@@ -3363,7 +3343,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 8,
     "listed": true
    }
   },
@@ -3387,7 +3367,7 @@
   },
   "petco": {
    "rk": {
-    "pct": 10,
+    "pct": 15,
     "listed": true
    },
    "cap": {
@@ -3435,7 +3415,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 9,
     "listed": true
    }
   },
@@ -3673,7 +3653,7 @@
   },
   "aliexpress": {
    "rk": {
-    "pct": 2,
+    "pct": 18,
     "listed": true
    },
    "cap": {
@@ -3755,18 +3735,18 @@
     ]
    },
    "bf": {
-    "pct": 50,
+    "pct": 45,
     "listed": true,
     "upTo": true,
-    "min": 6.66,
+    "min": 6,
     "depts": [
      {
       "n": "New Temu Customer Order",
-      "p": 50
+      "p": 45
      },
      {
       "n": "Existing Temu Customer Order",
-      "p": 6.66
+      "p": 6
      }
     ]
    }
@@ -3852,19 +3832,11 @@
     ]
    },
    "tcb": {
-    "pct": 7,
+    "pct": 6,
     "listed": true,
     "upTo": true,
     "min": 2,
     "depts": [
-     {
-      "n": "Hotels",
-      "p": 7
-     },
-     {
-      "n": "Activities",
-      "p": 6
-     },
      {
       "n": "Car Rental",
       "p": 5
@@ -3888,6 +3860,14 @@
      {
       "n": "Car Rental",
       "p": 2
+     },
+     {
+      "n": "Hotels",
+      "p": 6
+     },
+     {
+      "n": "Activities",
+      "p": 6
      }
     ]
    },
@@ -3958,20 +3938,8 @@
     ]
    },
    "tcb": {
-    "pct": 7,
-    "listed": true,
-    "upTo": true,
-    "min": 5,
-    "depts": [
-     {
-      "n": "New Hotels.com Customer - Completed Stays",
-      "p": 7
-     },
-     {
-      "n": "Existing Hotels.com Customer - Completed Stays",
-      "p": 5
-     }
-    ]
+    "pct": 10,
+    "listed": true
    },
    "bf": {
     "pct": 9,
