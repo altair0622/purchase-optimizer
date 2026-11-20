@@ -4335,6 +4335,10 @@ function syncPickTip(){
 // ⚠️ file:// 에서는 동적 import 가 CORS 로 막힌다 → 로컬 사본에는 이 기능이 안 뜬다(바코드와 같은 예외).
 (function(){
   const btn=document.getElementById('visionBtn'), inp=document.getElementById('visionFile');
+  // ⏸ 2026-11-20 잠시 숨김 — 사진 인식 방향은 11-09에 접었다. 워커 키(VISION_API_KEY)는 그대로 두고 버튼만 끈다:
+  //    능력 확인 요청도 안 보내고 버튼도 안 뜬다 → 계산기에서 비전 비용 0. 다시 켜려면 아래 VISION_PAUSED 를 false 로.
+  const VISION_PAUSED=true;
+  if(VISION_PAUSED) return;
   if(!btn||!inp||location.protocol==='file:'||!PRICE_API) return;
 
   const CAP='pa_vision_on';
