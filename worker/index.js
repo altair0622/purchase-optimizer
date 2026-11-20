@@ -721,7 +721,11 @@ function visionPrompt(lang, nImages, lean) {
   ].filter(Boolean).join('\n');
 }
 
+// ⏸ 2026-11-20 쉬는 중 — 사진 인식 방향은 11-09에 접었다. 시크릿(VISION_API_KEY)은 그대로 두고, 제공자를 부르지 않고 바로 503 paused.
+//    계산기 버튼도 같은 날 숨겼다(index.html VISION_PAUSED). 다시 켜려면 둘 다 false 로 바꾸고 배포.
+const VISION_PAUSED = true;
 async function handleVision(request, env, cors) {
+  if (VISION_PAUSED) return visionErr('paused', '사진 인식은 지금 쉬는 중이에요', cors, 503);
   const provider = String((env && env.VISION_PROVIDER) || 'anthropic').toLowerCase();
   if (provider !== 'anthropic' && provider !== 'gemini') {
     return visionErr('bad-config', '알 수 없는 제공자 설정이야: ' + provider, cors, 503);
