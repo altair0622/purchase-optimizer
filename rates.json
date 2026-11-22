@@ -1,6 +1,6 @@
 {
- "asOf": "2026-11-21",
- "capAsOf": "2026-11-21",
+ "asOf": "2026-11-22",
+ "capAsOf": "2026-11-22",
  "source": "rakuten.com·topcashback.com·befrugal.com·capitaloneshopping.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일)",
  "stores": {
   "crateandbarrel": {
@@ -844,22 +844,22 @@
     ]
    },
    "bf": {
-    "pct": 10,
+    "pct": 15,
     "listed": true,
     "upTo": true,
-    "min": 3,
+    "min": 4.5,
     "depts": [
      {
       "n": "Lancome Products",
-      "p": 10
+      "p": 15
      },
      {
       "n": "Other",
-      "p": 9
+      "p": 13.5
      },
      {
       "n": "Furniture, Mattresses, & Beds",
-      "p": 3
+      "p": 4.5
      }
     ]
    }
@@ -939,19 +939,7 @@
   "bloomingdales": {
    "rk": {
     "pct": 10,
-    "listed": true,
-    "upTo": true,
-    "min": 2,
-    "depts": [
-     {
-      "n": "Jewelry",
-      "p": 10
-     },
-     {
-      "n": "All Other Non-Excluded Items",
-      "p": 2
-     }
-    ]
+    "listed": true
    },
    "cap": {
     "pct": 2,
@@ -1957,7 +1945,7 @@
   },
   "dickssportinggoods": {
    "rk": {
-    "pct": 2,
+    "pct": 9,
     "listed": true
    },
    "cap": {
@@ -2328,6 +2316,10 @@
       "p": 2
      },
      {
+      "n": "Lexar Memory Cards",
+      "p": 2
+     },
+     {
       "n": "Logitech PC Gaming Accessories, Handheld Gaming Accessories, Monitors, and Video Game Accessories",
       "p": 2
      },
@@ -2349,6 +2341,10 @@
      },
      {
       "n": "Philips Small and Major Appliances",
+      "p": 2
+     },
+     {
+      "n": "Polaroid Camcorders & Drones",
       "p": 2
      },
      {
