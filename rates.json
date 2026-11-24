@@ -1,6 +1,6 @@
 {
- "asOf": "2026-11-22",
- "capAsOf": "2026-11-22",
+ "asOf": "2026-11-24",
+ "capAsOf": "2026-11-24",
  "source": "rakuten.com·topcashback.com·befrugal.com·capitaloneshopping.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일)",
  "stores": {
   "crateandbarrel": {
@@ -47,18 +47,18 @@
     "listed": false
    },
    "bf": {
-    "pct": 9,
+    "pct": 8,
     "listed": true,
     "upTo": true,
-    "min": 4.5,
+    "min": 4,
     "depts": [
      {
       "n": "Furniture",
-      "p": 4.5
+      "p": 4
      },
      {
       "n": "Other",
-      "p": 9
+      "p": 8
      }
     ]
    }
@@ -207,7 +207,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 0.5,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
@@ -363,7 +363,7 @@
     "min": 1,
     "depts": [
      {
-      "n": "Lowe's Purchase",
+      "n": "All Other Non-Excluded Items",
       "p": 2
      },
      {
@@ -373,7 +373,7 @@
     ]
    },
    "cap": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
@@ -411,20 +411,8 @@
   },
   "acehardware": {
    "rk": {
-    "pct": 2,
-    "listed": true,
-    "upTo": true,
-    "min": 1,
-    "depts": [
-     {
-      "n": "All Other Items",
-      "p": 2
-     },
-     {
-      "n": "Snow Equipment",
-      "p": 1
-     }
-    ]
+    "pct": 10,
+    "listed": true
    },
    "cap": {
     "pct": 1,
@@ -465,7 +453,7 @@
   },
   "designwithinreach": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -584,18 +572,18 @@
     ]
    },
    "bf": {
-    "pct": 15,
+    "pct": 18,
     "listed": true,
     "upTo": true,
     "min": 0,
     "depts": [
      {
       "n": "Flash Deals",
-      "p": 15
+      "p": 18
      },
      {
       "n": "Extra Savings Deals",
-      "p": 15
+      "p": 18
      },
      {
       "n": "Apparel, Accessories, Shoes, & Jewelry",
@@ -672,94 +660,94 @@
   },
   "samsclub": {
    "rk": {
-    "pct": 8,
+    "pct": 10,
     "listed": true,
     "upTo": true,
-    "min": 2,
+    "min": 4,
     "depts": [
      {
-      "n": "New Memberships",
-      "p": 8
-     },
-     {
       "n": "All Other Eligible Items",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Appliances",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Bedding",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Books",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Clothing, Shoes & Accessories",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Delivery from Club (eligible items only)",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Electronics",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Gaming",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Home",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Home Improvement",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Jewelry",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Kitchen & Dining",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Mattresses",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Member's Mark Home",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Office",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Outdoor & Patio",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Pickup Orders (eligible items only)",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Savings & Clearance",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Sports & Fitness",
-      "p": 2
+      "p": 10
      },
      {
       "n": "Toys",
-      "p": 2
+      "p": 10
+     },
+     {
+      "n": "New Memberships",
+      "p": 4
      }
     ]
    },
@@ -772,18 +760,18 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 9,
     "listed": true,
     "upTo": true,
-    "min": 2,
+    "min": 2.25,
     "depts": [
      {
       "n": "New Sam's Club Membership",
-      "p": 8
+      "p": 9
      },
      {
       "n": "Other (Restrictions Apply)",
-      "p": 2
+      "p": 2.25
      }
     ]
    }
@@ -808,22 +796,22 @@
   },
   "macys": {
    "rk": {
-    "pct": 13,
+    "pct": 10,
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 4,
     "listed": true,
     "upTo": true,
-    "min": 1,
+    "min": 2,
     "depts": [
      {
       "n": "Everything Else",
-      "p": 2
+      "p": 4
      },
      {
       "n": "Macy's Marketplace, Furniture & Mattresses, Rugs",
-      "p": 1
+      "p": 2
      }
     ]
    },
@@ -844,22 +832,22 @@
     ]
    },
    "bf": {
-    "pct": 15,
+    "pct": 13,
     "listed": true,
     "upTo": true,
-    "min": 4.5,
+    "min": 3.9,
     "depts": [
      {
       "n": "Lancome Products",
-      "p": 15
+      "p": 13
      },
      {
       "n": "Other",
-      "p": 13.5
+      "p": 9.1
      },
      {
       "n": "Furniture, Mattresses, & Beds",
-      "p": 4.5
+      "p": 3.9
      }
     ]
    }
@@ -888,7 +876,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 0.5,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
@@ -896,7 +884,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 3,
+    "pct": 8,
     "listed": true
    }
   },
@@ -956,7 +944,7 @@
   },
   "saks": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -968,20 +956,20 @@
     "listed": true
    },
    "bf": {
-    "pct": 11,
+    "pct": 12,
     "listed": true
    }
   },
   "neimanmarcus": {
    "rk": {
-    "pct": 15,
+    "pct": 10,
     "listed": true,
     "upTo": true,
     "min": 2,
     "depts": [
      {
       "n": "All Other Non-Excluded Items",
-      "p": 15
+      "p": 10
      },
      {
       "n": "Beauty",
@@ -1016,11 +1004,11 @@
   },
   "gap": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
@@ -1046,7 +1034,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 9,
+    "pct": 8,
     "listed": true
    }
   },
@@ -1056,7 +1044,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 1,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -1074,7 +1062,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 1,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -1082,7 +1070,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 6,
     "listed": true
    }
   },
@@ -1106,7 +1094,7 @@
   },
   "americaneagle": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1186,7 +1174,7 @@
     ]
    },
    "bf": {
-    "pct": 9,
+    "pct": 6,
     "listed": true
    }
   },
@@ -1274,7 +1262,7 @@
   },
   "uniqlo": {
    "rk": {
-    "pct": 7,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1372,7 +1360,7 @@
   },
   "levis": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1420,7 +1408,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 7,
+    "pct": 4,
     "listed": true
    }
   },
@@ -1438,7 +1426,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 6,
     "listed": true
    }
   },
@@ -1462,7 +1450,7 @@
   },
   "katespade": {
    "rk": {
-    "pct": 10,
+    "pct": 15,
     "listed": true
    },
    "cap": {
@@ -1502,7 +1490,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
@@ -1534,11 +1522,11 @@
   },
   "nike": {
    "rk": {
-    "pct": 4,
+    "pct": 10,
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 5,
     "listed": true
    },
    "tcb": {
@@ -1546,39 +1534,39 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 10,
     "listed": true
    }
   },
   "adidas": {
    "rk": {
-    "pct": 6,
+    "pct": 10,
     "listed": true,
     "upTo": true,
-    "min": 2,
+    "min": 4,
     "depts": [
      {
       "n": "All Other Non-Excluded Items",
-      "p": 6
+      "p": 10
      },
      {
       "n": "Samba, Gazelle, Spezial, EVO SL",
-      "p": 2
+      "p": 4
      }
     ]
    },
    "cap": {
-    "pct": 2,
+    "pct": 3.5,
     "listed": true,
     "upTo": true,
     "min": 1,
     "depts": [
      {
       "n": "Everything Else",
-      "p": 2
+      "p": 3.5
      },
      {
-      "n": "EVO SL",
+      "n": "EOV",
       "p": 1
      },
      {
@@ -1614,7 +1602,7 @@
   },
   "newbalance": {
    "rk": {
-    "pct": 3,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1636,7 +1624,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 4,
+    "pct": 25,
     "listed": true
    },
    "tcb": {
@@ -1644,17 +1632,17 @@
     "listed": true
    },
    "bf": {
-    "pct": 13,
+    "pct": 11,
     "listed": true
    }
   },
   "puma": {
    "rk": {
-    "pct": 3,
+    "pct": 10,
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 3,
     "listed": true,
     "upTo": true
    },
@@ -1675,18 +1663,18 @@
     ]
    },
    "bf": {
-    "pct": 18,
+    "pct": 16,
     "listed": true,
     "upTo": true,
-    "min": 13.84,
+    "min": 12.3,
     "depts": [
      {
       "n": "Sale Items",
-      "p": 13.84
+      "p": 12.3
      },
      {
       "n": "Other",
-      "p": 18
+      "p": 16
      }
     ]
    }
@@ -1697,7 +1685,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
@@ -1711,11 +1699,11 @@
   },
   "footlocker": {
    "rk": {
-    "pct": 6,
+    "pct": 10,
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
@@ -1741,7 +1729,7 @@
   },
   "finishline": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1759,7 +1747,7 @@
   },
   "dsw": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1801,7 +1789,7 @@
   },
   "zappos": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1819,7 +1807,7 @@
   },
   "stevemadden": {
    "rk": {
-    "pct": 3,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1837,11 +1825,11 @@
   },
   "crocs": {
    "rk": {
-    "pct": 3,
+    "pct": 10,
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "tcb": {
@@ -1895,7 +1883,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 3,
+    "pct": 4,
     "listed": true
    },
    "tcb": {
@@ -1903,13 +1891,13 @@
     "listed": true
    },
    "bf": {
-    "pct": 9,
+    "pct": 6,
     "listed": true
    }
   },
   "northface": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1927,7 +1915,7 @@
   },
   "patagonia": {
    "rk": {
-    "pct": 2,
+    "pct": 5,
     "listed": true
    },
    "cap": {
@@ -2001,7 +1989,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
@@ -2132,11 +2120,11 @@
       "p": 5
      },
      {
-      "n": "TCL TVs",
-      "p": 5
+      "n": "Acer Mini PCs",
+      "p": 4
      },
      {
-      "n": "Acer Mini PCs",
+      "n": "Bose Headphones",
       "p": 4
      },
      {
@@ -2165,6 +2153,10 @@
      },
      {
       "n": "Meta Virtual Reality Products",
+      "p": 4
+     },
+     {
+      "n": "Select Sony Video and Projectors",
       "p": 4
      },
      {
@@ -2200,15 +2192,7 @@
       "p": 3
      },
      {
-      "n": "Lenovo Gaming Laptops",
-      "p": 3
-     },
-     {
       "n": "Rocketfish Accessories",
-      "p": 3
-     },
-     {
-      "n": "Select Sony Video and Projectors",
       "p": 3
      },
      {
@@ -2236,6 +2220,10 @@
       "p": 2.5
      },
      {
+      "n": "Sonos Headphones",
+      "p": 2
+     },
+     {
       "n": "Asus PC Gaming Accessories",
       "p": 2
      },
@@ -2249,10 +2237,6 @@
      },
      {
       "n": "Blink Home Security and Video",
-      "p": 2
-     },
-     {
-      "n": "Bose Headphones",
       "p": 2
      },
      {
@@ -2372,7 +2356,7 @@
       "p": 2
      },
      {
-      "n": "Sonicare Small and Major Appliances:",
+      "n": "Sonicare Small and Major Appliances",
       "p": 2
      },
      {
@@ -2381,6 +2365,10 @@
      },
      {
       "n": "TCL Home Computing Products",
+      "p": 2
+     },
+     {
+      "n": "TCL TVs",
       "p": 2
      },
      {
@@ -2437,10 +2425,6 @@
      },
      {
       "n": "Energizer Cell Phone Chargers & Cables",
-      "p": 1
-     },
-     {
-      "n": "Epson Printers",
       "p": 1
      },
      {
@@ -2634,102 +2618,102 @@
     ]
    },
    "bf": {
-    "pct": 14,
+    "pct": 18,
     "listed": true,
     "upTo": true,
-    "min": 1,
+    "min": 1.28,
     "depts": [
      {
       "n": "Shark | Ninja Health, Wellness & Personal Care, Or Small Appliances",
-      "p": 14
+      "p": 18
      },
      {
       "n": "Acer, Lenovo, ASUS, HP, Samsung Chromebooks",
-      "p": 12
+      "p": 15.42
      },
      {
       "n": "HP Printers (Excluding Laser)",
-      "p": 10
+      "p": 12.85
      },
      {
       "n": "Ring Home Security & Monitoring",
-      "p": 10
+      "p": 12.85
      },
      {
       "n": "Sony Headphones",
-      "p": 10
+      "p": 12.85
      },
      {
       "n": "Dyson Small Appliances, Health, Wellness & Personal Care",
-      "p": 8
+      "p": 10.28
      },
      {
       "n": "Roku Flat-Screen TVs",
-      "p": 8
+      "p": 10.28
      },
      {
       "n": "LG Home Audio & Speakers",
-      "p": 7
+      "p": 9
      },
      {
       "n": "Acer Mini PCs",
-      "p": 6
+      "p": 7.71
      },
      {
       "n": "DJI Cameras, Camcorders & Drones",
-      "p": 6
+      "p": 7.71
      },
      {
       "n": "Lenovo Tablets",
-      "p": 6
+      "p": 7.71
      },
      {
       "n": "LG Major Appliances",
-      "p": 6
+      "p": 7.71
      },
      {
       "n": "Logitech Computer Accessories & Peripherals",
-      "p": 6
+      "p": 7.71
      },
      {
       "n": "Skullcandy Headphones",
-      "p": 6
+      "p": 7.71
      },
      {
       "n": "Sony Digital Cameras & Digital Camera Accessories",
-      "p": 6
+      "p": 7.71
      },
      {
       "n": "SteelSeries, Razer, Logitech, Turtle Beach, Or LG PC Gaming Accessories",
-      "p": 6
+      "p": 7.71
      },
      {
       "n": "SteelSeries, Razer, Logitech, Turtle Beach, LG, Or Corsair Gaming Monitors",
-      "p": 6
+      "p": 7.71
      },
      {
       "n": "SteelSeries, Razer, Logitech, Turtle Beach, LG, Or Corsair Handheld Gaming Accessories",
-      "p": 6
+      "p": 7.71
      },
      {
       "n": "SteelSeries, Razer, Logitech, Turtle Beach, LG, Or Corsair Video Game Accessories",
-      "p": 6
+      "p": 7.71
      },
      {
       "n": "Select Categories 4%*",
-      "p": 4
+      "p": 5.14
      },
      {
       "n": "Select Categories 2%**",
-      "p": 2
+      "p": 2.57
      },
      {
       "n": "Select Lenovo Notebooks***",
-      "p": 2
+      "p": 2.57
      },
      {
       "n": "Other (Exclusions Apply. See Terms)",
-      "p": 1
+      "p": 1.28
      }
     ]
    }
@@ -2740,7 +2724,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 0.5,
+    "pct": 1,
     "listed": true
    },
    "tcb": {
@@ -2766,8 +2750,40 @@
   },
   "samsung": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 6,
+    "listed": true,
+    "upTo": true,
+    "min": 2,
+    "depts": [
+     {
+      "n": "Home Appliances",
+      "p": 6
+     },
+     {
+      "n": "All Other Non-Excluded Items",
+      "p": 2
+     },
+     {
+      "n": "Home Electronics (TVs)",
+      "p": 2
+     },
+     {
+      "n": "Mobile Phones",
+      "p": 2
+     },
+     {
+      "n": "Monitors",
+      "p": 2
+     },
+     {
+      "n": "Tablets & Laptops",
+      "p": 2
+     },
+     {
+      "n": "Wearables (Watches & Rings)",
+      "p": 2
+     }
+    ]
    },
    "cap": {
     "pct": 0.5,
@@ -2880,7 +2896,7 @@
   },
   "lenovo": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -2940,7 +2956,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 6,
+    "pct": 2,
     "listed": true
    }
   },
@@ -2968,8 +2984,24 @@
     "listed": true
    },
    "cap": {
-    "pct": 1,
-    "listed": true
+    "pct": 1.5,
+    "listed": true,
+    "upTo": true,
+    "min": 0.75,
+    "depts": [
+     {
+      "n": "Lighting & Video",
+      "p": 1.5
+     },
+     {
+      "n": "Everything Else",
+      "p": 0.75
+     },
+     {
+      "n": "Pre-Owned Equipment",
+      "p": 1.5
+     }
+    ]
    },
    "tcb": {
     "pct": 3,
@@ -3018,7 +3050,7 @@
   },
   "logitech": {
    "rk": {
-    "pct": 5,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -3058,7 +3090,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 2.5,
     "listed": true
    },
    "tcb": {
@@ -3072,11 +3104,11 @@
   },
   "sharkninja": {
    "rk": {
-    "pct": 6,
+    "pct": 10,
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 4,
     "listed": true
    },
    "tcb": {
@@ -3108,11 +3140,11 @@
   },
   "sephora": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
-    "pct": 1,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -3120,13 +3152,13 @@
     "listed": true
    },
    "bf": {
-    "pct": 5,
+    "pct": 6,
     "listed": true
    }
   },
   "ulta": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -3162,7 +3194,7 @@
   },
   "gnc": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -3198,7 +3230,7 @@
   },
   "iherb": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -3226,13 +3258,25 @@
     ]
    },
    "bf": {
-    "pct": 9,
-    "listed": true
+    "pct": 15,
+    "listed": true,
+    "upTo": true,
+    "min": 6,
+    "depts": [
+     {
+      "n": "US Customer Orders",
+      "p": 15
+     },
+     {
+      "n": "Other (Exclusions Apply)",
+      "p": 6
+     }
+    ]
    }
   },
   "walgreens": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -3274,7 +3318,7 @@
     ]
    },
    "bf": {
-    "pct": 10,
+    "pct": 13,
     "listed": true
    }
   },
@@ -3298,7 +3342,7 @@
   },
   "carters": {
    "rk": {
-    "pct": 6,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -3362,11 +3406,11 @@
   },
   "chewy": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
@@ -3380,7 +3424,7 @@
   },
   "petco": {
    "rk": {
-    "pct": 10,
+    "pct": 15,
     "listed": true
    },
    "cap": {
@@ -3398,7 +3442,7 @@
   },
   "petsmart": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -3416,8 +3460,24 @@
   },
   "staples": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 10,
+    "listed": true,
+    "upTo": true,
+    "min": 2,
+    "depts": [
+     {
+      "n": "All Other Non-Excluded Items",
+      "p": 10
+     },
+     {
+      "n": "Ink & Toner",
+      "p": 2
+     },
+     {
+      "n": "Tech",
+      "p": 2
+     }
+    ]
    },
    "cap": {
     "pct": 2,
@@ -3428,14 +3488,38 @@
     "listed": true
    },
    "bf": {
-    "pct": 9,
+    "pct": 7,
     "listed": true
    }
   },
   "officedepot": {
    "rk": {
-    "pct": 2,
-    "listed": true
+    "pct": 10,
+    "listed": true,
+    "upTo": true,
+    "min": 2,
+    "depts": [
+     {
+      "n": "Accessories",
+      "p": 10
+     },
+     {
+      "n": "All Other Non-Excluded Items",
+      "p": 10
+     },
+     {
+      "n": "Computers",
+      "p": 10
+     },
+     {
+      "n": "Electronics",
+      "p": 10
+     },
+     {
+      "n": "Furniture",
+      "p": 2
+     }
+    ]
    },
    "cap": {
     "pct": 1,
@@ -3594,11 +3678,11 @@
   },
   "aliexpress": {
    "rk": {
-    "pct": 4,
+    "pct": 10,
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 15,
     "listed": true
    },
    "tcb": {
@@ -3647,7 +3731,7 @@
     "pct": 8,
     "listed": true,
     "upTo": true,
-    "min": 1.5,
+    "min": 2,
     "depts": [
      {
       "n": "New Customer",
@@ -3655,7 +3739,7 @@
      },
      {
       "n": "Existing Customers",
-      "p": 1.5
+      "p": 2
      }
     ]
    },
@@ -3676,18 +3760,18 @@
     ]
    },
    "bf": {
-    "pct": 45,
+    "pct": 50,
     "listed": true,
     "upTo": true,
-    "min": 6,
+    "min": 6.66,
     "depts": [
      {
       "n": "New Temu Customer Order",
-      "p": 45
+      "p": 50
      },
      {
       "n": "Existing Temu Customer Order",
-      "p": 6
+      "p": 6.66
      }
     ]
    }
@@ -3725,14 +3809,14 @@
   },
   "expedia": {
    "rk": {
-    "pct": 3,
+    "pct": 10,
     "listed": true,
     "upTo": true,
     "min": 1,
     "depts": [
      {
       "n": "Hotels and Homes",
-      "p": 3
+      "p": 10
      },
      {
       "n": "Things to Do",
@@ -3755,7 +3839,7 @@
     "min": 0.5,
     "depts": [
      {
-      "n": "Activity",
+      "n": "Completed Hotel Stay",
       "p": 2
      },
      {
@@ -3763,8 +3847,8 @@
       "p": 1
      },
      {
-      "n": "Completed Hotel Stay",
-      "p": 1.5
+      "n": "Activity",
+      "p": 2
      },
      {
       "n": "Completed Vacation Package",
@@ -3843,14 +3927,14 @@
   },
   "hotels": {
    "rk": {
-    "pct": 3,
+    "pct": 10,
     "listed": true,
     "upTo": true,
     "min": 1,
     "depts": [
      {
       "n": "Hotel Bookings",
-      "p": 3
+      "p": 10
      },
      {
       "n": "Cars",
@@ -3859,22 +3943,22 @@
     ]
    },
    "cap": {
-    "pct": 1,
+    "pct": 2,
     "listed": true,
     "upTo": true,
-    "min": 0.25,
+    "min": 0.5,
     "depts": [
      {
       "n": "Lodging",
-      "p": 1
+      "p": 2
      },
      {
       "n": "Car",
-      "p": 0.25
+      "p": 0.5
      },
      {
       "n": "Everything Else",
-      "p": 0.5
+      "p": 1
      }
     ]
    },
@@ -3901,14 +3985,14 @@
   },
   "booking": {
    "rk": {
-    "pct": 8,
+    "pct": 6,
     "listed": true,
     "upTo": true,
     "min": 2,
     "depts": [
      {
       "n": "Accommodations",
-      "p": 8
+      "p": 6
      },
      {
       "n": "Rental Cars Pre-Paid",
@@ -4003,18 +4087,18 @@
   },
   "priceline": {
    "rk": {
-    "pct": 8,
+    "pct": 10,
     "listed": true,
     "upTo": true,
     "min": 2,
     "depts": [
      {
       "n": "All Other Hotels",
-      "p": 8
+      "p": 10
      },
      {
       "n": "Express Deals Hotels",
-      "p": 8
+      "p": 10
      },
      {
       "n": "All Other Rental Cars",
@@ -4105,7 +4189,7 @@
   },
   "samsonite": {
    "rk": {
-    "pct": 2.5,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -4123,11 +4207,11 @@
   },
   "tumi": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
