@@ -1,6 +1,6 @@
 {
- "asOf": "2026-11-24",
- "capAsOf": "2026-11-24",
+ "asOf": "2026-11-25",
+ "capAsOf": "2026-11-25",
  "source": "rakuten.com·topcashback.com·befrugal.com·capitaloneshopping.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일)",
  "stores": {
   "crateandbarrel": {
@@ -124,7 +124,23 @@
    },
    "cap": {
     "pct": 0.5,
-    "listed": true
+    "listed": true,
+    "upTo": true,
+    "min": 0,
+    "depts": [
+     {
+      "n": "All other products",
+      "p": 0.5
+     },
+     {
+      "n": "SEKTION products (skus listed in Impact commission terms)",
+      "p": 0
+     },
+     {
+      "n": "PAX products (skus listed in Impact commission terms)",
+      "p": 0
+     }
+    ]
    },
    "tcb": {
     "pct": 4,
@@ -373,7 +389,7 @@
     ]
    },
    "cap": {
-    "pct": 4,
+    "pct": 5,
     "listed": true
    },
    "tcb": {
@@ -811,18 +827,26 @@
     "listed": true
    },
    "cap": {
-    "pct": 2,
+    "pct": 20,
     "listed": true,
     "upTo": true,
-    "min": 1,
+    "min": 4,
     "depts": [
      {
-      "n": "Everything Else",
-      "p": 2
+      "n": "Lancome",
+      "p": 20
      },
      {
-      "n": "Macy's Marketplace, Furniture & Mattresses, Rugs",
-      "p": 1
+      "n": "Everything Else",
+      "p": 8
+     },
+     {
+      "n": "Men's Suiting (suits, blazers, wool overcoats)",
+      "p": 16
+     },
+     {
+      "n": "Macy's Marketplace and Furniture, Mattresses, Rugs",
+      "p": 4
      }
     ]
    },
@@ -844,23 +868,7 @@
    },
    "bf": {
     "pct": 13,
-    "listed": true,
-    "upTo": true,
-    "min": 3.9,
-    "depts": [
-     {
-      "n": "Lancome Products",
-      "p": 13
-     },
-     {
-      "n": "Other",
-      "p": 9.1
-     },
-     {
-      "n": "Furniture, Mattresses, & Beds",
-      "p": 3.9
-     }
-    ]
+    "listed": true
    }
   },
   "kohls": {
@@ -937,7 +945,7 @@
   },
   "bloomingdales": {
    "rk": {
-    "pct": 2,
+    "pct": 12,
     "listed": true
    },
    "cap": {
@@ -949,13 +957,13 @@
     "listed": true
    },
    "bf": {
-    "pct": 5,
+    "pct": 8,
     "listed": true
    }
   },
   "saks": {
    "rk": {
-    "pct": 10,
+    "pct": 12,
     "listed": true
    },
    "cap": {
@@ -967,26 +975,14 @@
     "listed": true
    },
    "bf": {
-    "pct": 12,
+    "pct": 12.5,
     "listed": true
    }
   },
   "neimanmarcus": {
    "rk": {
-    "pct": 10,
-    "listed": true,
-    "upTo": true,
-    "min": 2,
-    "depts": [
-     {
-      "n": "All Other Non-Excluded Items",
-      "p": 10
-     },
-     {
-      "n": "Beauty",
-      "p": 2
-     }
-    ]
+    "pct": 15,
+    "listed": true
    },
    "cap": {
     "pct": 2,
@@ -1069,7 +1065,7 @@
   },
   "jcrew": {
    "rk": {
-    "pct": 10,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1230,7 +1226,19 @@
    },
    "cap": {
     "pct": 0.5,
-    "listed": true
+    "listed": true,
+    "upTo": true,
+    "min": 0,
+    "depts": [
+     {
+      "n": "Everything Else",
+      "p": 0.5
+     },
+     {
+      "n": "Sale Products",
+      "p": 0
+     }
+    ]
    },
    "tcb": {
     "pct": 2,
@@ -1479,7 +1487,7 @@
   },
   "michaelkors": {
    "rk": {
-    "pct": 10,
+    "pct": 12,
     "listed": true
    },
    "cap": {
@@ -1537,7 +1545,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 5,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -1625,7 +1633,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 12,
     "listed": true
    }
   },
@@ -1704,7 +1712,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 10,
+    "pct": 15,
     "listed": true
    }
   },
@@ -1854,7 +1862,7 @@
   },
   "athleta": {
    "rk": {
-    "pct": 6,
+    "pct": 12,
     "listed": true
    },
    "cap": {
@@ -1894,7 +1902,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 4,
+    "pct": 5.5,
     "listed": true
    },
    "tcb": {
@@ -1908,7 +1916,7 @@
   },
   "northface": {
    "rk": {
-    "pct": 0,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -1948,14 +1956,14 @@
     "listed": true
    },
    "cap": {
-    "pct": 1,
+    "pct": 2.5,
     "listed": true,
     "upTo": true,
-    "min": 1,
+    "min": 2.5,
     "depts": [
      {
       "n": "Everything Else",
-      "p": 1
+      "p": 2.5
      }
     ]
    },
@@ -2637,102 +2645,102 @@
     ]
    },
    "bf": {
-    "pct": 18,
+    "pct": 20,
     "listed": true,
     "upTo": true,
-    "min": 1.28,
+    "min": 1.42,
     "depts": [
      {
       "n": "Shark | Ninja Health, Wellness & Personal Care, Or Small Appliances",
-      "p": 18
+      "p": 20
      },
      {
       "n": "Acer, Lenovo, ASUS, HP, Samsung Chromebooks",
-      "p": 15.42
+      "p": 17.14
      },
      {
       "n": "HP Printers (Excluding Laser)",
-      "p": 12.85
+      "p": 14.28
      },
      {
       "n": "Ring Home Security & Monitoring",
-      "p": 12.85
+      "p": 14.28
      },
      {
       "n": "Sony Headphones",
-      "p": 12.85
+      "p": 14.28
      },
      {
       "n": "Dyson Small Appliances, Health, Wellness & Personal Care",
-      "p": 10.28
+      "p": 11.42
      },
      {
       "n": "Roku Flat-Screen TVs",
-      "p": 10.28
+      "p": 11.42
      },
      {
       "n": "LG Home Audio & Speakers",
-      "p": 9
+      "p": 10
      },
      {
       "n": "Acer Mini PCs",
-      "p": 7.71
+      "p": 8.57
      },
      {
       "n": "DJI Cameras, Camcorders & Drones",
-      "p": 7.71
+      "p": 8.57
      },
      {
       "n": "Lenovo Tablets",
-      "p": 7.71
+      "p": 8.57
      },
      {
       "n": "LG Major Appliances",
-      "p": 7.71
+      "p": 8.57
      },
      {
       "n": "Logitech Computer Accessories & Peripherals",
-      "p": 7.71
+      "p": 8.57
      },
      {
       "n": "Skullcandy Headphones",
-      "p": 7.71
+      "p": 8.57
      },
      {
       "n": "Sony Digital Cameras & Digital Camera Accessories",
-      "p": 7.71
+      "p": 8.57
      },
      {
       "n": "SteelSeries, Razer, Logitech, Turtle Beach, Or LG PC Gaming Accessories",
-      "p": 7.71
+      "p": 8.57
      },
      {
       "n": "SteelSeries, Razer, Logitech, Turtle Beach, LG, Or Corsair Gaming Monitors",
-      "p": 7.71
+      "p": 8.57
      },
      {
       "n": "SteelSeries, Razer, Logitech, Turtle Beach, LG, Or Corsair Handheld Gaming Accessories",
-      "p": 7.71
+      "p": 8.57
      },
      {
       "n": "SteelSeries, Razer, Logitech, Turtle Beach, LG, Or Corsair Video Game Accessories",
-      "p": 7.71
+      "p": 8.57
      },
      {
       "n": "Select Categories 4%*",
-      "p": 5.14
+      "p": 5.71
      },
      {
       "n": "Select Categories 2%**",
-      "p": 2.57
+      "p": 2.85
      },
      {
       "n": "Select Lenovo Notebooks***",
-      "p": 2.57
+      "p": 2.85
      },
      {
       "n": "Other (Exclusions Apply. See Terms)",
-      "p": 1.28
+      "p": 1.42
      }
     ]
    }
@@ -2805,30 +2813,30 @@
     ]
    },
    "cap": {
-    "pct": 0.5,
+    "pct": 0.75,
     "listed": true,
     "upTo": true,
-    "min": 0.25,
+    "min": 0,
     "depts": [
      {
-      "n": "Mobile",
-      "p": 0.5
+      "n": "Home Appliances",
+      "p": 0.75
      },
      {
       "n": "TV's and Accessories",
-      "p": 0.5
+      "p": 0.25
      },
      {
       "n": "Everything Else",
-      "p": 0.25
+      "p": 0
      },
      {
-      "n": "Home Appliances",
-      "p": 0.5
+      "n": "Mobile",
+      "p": 0.25
      },
      {
       "n": "Monitors",
-      "p": 0.25
+      "p": 0
      }
     ]
    },
@@ -2915,7 +2923,7 @@
   },
   "lenovo": {
    "rk": {
-    "pct": 2,
+    "pct": 12,
     "listed": true
    },
    "cap": {
@@ -3069,7 +3077,7 @@
   },
   "logitech": {
    "rk": {
-    "pct": 4,
+    "pct": 2,
     "listed": true
    },
    "cap": {
@@ -3081,7 +3089,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 9,
     "listed": true
    }
   },
@@ -3105,7 +3113,7 @@
   },
   "dyson": {
    "rk": {
-    "pct": 10,
+    "pct": 12,
     "listed": true
    },
    "cap": {
@@ -3171,7 +3179,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 7.5,
     "listed": true
    }
   },
@@ -3443,7 +3451,7 @@
   },
   "petco": {
    "rk": {
-    "pct": 2,
+    "pct": 12,
     "listed": true
    },
    "cap": {
@@ -3677,7 +3685,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 15,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
