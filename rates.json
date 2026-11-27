@@ -1,6 +1,6 @@
 {
- "asOf": "2026-11-26",
- "capAsOf": "2026-11-26",
+ "asOf": "2026-11-27",
+ "capAsOf": "2026-11-27",
  "source": "rakuten.com·topcashback.com·befrugal.com·capitaloneshopping.com 공개 페이지(로그인 불필요, 기본율은 전 회원 동일)",
  "stores": {
   "crateandbarrel": {
@@ -35,18 +35,18 @@
   },
   "cb2": {
    "rk": {
-    "pct": 2,
+    "pct": 3,
     "listed": true,
     "upTo": true,
-    "min": 1,
+    "min": 1.5,
     "depts": [
      {
       "n": "All Other Non-Excluded Items",
-      "p": 2
+      "p": 3
      },
      {
       "n": "Furniture",
-      "p": 1
+      "p": 1.5
      }
     ]
    },
@@ -150,19 +150,15 @@
     "pct": 0.5,
     "listed": true,
     "upTo": true,
-    "min": 0,
+    "min": 0.25,
     "depts": [
      {
-      "n": "All other products",
+      "n": "Everything Else",
       "p": 0.5
      },
      {
-      "n": "SEKTION products (skus listed in Impact commission terms)",
-      "p": 0
-     },
-     {
-      "n": "PAX products (skus listed in Impact commission terms)",
-      "p": 0
+      "n": "Pax & Sektion",
+      "p": 0.25
      }
     ]
    },
@@ -413,7 +409,7 @@
     ]
    },
    "cap": {
-    "pct": 5,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -611,18 +607,18 @@
     ]
    },
    "bf": {
-    "pct": 22.5,
+    "pct": 19.5,
     "listed": true,
     "upTo": true,
     "min": 0,
     "depts": [
      {
       "n": "Flash Deals",
-      "p": 22.5
+      "p": 19.5
      },
      {
       "n": "Extra Savings Deals",
-      "p": 22.5
+      "p": 19.5
      },
      {
       "n": "Apparel, Accessories, Shoes, & Jewelry",
@@ -847,26 +843,26 @@
   },
   "macys": {
    "rk": {
-    "pct": 12,
+    "pct": 15,
     "listed": true
    },
    "cap": {
-    "pct": 5,
+    "pct": 20,
     "listed": true,
     "upTo": true,
-    "min": 1,
+    "min": 4,
     "depts": [
      {
       "n": "Men's Suiting (suits, blazers, wool overcoats)",
-      "p": 5
+      "p": 20
      },
      {
       "n": "Macy's Marketplace and Furniture, Mattresses",
-      "p": 1
+      "p": 4
      },
      {
       "n": "Everything Else",
-      "p": 2
+      "p": 8
      }
     ]
    },
@@ -887,7 +883,7 @@
     ]
    },
    "bf": {
-    "pct": 10,
+    "pct": 15.5,
     "listed": true
    }
   },
@@ -977,7 +973,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 9.6,
+    "pct": 12,
     "listed": true
    }
   },
@@ -1047,7 +1043,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 3,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -1109,7 +1105,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 5,
     "listed": true
    }
   },
@@ -1133,7 +1129,7 @@
   },
   "americaneagle": {
    "rk": {
-    "pct": 12,
+    "pct": 15,
     "listed": true
    },
    "cap": {
@@ -1253,8 +1249,20 @@
     "listed": false
    },
    "cap": {
-    "pct": 1,
-    "listed": true
+    "pct": 2,
+    "listed": true,
+    "upTo": true,
+    "min": 0.25,
+    "depts": [
+     {
+      "n": "Everything Else",
+      "p": 2
+     },
+     {
+      "n": "Sale Products",
+      "p": 0.25
+     }
+    ]
    },
    "tcb": {
     "pct": 2,
@@ -1557,7 +1565,7 @@
   },
   "nike": {
    "rk": {
-    "pct": 2,
+    "pct": 10,
     "listed": true
    },
    "cap": {
@@ -1569,20 +1577,20 @@
     "listed": true
    },
    "bf": {
-    "pct": 4,
+    "pct": 10,
     "listed": true
    }
   },
   "adidas": {
    "rk": {
-    "pct": 12,
+    "pct": 15,
     "listed": true,
     "upTo": true,
     "min": 4,
     "depts": [
      {
       "n": "All Other Non-Excluded Items",
-      "p": 12
+      "p": 15
      },
      {
       "n": "Samba, Gazelle, Spezial, EVO SL",
@@ -1864,7 +1872,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 4,
+    "pct": 5,
     "listed": true
    },
    "tcb": {
@@ -1914,7 +1922,7 @@
   },
   "columbia": {
    "rk": {
-    "pct": 12,
+    "pct": 15,
     "listed": true
    },
    "cap": {
@@ -1968,7 +1976,7 @@
   },
   "dickssportinggoods": {
    "rk": {
-    "pct": 2,
+    "pct": 12,
     "listed": true
    },
    "cap": {
@@ -2071,10 +2079,6 @@
       "p": 6
      },
      {
-      "n": "LG Appliances",
-      "p": 6
-     },
-     {
       "n": "Lenovo Googlebooks",
       "p": 6
      },
@@ -2151,10 +2155,6 @@
       "p": 4
      },
      {
-      "n": "Bose Headphones",
-      "p": 4
-     },
-     {
       "n": "Dyson Health, Wellness & Personal Care",
       "p": 4
      },
@@ -2176,6 +2176,10 @@
      },
      {
       "n": "HP Chromebooks",
+      "p": 4
+     },
+     {
+      "n": "LG Appliances",
       "p": 4
      },
      {
@@ -2271,15 +2275,15 @@
       "p": 2
      },
      {
-      "n": "Corsair PC Gaming Accessories, Handheld Gaming Accessories, Monitors, and Video Game Accessories",
-      "p": 2
-     },
-     {
       "n": "CyberPowerPC Products",
       "p": 2
      },
      {
       "n": "De'longhi Appliances",
+      "p": 2
+     },
+     {
+      "n": "Energizer Cell Phone Chargers & Cables",
       "p": 2
      },
      {
@@ -2307,10 +2311,6 @@
       "p": 2
      },
      {
-      "n": "Intel Laptops",
-      "p": 2
-     },
-     {
       "n": "JLab Headphones",
       "p": 2
      },
@@ -2319,19 +2319,11 @@
       "p": 2
      },
      {
-      "n": "LG PC Gaming Accessories, Handheld Gaming Accessories, Monitors, and Video Game Accessories",
-      "p": 2
-     },
-     {
       "n": "LG TVs",
       "p": 2
      },
      {
       "n": "Lexar Memory Cards",
-      "p": 2
-     },
-     {
-      "n": "Logitech PC Gaming Accessories, Handheld Gaming Accessories, Monitors, and Video Game Accessories",
       "p": 2
      },
      {
@@ -2363,10 +2355,6 @@
       "p": 2
      },
      {
-      "n": "Razer PC Gaming Accessories, Handheld Gaming Accessories, Monitors, and Video Game Accessories",
-      "p": 2
-     },
-     {
       "n": "Roborock Appliances",
       "p": 2
      },
@@ -2391,14 +2379,6 @@
       "p": 2
      },
      {
-      "n": "Sonos Home Audio & Speakers",
-      "p": 2
-     },
-     {
-      "n": "Sony Headphones",
-      "p": 2
-     },
-     {
       "n": "Sony Sound Bars",
       "p": 2
      },
@@ -2411,7 +2391,11 @@
       "p": 2
      },
      {
-      "n": "Turtle Beach PC Gaming Accessories, Handheld Gaming Accessories, Monitors, and Video Game Accessories",
+      "n": "WD Home Computing Products",
+      "p": 2
+     },
+     {
+      "n": "Western Digital Home Computing Products",
       "p": 2
      },
      {
@@ -2425,6 +2409,10 @@
      {
       "n": "Sony TVs",
       "p": 1.5
+     },
+     {
+      "n": "All Laptops",
+      "p": 1
      },
      {
       "n": "All Other Cell Phones (Excluding iPhones)",
@@ -2463,10 +2451,6 @@
       "p": 1
      },
      {
-      "n": "Energizer Cell Phone Chargers & Cables",
-      "p": 1
-     },
-     {
       "n": "Epson Printers",
       "p": 1
      },
@@ -2491,7 +2475,15 @@
       "p": 1
      },
      {
+      "n": "Intel Laptops",
+      "p": 1
+     },
+     {
       "n": "Laptops Powered by Snapdragon",
+      "p": 1
+     },
+     {
+      "n": "Macbooks",
       "p": 1
      },
      {
@@ -2887,7 +2879,7 @@
   },
   "dell": {
    "rk": {
-    "pct": 2,
+    "pct": 12,
     "listed": true
    },
    "cap": {
@@ -3113,7 +3105,7 @@
   },
   "logitech": {
    "rk": {
-    "pct": 2,
+    "pct": 5,
     "listed": true
    },
    "cap": {
@@ -3125,7 +3117,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 9,
+    "pct": 10,
     "listed": true
    }
   },
@@ -3171,7 +3163,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 4,
+    "pct": 3,
     "listed": true
    },
    "tcb": {
@@ -3203,7 +3195,7 @@
   },
   "sephora": {
    "rk": {
-    "pct": 6,
+    "pct": 8,
     "listed": true
    },
    "cap": {
@@ -3215,7 +3207,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 7.5,
+    "pct": 9,
     "listed": true
    }
   },
@@ -3339,7 +3331,7 @@
   },
   "walgreens": {
    "rk": {
-    "pct": 12,
+    "pct": 15,
     "listed": true
    },
    "cap": {
@@ -3351,7 +3343,7 @@
     "listed": true
    },
    "bf": {
-    "pct": 8,
+    "pct": 15.5,
     "listed": true
    }
   },
@@ -3423,14 +3415,14 @@
   },
   "lego": {
    "rk": {
-    "pct": 15,
+    "pct": 16,
     "listed": true,
     "upTo": true,
     "min": 3,
     "depts": [
      {
       "n": "NINJAGO",
-      "p": 15
+      "p": 16
      },
      {
       "n": "All Other Non-Excluded Items",
@@ -3469,7 +3461,7 @@
   },
   "chewy": {
    "rk": {
-    "pct": 8,
+    "pct": 12,
     "listed": true
    },
    "cap": {
@@ -3487,7 +3479,7 @@
   },
   "petco": {
    "rk": {
-    "pct": 20,
+    "pct": 25,
     "listed": true
    },
    "cap": {
@@ -3505,7 +3497,7 @@
   },
   "petsmart": {
    "rk": {
-    "pct": 15,
+    "pct": 20,
     "listed": true
    },
    "cap": {
@@ -3721,7 +3713,7 @@
     "listed": true
    },
    "cap": {
-    "pct": 15,
+    "pct": 2,
     "listed": true
    },
    "tcb": {
@@ -4028,14 +4020,14 @@
   },
   "booking": {
    "rk": {
-    "pct": 6,
+    "pct": 8,
     "listed": true,
     "upTo": true,
     "min": 2,
     "depts": [
      {
       "n": "Accommodations",
-      "p": 6
+      "p": 8
      },
      {
       "n": "Rental Cars Pre-Paid",
@@ -4130,21 +4122,21 @@
   },
   "priceline": {
    "rk": {
-    "pct": 4,
+    "pct": 10,
     "listed": true,
     "upTo": true,
     "min": 2,
     "depts": [
      {
       "n": "All Other Hotels",
-      "p": 4
-     },
-     {
-      "n": "All Other Rental Cars",
-      "p": 4
+      "p": 10
      },
      {
       "n": "Express Deals Hotels",
+      "p": 10
+     },
+     {
+      "n": "All Other Rental Cars",
       "p": 4
      },
      {
